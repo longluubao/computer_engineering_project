@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mingw32-make:*)",
+      "Bash(source/Ethernet/ip_address.txt)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
