@@ -31,12 +31,22 @@ extern PduLengthType                authRecieveLength[SECOC_NUM_OF_RX_PDU_PROCES
 extern SecOC_PduCollection PdusCollections[];
 
 extern Std_ReturnType authenticate(const PduIdType TxPduId, PduInfoType* AuthPdu, PduInfoType* SecPdu);
+extern Std_ReturnType authenticate_PQC(const PduIdType TxPduId, PduInfoType* AuthPdu, PduInfoType* SecPdu);
 extern Std_ReturnType verify(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_VerificationResultType *verification_result);
+extern Std_ReturnType verify_PQC(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_VerificationResultType *verification_result);
 extern Std_ReturnType seperatePduCollectionTx(const PduIdType TxPduId,uint32 AuthPduLen , PduInfoType* securedPdu, PduInfoType* AuthPduCollection, PduInfoType* CryptoPduCollection, PduIdType* authPduId, PduIdType* cryptoPduId);
 
 /********************************************************************************************************/
 /********************************************Functions***************************************************/
 /********************************************************************************************************/
+
+// DLL export macro for Windows
+#ifdef WINDOWS
+    #define DLL_EXPORT __declspec(dllexport)
+#else
+    #define DLL_EXPORT
+#endif
+
 static char* errorString(Std_ReturnType error)
 {
     switch(error)
@@ -56,7 +66,7 @@ static char* errorString(Std_ReturnType error)
     }
 }
 
-void GUIInterface_init()
+DLL_EXPORT void GUIInterface_init()
 {
 #if defined(LINUX) || defined(WINDOWS)
     ethernet_init();
@@ -64,7 +74,7 @@ void GUIInterface_init()
     SecOC_Init(&SecOC_Config);
 }
 
-char* GUIInterface_authenticate(uint8_t configId, uint8_t *data, uint8_t len)
+DLL_EXPORT char* GUIInterface_authenticate(uint8_t configId, uint8_t *data, uint8_t len)
 {
 
     PduInfoType *authPdu = &(SecOCTxPduProcessing[configId].SecOCTxAuthenticPduLayer->SecOCTxAuthenticLayerPduRef);
@@ -86,7 +96,7 @@ char* GUIInterface_authenticate(uint8_t configId, uint8_t *data, uint8_t len)
 
 }
 
-char* GUIInterface_verify(uint8_t configId)
+DLL_EXPORT char* GUIInterface_verify(uint8_t configId)
 {
     PduInfoType *authPdu = &(SecOCRxPduProcessing[configId].SecOCRxAuthenticPduLayer->SecOCRxAuthenticLayerPduRef);
     PduInfoType *securedPdu = &(SecOCRxPduProcessing[configId].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCRxSecuredLayerPduRef);
@@ -106,17 +116,18 @@ char* GUIInterface_verify(uint8_t configId)
 
 }
 
-char* GUIInterface_getSecuredPDU(uint8_t configId, uint8_t *len)
+DLL_EXPORT char* GUIInterface_getSecuredPDU(uint8_t configId, uint8_t *len)
 {
     PduInfoType *securedPdu = &(SecOCTxPduProcessing[configId].SecOCTxSecuredPduLayer->SecOCTxSecuredPdu->SecOCTxSecuredLayerPduRef);
     *len = securedPdu->SduLength;
 
     static char securedStr[100]; /* Static to be passed to the python program*/
+    memset(securedStr, 0, sizeof(securedStr)); /* Clear buffer before use */
 
     uint8_t headerIdx = SecOCTxPduProcessing[configId].SecOCTxSecuredPduLayer->SecOCTxSecuredPdu->SecOCAuthPduHeaderLength;
     uint8_t authIdx = *len - BIT_TO_BYTES(SecOCTxPduProcessing[configId].SecOCAuthInfoTruncLength);
     uint8_t freshIdx = authIdx - BIT_TO_BYTES(SecOCTxPduProcessing[configId].SecOCFreshnessValueTruncLength);
-    
+
     int i, stri;
     for(i = 0, stri = 0; i < *len; i++)
     {
@@ -134,7 +145,7 @@ char* GUIInterface_getSecuredPDU(uint8_t configId, uint8_t *len)
 }
 
 
-char* GUIInterface_getSecuredRxPDU(uint8_t configId, uint8_t *len , uint8_t * Securedlen)
+DLL_EXPORT char* GUIInterface_getSecuredRxPDU(uint8_t configId, uint8_t *len , uint8_t * Securedlen)
 {
     if(PdusCollections[configId].Type == SECOC_AUTH_COLLECTON_PDU || PdusCollections[configId].Type == SECOC_CRYPTO_COLLECTON_PDU)
     {
@@ -145,11 +156,12 @@ char* GUIInterface_getSecuredRxPDU(uint8_t configId, uint8_t *len , uint8_t * Se
     *Securedlen = securedPdu->SduLength;
 
     static char securedStr[100]; /* Static to be passed to the python program*/
+    memset(securedStr, 0, sizeof(securedStr)); /* Clear buffer before use */
 
     uint8_t headerIdx = SecOCRxPduProcessing[configId].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCAuthPduHeaderLength;
     uint8_t authIdx = *len - BIT_TO_BYTES(SecOCRxPduProcessing[configId].SecOCAuthInfoTruncLength);
     uint8_t freshIdx = authIdx - BIT_TO_BYTES(SecOCRxPduProcessing[configId].SecOCFreshnessValueTruncLength);
-    
+
     int i, stri;
     for(i = 0, stri = 0; i < *len; i++)
     {
@@ -169,7 +181,7 @@ char* GUIInterface_getSecuredRxPDU(uint8_t configId, uint8_t *len , uint8_t * Se
 }
 
 
-char* GUIInterface_getAuthPdu(uint8_t configId, uint8_t *len)
+DLL_EXPORT char* GUIInterface_getAuthPdu(uint8_t configId, uint8_t *len)
 {
     Std_ReturnType result;
     int stri = 0;
@@ -181,7 +193,7 @@ char* GUIInterface_getAuthPdu(uint8_t configId, uint8_t *len)
     return authPdu->SduDataPtr;
 }
 
-void GUIInterface_alterFreshness(uint8_t configId)
+DLL_EXPORT void GUIInterface_alterFreshness(uint8_t configId)
 {
     uint32 FreshnesslenBytes = BIT_TO_BYTES(SecOCTxPduProcessing[configId].SecOCFreshnessValueTruncLength);
     PduInfoType *securedPdu = &(SecOCTxPduProcessing[configId].SecOCTxSecuredPduLayer->SecOCTxSecuredPdu->SecOCTxSecuredLayerPduRef);
@@ -207,7 +219,7 @@ void GUIInterface_alterFreshness(uint8_t configId)
 
 }
 
-void GUIInterface_alterAuthenticator(uint8_t configId)
+DLL_EXPORT void GUIInterface_alterAuthenticator(uint8_t configId)
 {
     PduInfoType *securedPdu = &(SecOCTxPduProcessing[configId].SecOCTxSecuredPduLayer->SecOCTxSecuredPdu->SecOCTxSecuredLayerPduRef);
 
@@ -228,7 +240,7 @@ void GUIInterface_alterAuthenticator(uint8_t configId)
     
 }
 
-char* GUIInterface_transmit(uint8_t configId)
+DLL_EXPORT char* GUIInterface_transmit(uint8_t configId)
 {
     Std_ReturnType result;
 
@@ -241,13 +253,16 @@ char* GUIInterface_transmit(uint8_t configId)
 
     uint32 SecuredPduLen = securedPdu->SduLength;
     /* Check if there is data */
-    if (authPdu->SduLength > 0) 
+    if (authPdu->SduLength > 0)
     {
         uint32 AuthPduLen = authPdu->SduLength;
 
         PduIdType  authPduId , cryptoPduId;
 
-        FVM_IncreaseCounter(SecOCTxPduProcessing[configId].SecOCFreshnessValueId);
+        /* NOTE: Counter increment removed here because freshness is already embedded in the PDU
+         * during GUIInterface_authenticate(). Incrementing again would cause the RX side to
+         * see stale freshness values when attack simulations are performed. */
+        /* FVM_IncreaseCounter(SecOCTxPduProcessing[configId].SecOCFreshnessValueId); */
 
         /* [SWS_SecOC_00201] */
         if(securePduCollection != NULL)
@@ -276,7 +291,7 @@ char* GUIInterface_transmit(uint8_t configId)
     return errorString(result);
 }
 
-char* GUIInterface_receive(uint8_t* rxId , uint8_t* finalRxLen)
+DLL_EXPORT char* GUIInterface_receive(uint8_t* rxId , uint8_t* finalRxLen)
 {
     Std_ReturnType result;
 
@@ -356,6 +371,51 @@ char* GUIInterface_receive(uint8_t* rxId , uint8_t* finalRxLen)
             *finalRxLen = (uint8_t) AuthHeadlen + authRecieveLength[id] + BIT_TO_BYTES(SecOCRxPduProcessing[id].SecOCFreshnessValueTruncLength) + BIT_TO_BYTES(SecOCRxPduProcessing[id].SecOCAuthInfoTruncLength);
         }
     #endif
+
+    return errorString(result);
+}
+
+/********************************************************************************************************/
+/************************************PQC GUI INTERFACE FUNCTIONS*****************************************/
+/********************************************************************************************************/
+
+DLL_EXPORT char* GUIInterface_authenticate_PQC(uint8_t configId, uint8_t *data, uint8_t len)
+{
+    PduInfoType *authPdu = &(SecOCTxPduProcessing[configId].SecOCTxAuthenticPduLayer->SecOCTxAuthenticLayerPduRef);
+    PduInfoType *securedPdu = &(SecOCTxPduProcessing[configId].SecOCTxSecuredPduLayer->SecOCTxSecuredPdu->SecOCTxSecuredLayerPduRef);
+
+    /* Reset authentication counter */
+    SecOC_TxCounters[configId].AuthenticationCounter = 0;
+
+    /* Create Authentic PDU */
+    memcpy(authPdu->SduDataPtr, data, len);
+    authPdu->SduLength = len;
+
+    /* Use PQC authentication (ML-DSA-65 signature) */
+    Std_ReturnType result;
+    result = authenticate_PQC(configId, authPdu, securedPdu);
+    authPdu->SduLength = len;
+
+    return errorString(result);
+}
+
+DLL_EXPORT char* GUIInterface_verify_PQC(uint8_t configId)
+{
+    PduInfoType *authPdu = &(SecOCRxPduProcessing[configId].SecOCRxAuthenticPduLayer->SecOCRxAuthenticLayerPduRef);
+    PduInfoType *securedPdu = &(SecOCRxPduProcessing[configId].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCRxSecuredLayerPduRef);
+
+    SecOC_VerificationResultType result_ver;
+    Std_ReturnType result;
+
+    /* Use PQC verification (ML-DSA-65 signature) */
+    result = verify_PQC(configId, securedPdu, &result_ver);
+    securedPdu->SduLength = 0;
+
+    if(result_ver == SECOC_FRESHNESSFAILURE)
+        return "Freshness Failed";
+
+    if((result_ver == SECOC_AUTHENTICATIONBUILDFAILURE) || (result_ver == SECOC_VERIFICATIONFAILURE))
+        return "PDU is not Authentic (PQC Sig Failed)";
 
     return errorString(result);
 }

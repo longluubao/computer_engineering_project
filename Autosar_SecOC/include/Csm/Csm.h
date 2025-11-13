@@ -63,4 +63,37 @@ const uint32 macLength,
 Crypto_VerifyResultType* verifyPtr
 );
 
+/*******************************************************
+ *          * Function Info *                           *
+ *                                                      *
+ * Function_Name        : Csm_SignatureGenerate         *
+ * Function_Descripton  : Generates a digital signature *
+ * using ML-DSA-65 post-quantum algorithm               *
+ *******************************************************/
+Std_ReturnType Csm_SignatureGenerate(
+    uint32 jobId,
+    Crypto_OperationModeType mode,
+    const uint8* dataPtr,
+    uint32 dataLength,
+    uint8* signaturePtr,
+    uint32* signatureLengthPtr
+);
+
+/*******************************************************
+ *          * Function Info *                           *
+ *                                                      *
+ * Function_Name        : Csm_SignatureVerify           *
+ * Function_Descripton  : Verifies a digital signature  *
+ * using ML-DSA-65 post-quantum algorithm               *
+ *******************************************************/
+Std_ReturnType Csm_SignatureVerify(
+    uint32 jobId,
+    Crypto_OperationModeType mode,
+    const uint8* dataPtr,
+    uint32 dataLength,
+    const uint8* signaturePtr,
+    uint32 signatureLength,
+    Crypto_VerifyResultType* verifyPtr
+);
+
 #endif

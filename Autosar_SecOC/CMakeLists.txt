@@ -31,8 +31,24 @@ project(SecOC)
 
 find_package(Threads REQUIRED)
 
+# Add liboqs library path
+set(LIBOQS_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/external/liboqs/build/include")
+set(LIBOQS_LIB_DIR "${CMAKE_SOURCE_DIR}/external/liboqs/build/lib")
+set(LIBOQS_LIBRARY "${LIBOQS_LIB_DIR}/liboqs.a")
+
+# Check if liboqs exists
+if(NOT EXISTS ${LIBOQS_LIBRARY})
+    message(FATAL_ERROR "liboqs not found! Please build liboqs first in external/liboqs/build")
+endif()
+
 
 add_executable(SecOC ${SCR_FILES})
+
+# Add liboqs include directory
+target_include_directories(SecOC PUBLIC ${LIBOQS_INCLUDE_DIR})
+
+# Link liboqs library
+target_link_libraries(SecOC ${LIBOQS_LIBRARY})
 
 if(THREADS_HAVE_PTHREAD_ARG)
   target_compile_options(SecOC PUBLIC "-pthread")
@@ -79,11 +95,13 @@ file(WRITE "${CMAKE_SOURCE_DIR}/build/cppcheck_includes.txt" ${cppincludes})
 
 # Create static library for linking with gtest
 add_library(SecOCLib STATIC ${SCR_FILES} ${HDR_FILES})
-target_include_directories(SecOCLib PUBLIC ${headerDirs})
+target_include_directories(SecOCLib PUBLIC ${headerDirs} ${LIBOQS_INCLUDE_DIR})
+target_link_libraries(SecOCLib ${LIBOQS_LIBRARY})
 
 # Create shared library for linking with the GUI
 add_library(SecOCLibShared SHARED ${SCR_FILES} ${HDR_FILES})
-target_include_directories(SecOCLibShared PUBLIC ${headerDirs})
+target_include_directories(SecOCLibShared PUBLIC ${headerDirs} ${LIBOQS_INCLUDE_DIR})
+target_link_libraries(SecOCLibShared ${LIBOQS_LIBRARY})
 
 # Platform-specific configurations for libraries
 if(WIN32)

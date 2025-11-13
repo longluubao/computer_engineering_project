@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(git clone:*)",
+      "Bash(bash rebuild_pqc.sh:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

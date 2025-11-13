@@ -18,11 +18,17 @@
 #define SECOC_AUTHPDU_MAX_LENGTH                                    ((uint32) 20)
 #define SECOC_AUTHPDU_HEADER_MAX_LENGTH                             ((uint8)4)
 #define SECOC_TX_DATA_TO_AUTHENTICATOR_LENGTH                       (sizeof(PduIdType) + SECOC_AUTHPDU_MAX_LENGTH + SECOC_TX_FRESHNESS_VALUE_LENGTH)
-#define SECOC_AUTHENTICATOR_MAX_LENGTH                              ((uint8)32)
+// MAC mode: 4-32 bytes sufficient
+// PQC mode (ML-DSA-65): 3309 bytes required
+// Use 4096 bytes to support both MAC and PQC signatures
+#define SECOC_AUTHENTICATOR_MAX_LENGTH                              4096U
 
 #define SECOC_FRESHNESS_MAX_LENGTH                                  ((uint8)32)
 
-#define SECOC_SECPDU_MAX_LENGTH                                     (SECOC_AUTHPDU_HEADER_MAX_LENGTH + SECOC_AUTHPDU_MAX_LENGTH + (SECOC_FRESHNESS_MAX_LENGTH/8 + 1) + (SECOC_TX_AUTH_INFO_TRUNC_LENGTH/8 + 1))
+// Original formula for MAC mode: 4 + 20 + 5 + 5 = 34 bytes
+// PQC mode requires: 4 + 20 + 5 + 3309 = 3338 bytes minimum
+// Use 8192 bytes to support PQC signatures (ML-DSA-65 = 3309 bytes)
+#define SECOC_SECPDU_MAX_LENGTH                                     8192U
 
 #define SECOC_RX_DATA_TO_AUTHENTICATOR_LENGTH                       (sizeof(PduIdType) + SECOC_AUTHPDU_MAX_LENGTH + (SECOC_FRESHNESS_MAX_LENGTH/8 + 1))
 

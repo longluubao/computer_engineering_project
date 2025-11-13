@@ -56,10 +56,12 @@ STATIC PduLengthType authRecieveLength[SECOC_NUM_OF_RX_PDU_PROCESSING] = {0};
 static Std_ReturnType prepareFreshnessTx(const PduIdType TxPduId, SecOC_TxIntermediateType *SecOCIntermediate);
 static void constructDataToAuthenticatorTx(const PduIdType TxPduId, SecOC_TxIntermediateType *SecOCIntermediate, const PduInfoType* AuthPdu);
 STATIC Std_ReturnType authenticate(const PduIdType TxPduId, PduInfoType* AuthPdu, PduInfoType* SecPdu);
+STATIC Std_ReturnType authenticate_PQC(const PduIdType TxPduId, PduInfoType* AuthPdu, PduInfoType* SecPdu);
 
 static void parseSecuredPdu(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_RxIntermediateType *SecOCIntermediate);
 static void constructDataToAuthenticatorRx(PduIdType RxPduId, SecOC_RxIntermediateType *SecOCIntermediate);
 STATIC Std_ReturnType verify(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_VerificationResultType *verification_result);
+STATIC Std_ReturnType verify_PQC(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_VerificationResultType *verification_result);
 STATIC Std_ReturnType seperatePduCollectionTx(const PduIdType TxPduId,uint32 AuthPduLen , PduInfoType* securedPdu, PduInfoType* AuthPduCollection, PduInfoType* CryptoPduCollection, PduIdType* authPduId, PduIdType* cryptoPduId);
 
 
@@ -840,6 +842,11 @@ BufReq_ReturnType SecOC_StartOfReception ( PduIdType id, const PduInfoType* info
 	AuthHeadlen=SecOCRxPduProcessing[id].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCAuthPduHeaderLength;
     /* [SWS_SecOC_00082] */
     PduInfoType *securedPdu = &(SecOCRxPduProcessing[id].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCRxSecuredLayerPduRef);
+
+    /* Clear the buffer at the start of a new reception to prevent data accumulation */
+    securedPdu->SduLength = 0;
+    memset(securedPdu->SduDataPtr, 0, SECOC_SECPDU_MAX_LENGTH);
+
     *bufferSizePtr = SECOC_SECPDU_MAX_LENGTH - securedPdu->SduLength;
     BufReq_ReturnType result = BUFREQ_OK;
     uint32 datalen=0;
@@ -1157,6 +1164,200 @@ STATIC Std_ReturnType verify(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_Verif
     #ifdef SECOC_DEBUG
     printf("%d\n",*verification_result);
     #endif
+
+    return E_OK;
+}
+
+/********************************************************************************************************/
+/***********************************POST-QUANTUM CRYPTOGRAPHY FUNCTIONS**********************************/
+/********************************************************************************************************/
+
+/**
+ * @brief PQC-enabled authentication using ML-DSA-65 digital signatures
+ * @details Similar to authenticate() but uses Csm_SignatureGenerate instead of Csm_MacGenerate
+ */
+STATIC Std_ReturnType authenticate_PQC(const PduIdType TxPduId, PduInfoType* AuthPdu, PduInfoType* SecPdu)
+{
+    #ifdef SECOC_DEBUG
+        printf("######## in authenticate_PQC (ML-DSA-65)\n");
+    #endif
+
+    Std_ReturnType result = E_NOT_OK;
+    SecOC_TxIntermediateType SecOCIntermediate;
+
+    /* Prepare freshness value */
+    result = prepareFreshnessTx(TxPduId, &SecOCIntermediate);
+    if((result == E_BUSY) || (result == E_NOT_OK))
+    {
+        return result;
+    }
+
+    /* Construct data to be signed */
+    constructDataToAuthenticatorTx(TxPduId, &SecOCIntermediate, AuthPdu);
+
+    /* Signature generation (replaces MAC generation) */
+    uint32 signatureLen = 0;
+
+    result = Csm_SignatureGenerate(
+        SecOCTxPduProcessing[TxPduId].SecOCDataId,
+        0,
+        SecOCIntermediate.DataToAuth,
+        SecOCIntermediate.DataToAuthLen,
+        SecOCIntermediate.AuthenticatorPtr,
+        &signatureLen
+    );
+
+    if((result == E_NOT_OK) || (result == E_BUSY) || (result == QUEUE_FULL))
+    {
+        printf("ERROR: PQC signature generation failed\n");
+        return result;
+    }
+
+    SecOCIntermediate.AuthenticatorLen = signatureLen;
+
+    #ifdef SECOC_DEBUG
+        printf("PQC Signature generated: %u bytes (vs ~4 bytes for MAC)\n", signatureLen);
+    #endif
+
+    /* Build Secured PDU: HEADER(OPT) + AuthPdu + TruncatedFreshness(OPT) + Signature */
+    PduLengthType SecPduLen = 0;
+
+    /* Header */
+    uint32 headerLen = SecOCTxPduProcessing[TxPduId].SecOCTxSecuredPduLayer->SecOCTxSecuredPdu->SecOCAuthPduHeaderLength;
+    if(headerLen > 0)
+    {
+        (void)memcpy(&SecPdu->SduDataPtr[SecPduLen], &AuthPdu->SduLength, headerLen);
+        SecPduLen += headerLen;
+    }
+
+    /* Authentic PDU */
+    (void)memcpy(&SecPdu->SduDataPtr[SecPduLen], AuthPdu->SduDataPtr, AuthPdu->SduLength);
+    SecPduLen += AuthPdu->SduLength;
+
+    /* Truncated Freshness Value */
+    boolean IsFreshnessTruncated = (SecOCTxPduProcessing[TxPduId].SecOCProvideTxTruncatedFreshnessValue == TRUE);
+    uint8 *MsgFreshness = (IsFreshnessTruncated) ? SecOCIntermediate.FreshnessTrunc : SecOCIntermediate.Freshness;
+    uint32 FreshnesslenBytes = BIT_TO_BYTES(SecOCTxPduProcessing[TxPduId].SecOCFreshnessValueTruncLength);
+
+    (void)memcpy(&SecPdu->SduDataPtr[SecPduLen], MsgFreshness, FreshnesslenBytes);
+    SecPduLen += FreshnesslenBytes;
+
+    /* Digital Signature (much larger than MAC!) */
+    (void)memcpy(&SecPdu->SduDataPtr[SecPduLen], SecOCIntermediate.AuthenticatorPtr, SecOCIntermediate.AuthenticatorLen);
+    SecPduLen += SecOCIntermediate.AuthenticatorLen;
+
+    SecPdu->SduLength = SecPduLen;
+    SecPdu->MetaDataPtr = AuthPdu->MetaDataPtr;
+
+    /* Clear Auth PDU */
+    AuthPdu->SduLength = 0;
+
+    #ifdef SECOC_DEBUG
+        printf("Secured PDU length: %u bytes (Auth=%u + Fresh=%u + Sig=%u)\n",
+               SecPduLen, (uint32)AuthPdu->SduLength, FreshnesslenBytes, SecOCIntermediate.AuthenticatorLen);
+    #endif
+
+    return result;
+}
+
+/**
+ * @brief PQC-enabled verification using ML-DSA-65 digital signatures
+ * @details Similar to verify() but uses Csm_SignatureVerify instead of Csm_MacVerify
+ */
+STATIC Std_ReturnType verify_PQC(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_VerificationResultType *verification_result)
+{
+    #ifdef SECOC_DEBUG
+        printf("######## in verify_PQC (ML-DSA-65)\n");
+    #endif
+
+    SecOC_RxIntermediateType SecOCIntermediate;
+
+    /* Parse secured PDU */
+    parseSecuredPdu(RxPduId, SecPdu, &SecOCIntermediate);
+
+    *verification_result = SECOC_NO_VERIFICATION;
+
+    boolean SecOCSecuredRxPduVerification = TRUE;
+    if(PdusCollections[RxPduId].Type == SECOC_AUTH_COLLECTON_PDU ||
+       PdusCollections[RxPduId].Type == SECOC_CRYPTO_COLLECTON_PDU)
+    {
+        SecOCSecuredRxPduVerification = SecOCRxPduProcessing[RxPduId].SecOCRxSecuredPduLayer->SecOCRxSecuredPduCollection->SecOCSecuredRxPduVerification;
+    }
+    else
+    {
+        SecOCSecuredRxPduVerification = SecOCRxPduProcessing[RxPduId].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCSecuredRxPduVerification;
+    }
+
+    if(SecOCSecuredRxPduVerification == TRUE)
+    {
+        /* Check freshness result */
+        if((SecOCIntermediate.freshnessResult == E_BUSY) || (SecOCIntermediate.freshnessResult == E_NOT_OK))
+        {
+            if(SecOCIntermediate.freshnessResult == E_NOT_OK)
+            {
+                *verification_result = SECOC_FRESHNESSFAILURE;
+            }
+            return SecOCIntermediate.freshnessResult;
+        }
+
+        /* Construct data to verify */
+        constructDataToAuthenticatorRx(RxPduId, &SecOCIntermediate);
+
+        Crypto_VerifyResultType verify_var;
+
+        /* Signature verification (replaces MAC verification) */
+        uint32 signatureLen = BIT_TO_BYTES(SecOCIntermediate.macLenBits);
+
+        Std_ReturnType Sig_verify = Csm_SignatureVerify(
+            SecOCRxPduProcessing[RxPduId].SecOCDataId,
+            Crypto_stub,
+            SecOCIntermediate.DataToAuth,
+            SecOCIntermediate.DataToAuthLen,
+            SecOCIntermediate.mac,  // Actually contains signature for PQC
+            signatureLen,
+            &verify_var
+        );
+
+        #ifdef SECOC_DEBUG
+            printf("PQC Signature verification: sig_len=%u bytes, result=%d\n", signatureLen, Sig_verify);
+        #endif
+
+        if((Sig_verify == E_BUSY) || (Sig_verify == QUEUE_FULL) || (Sig_verify == E_NOT_OK))
+        {
+            if(SecOC_RxCounters[RxPduId].AuthenticationCounter == SecOCRxPduProcessing[RxPduId].SecOCAuthenticationBuildAttempts)
+            {
+                *verification_result = SECOC_AUTHENTICATIONBUILDFAILURE;
+            }
+            if(Sig_verify == E_NOT_OK)
+            {
+                *verification_result = SECOC_VERIFICATIONFAILURE;
+            }
+            return Sig_verify;
+        }
+        else if((Sig_verify == CRYPTO_E_KEY_NOT_VALID) || (Sig_verify == CRYPTO_E_KEY_EMPTY))
+        {
+            if(SecOC_RxCounters[RxPduId].VerificationCounter == SecOCRxPduProcessing[RxPduId].SecOCAuthenticationVerifyAttempts)
+            {
+                *verification_result = SECOC_VERIFICATIONFAILURE;
+            }
+            return Sig_verify;
+        }
+    }
+
+    /* Verification success */
+    *verification_result = SECOC_VERIFICATIONSUCCESS;
+
+    PduInfoType *authPdu = &(SecOCRxPduProcessing[RxPduId].SecOCRxAuthenticPduLayer->SecOCRxAuthenticLayerPduRef);
+
+    /* Copy authentic PDU */
+    (void)memcpy(authPdu->SduDataPtr, SecOCIntermediate.authenticPdu, SecOCIntermediate.authenticPduLen);
+    authPdu->SduLength = SecOCIntermediate.authenticPduLen;
+    authPdu->MetaDataPtr = SecPdu->MetaDataPtr;
+
+    SecPdu->SduLength = 0;
+
+    /* Update freshness counter */
+    FVM_UpdateCounter(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueId, SecOCIntermediate.freshness, SecOCIntermediate.freshnessLenBits);
 
     return E_OK;
 }
