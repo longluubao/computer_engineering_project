@@ -1,9 +1,42 @@
-# Implementation of AUTOSAR SecOC Module 
+# AUTOSAR SecOC with Post-Quantum Cryptography
 
+[![Platform](https://img.shields.io/badge/Platform-x86__64%20%7C%20ARM64-blue)]()
+[![PQC](https://img.shields.io/badge/PQC-ML--KEM--768%20%7C%20ML--DSA--65-green)]()
+[![NIST](https://img.shields.io/badge/NIST-FIPS%20203%2F204-orange)]()
+[![License](https://img.shields.io/badge/License-MIT-yellow)]()
 
+Implementation of AUTOSAR Secure On-Board Communication (SecOC) module with **Post-Quantum Cryptography** (PQC) integration for quantum-resistant automotive security.
 
-## Table of Contents
+---
 
+## 🚀 Quick Start (5 Minutes)
+
+```bash
+cd Autosar_SecOC
+
+# Interactive build & run menu
+bash build_and_run.sh
+
+# Or one-command demo
+bash build_and_run.sh demo
+```
+
+**This will:**
+1. Build liboqs (ML-KEM-768 + ML-DSA-65)
+2. Build AUTOSAR integration test
+3. Run complete signal flow test: COM → SecOC → PQC → PduR → Transport
+4. Benchmark Classical MAC vs PQC
+5. Launch premium visualization dashboard
+
+**Output**: `autosar_integration_results.csv` + interactive charts
+
+📖 **For detailed guide**: See [`PROJECT_GUIDE.md`](PROJECT_GUIDE.md)
+
+---
+
+## 📑 Table of Contents
+
+- [Quick Start](#-quick-start-5-minutes)
 - [Introduction](#introduction)
 - [Contributors](#contributors)
 - [SecOC Operation](#secoc-operation)

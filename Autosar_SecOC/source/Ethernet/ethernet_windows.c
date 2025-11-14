@@ -101,7 +101,7 @@ void ethernet_init(void)
     }
 }
 
-Std_ReturnType ethernet_send(unsigned short id, unsigned char* data, unsigned char dataLen)
+Std_ReturnType ethernet_send(unsigned short id, unsigned char* data, uint16 dataLen)
 {
     #ifdef ETHERNET_DEBUG
         printf("######## in Sent Ethernet\n");
@@ -144,27 +144,28 @@ Std_ReturnType ethernet_send(unsigned short id, unsigned char* data, unsigned ch
     }
 
     /* Prepare For Send */
-    uint8 sendData[BUS_LENGTH_RECEIVE + sizeof(id)] = {0};
+    uint8 sendData[BUS_LENGTH_RECEIVE + sizeof(id)];
     (void)memcpy(sendData, data, dataLen);
     for (unsigned char indx = 0; indx < sizeof(id); indx++)
     {
-        sendData[BUS_LENGTH_RECEIVE + indx] = (id >> (8 * indx));
+        sendData[dataLen + indx] = (id >> (8 * indx));
     }
 
     #ifdef ETHERNET_DEBUG
-        for (int j = 0; j < 10; j++)
+        printf("Sending %d bytes\n", dataLen + sizeof(id));
+        for (int j = 0; j < dataLen + sizeof(id) && j < 20; j++)
             printf("%d\t", sendData[j]);
         printf("\n");
     #endif
 
-    send(network_socket, (const char*)sendData, 10, 0);
+    send(network_socket, (const char*)sendData, dataLen + sizeof(id), 0);
 
     /* Close the connection */
     closesocket(network_socket);
     return E_OK;
 }
 
-Std_ReturnType ethernet_receive(unsigned char* data, unsigned char dataLen, unsigned short* id)
+Std_ReturnType ethernet_receive(unsigned char* data, uint16 dataLen, unsigned short* id)
 {
     #ifdef ETHERNET_DEBUG
         printf("######## in Receive Ethernet\n");

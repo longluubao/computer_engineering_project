@@ -18,7 +18,7 @@
 /********************************************************************************************************/
 
 #define PORT_NUMBER 12345
-#define BUS_LENGTH_RECEIVE 8
+#define BUS_LENGTH_RECEIVE 4096  // Increased for PQC signatures (3309 bytes)
 
 
 /********************************************************************************************************/
@@ -46,7 +46,7 @@ void ethernet_init(void);
  * Function_Descripton  : Used to send the data using   *
  * Sockets                                              *
  *******************************************************/
-Std_ReturnType ethernet_send(unsigned short id, unsigned char* data , unsigned char dataLen);
+Std_ReturnType ethernet_send(unsigned short id, unsigned char* data , uint16 dataLen);
 
 
 /*******************************************************
@@ -58,7 +58,7 @@ Std_ReturnType ethernet_send(unsigned short id, unsigned char* data , unsigned c
  * Function_Descripton  : Used to Receive the data using*
  * Sockets                                              *
  *******************************************************/
-Std_ReturnType ethernet_receive(unsigned char* data , unsigned char dataLen, unsigned short* id);
+Std_ReturnType ethernet_receive(unsigned char* data , uint16 dataLen, unsigned short* id);
 
 
 /*******************************************************
