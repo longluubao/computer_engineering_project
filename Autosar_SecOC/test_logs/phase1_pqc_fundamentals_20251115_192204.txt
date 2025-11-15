@@ -1,0 +1,277 @@
+================================================================
+PHASE 1: PQC FUNDAMENTALS TEST LOG
+Date: 2025-11-15 19:22:04
+================================================================
+
+
++==============================================================+
+|       PQC STANDALONE TESTING - ML-KEM-768 & ML-DSA-65       |
++==============================================================+
+
+Initializing PQC module...
+PQC Module initialized successfully
+  ML-KEM-768: Public Key=1184 bytes, Ciphertext=1088 bytes
+  ML-DSA-65: Public Key=1952 bytes, Signature=3309 bytes
+[OK] PQC module initialized successfully
+
++==============================================================+
+|          PHASE 1: ML-KEM-768 STANDALONE TESTING              |
++==============================================================+
+
+Algorithm: ML-KEM-768 (NIST FIPS 203)
+Security Level: Category 3 (AES-192 equivalent)
+
++-----------------------------------------------------------+
+|  Testing ML-KEM-768 Key Generation                       |
++-----------------------------------------------------------+
+  [WARMUP] Warming up (50 iterations)...
+  [BENCH] Benchmarking key generation (1000 iterations)...
+
+  [OK] Key Generation Results:
+  +------------------------+----------------+
+  | Metric                 | Value          |
+  +------------------------+----------------+
+  | Average Time           |      75.59 us |
+  | Min Time               |      67.00 us |
+  | Max Time               |     230.40 us |
+  | Std Deviation          |       7.40 us |
+  | Throughput             |    13228.6/s  |
+  | Public Key Size        |       1184 B   |
+  | Secret Key Size        |       2400 B   |
+  | Success Rate           |    100.00 %  |
+  +------------------------+----------------+
+
++---------------------------------------------------------+
+|  Testing ML-KEM-768 Encapsulation & Decapsulation      |
++---------------------------------------------------------+
+  [WARMUP] Warming up...
+  [BENCH] Benchmarking encapsulation (1000 iterations)...
+  [BENCH] Benchmarking decapsulation (1000 iterations)...
+
+  [OK] Encapsulation Results:
+  +------------------------+----------------+
+  | Average Time           |      73.83 us |
+  | Min Time               |      67.20 us |
+  | Max Time               |     428.10 us |
+  | Throughput             |    13544.2/s  |
+  | Ciphertext Size        |       1088 B   |
+  +------------------------+----------------+
+
+  [OK] Decapsulation Results:
+  +------------------------+----------------+
+  | Average Time           |      27.03 us |
+  | Min Time               |      25.90 us |
+  | Max Time               |      42.00 us |
+  | Throughput             |    37002.1/s  |
+  | Shared Secret Size     |         32 B   |
+  | Correctness Rate       |    100.00 %  |
+  +------------------------+----------------+
+
++---------------------------------------------------------+
+|  ML-KEM-768 Rejection Sampling Test (FIPS 203)          |
++---------------------------------------------------------+
+
+  [TEST] Scenario 1: Corrupted Secret Key
+  [OK] Corrupted SK produces different shared secret (SHAKE256 fallback)
+
+  [TEST] Scenario 2: Corrupted Ciphertext
+  [OK] Corrupted ciphertext produces different shared secret
+
+  [SUMMARY] Rejection sampling test completed
+  ML-KEM-768 properly handles corrupted inputs via SHAKE256 fallback
+
++---------------------------------------------------------+
+|  ML-KEM-768 Buffer Overflow Detection Test              |
++---------------------------------------------------------+
+  [TEST] Testing KeyGen for buffer overflow...
+  [OK] No buffer overflow detected - magic values intact
+
+  [SUMMARY] Buffer overflow detection test completed
+
+
++==============================================================+
+|          PHASE 2: ML-DSA-65 STANDALONE TESTING               |
++==============================================================+
+
+Algorithm: ML-DSA-65 (NIST FIPS 204)
+Security Level: Category 3 (AES-192 equivalent)
+
+
++---------------------------------------------------------+
+|  Testing ML-DSA-65 Key Generation                       |
++---------------------------------------------------------+
+  [WARMUP] Warming up (50 iterations)...
+  [BENCH] Benchmarking key generation (1000 iterations)...
+
+  [OK] Key Generation Results:
+  +------------------------+----------------+
+  | Metric                 | Value          |
+  +------------------------+----------------+
+  | Average Time           |     139.44 us |
+  | Min Time               |     128.50 us |
+  | Max Time               |     402.70 us |
+  | Std Deviation          |      16.94 us |
+  | Throughput             |     7171.4/s  |
+  | Public Key Size        |       1952 B   |
+  | Secret Key Size        |       4032 B   |
+  | Success Rate           |    100.00 %  |
+  +------------------------+----------------+
+
++---------------------------------------------------------+
+|  Testing ML-DSA-65 Sign & Verify (Multiple Sizes)      |
++---------------------------------------------------------+
+
+  [TEST] Testing with 8-byte messages...
+
+    [OK] Sign Results (8 bytes):
+    +------------------+----------------+
+    | Average Time     |     365.62 us |
+    | Min Time         |     162.70 us |
+    | Max Time         |    1909.10 us |
+    | Throughput       |     2735.1/s  |
+    | Signature Size   |       3309 B   |
+    +------------------+----------------+
+
+    [OK] Verify Results (8 bytes):
+    +------------------+----------------+
+    | Average Time     |      76.77 us |
+    | Min Time         |      73.90 us |
+    | Max Time         |     450.30 us |
+    | Throughput       |    13025.5/s  |
+    | Correctness      |    100.00 %  |
+    +------------------+----------------+
+
+  [TEST] Testing with 64-byte messages...
+
+    [OK] Sign Results (64 bytes):
+    +------------------+----------------+
+    | Average Time     |     373.44 us |
+    | Min Time         |     162.20 us |
+    | Max Time         |    1936.90 us |
+    | Throughput       |     2677.8/s  |
+    | Signature Size   |       3309 B   |
+    +------------------+----------------+
+
+    [OK] Verify Results (64 bytes):
+    +------------------+----------------+
+    | Average Time     |      76.93 us |
+    | Min Time         |      73.60 us |
+    | Max Time         |     259.40 us |
+    | Throughput       |    12998.5/s  |
+    | Correctness      |    100.00 %  |
+    +------------------+----------------+
+
+  [TEST] Testing with 256-byte messages...
+
+    [OK] Sign Results (256 bytes):
+    +------------------+----------------+
+    | Average Time     |     347.35 us |
+    | Min Time         |     163.20 us |
+    | Max Time         |    1743.40 us |
+    | Throughput       |     2879.0/s  |
+    | Signature Size   |       3309 B   |
+    +------------------+----------------+
+
+    [OK] Verify Results (256 bytes):
+    +------------------+----------------+
+    | Average Time     |      76.34 us |
+    | Min Time         |      74.30 us |
+    | Max Time         |     282.30 us |
+    | Throughput       |    13098.7/s  |
+    | Correctness      |    100.00 %  |
+    +------------------+----------------+
+
+  [TEST] Testing with 512-byte messages...
+
+    [OK] Sign Results (512 bytes):
+    +------------------+----------------+
+    | Average Time     |     356.98 us |
+    | Min Time         |     162.50 us |
+    | Max Time         |    2487.40 us |
+    | Throughput       |     2801.3/s  |
+    | Signature Size   |       3309 B   |
+    +------------------+----------------+
+
+    [OK] Verify Results (512 bytes):
+    +------------------+----------------+
+    | Average Time     |      79.77 us |
+    | Min Time         |      74.70 us |
+    | Max Time         |     440.40 us |
+    | Throughput       |    12535.6/s  |
+    | Correctness      |    100.00 %  |
+    +------------------+----------------+
+
+  [TEST] Testing with 1024-byte messages...
+
+    [OK] Sign Results (1024 bytes):
+    +------------------+----------------+
+    | Average Time     |     368.26 us |
+    | Min Time         |     164.40 us |
+    | Max Time         |    1336.20 us |
+    | Throughput       |     2715.5/s  |
+    | Signature Size   |       3309 B   |
+    +------------------+----------------+
+
+    [OK] Verify Results (1024 bytes):
+    +------------------+----------------+
+    | Average Time     |      80.08 us |
+    | Min Time         |      75.90 us |
+    | Max Time         |     101.90 us |
+    | Throughput       |    12487.4/s  |
+    | Correctness      |    100.00 %  |
+    +------------------+----------------+
+
++---------------------------------------------------------+
+|  ML-DSA-65 Bitflip Attack Resistance (FIPS 204)         |
++---------------------------------------------------------+
+
+  [TEST] EUF-CMA: Testing message tampering detection
+  [RESULT] EUF-CMA: 50/50 corrupted messages rejected (100.0%)
+
+  [TEST] SUF-CMA: Testing signature tampering detection
+  [RESULT] SUF-CMA: 50/50 corrupted signatures rejected (100.0%)
+
+  [SUMMARY] Bitflip resistance test completed
+  [OK] ML-DSA-65 shows strong unforgeability (100% detection)
+
++---------------------------------------------------------+
+|  ML-DSA-65 Context String Testing                        |
++---------------------------------------------------------+
+
+  [TEST] Context String Scenarios:
+  1. Empty context (0 bytes)
+  2. Small context: 'AUTOSAR_SECOC_TEST' (19 bytes)
+  3. Large context (255 bytes max)
+
+  [INFO] Context string API support required for full testing
+  [INFO] Current PQC implementation uses implicit NULL context
+  [OK] Signatures are non-deterministic (different each time)
+
+  [SUMMARY] Context string test completed
+  Note: Full context binding requires extended PQC API
+
+[FILE] Results saved to: pqc_standalone_results.csv
+
++==============================================================+
+|                  ALL TESTS COMPLETED [OK]                       |
++==============================================================+
+
+
+RESULT: PASSED
+
+Generated: pqc_standalone_results.csv
+
+--- CSV Results ---
+=== ML-KEM-768 Results ===
+Operation,Avg_Time_us,Min_us,Max_us,Stddev_us,Throughput_ops_sec,Size_bytes,Success_Rate
+KeyGen,75.59,67.00,230.40,7.40,13228.6,3584,100.00
+Encapsulate,73.83,67.20,428.10,13.10,13544.2,1088,100.00
+Decapsulate,27.03,25.90,42.00,1.02,37002.1,32,100.00
+
+=== ML-DSA-65 Results ===
+Message_Size,Sign_Avg_us,Sign_Min_us,Sign_Max_us,Verify_Avg_us,Verify_Min_us,Verify_Max_us,Signature_Size,Sign_Throughput,Verify_Throughput,Correctness
+8,365.62,162.70,1909.10,76.77,73.90,450.30,3309,2735.1,13025.5,100.00
+64,373.44,162.20,1936.90,76.93,73.60,259.40,3309,2677.8,12998.5,100.00
+256,347.35,163.20,1743.40,76.34,74.30,282.30,3309,2879.0,13098.7,100.00
+512,356.98,162.50,2487.40,79.77,74.70,440.40,3309,2801.3,12535.6,100.00
+1024,368.26,164.40,1336.20,80.08,75.90,101.90,3309,2715.5,12487.4,100.00

@@ -1110,7 +1110,7 @@ STATIC Std_ReturnType verify(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_Verif
         /* [SWS_SecOC_00047] */
         Std_ReturnType Mac_verify = Csm_MacVerify(
             SecOCRxPduProcessing[RxPduId].SecOCDataId,
-            Crypto_stub,
+            CRYPTO_OPERATIONMODE_SINGLECALL,
             SecOCIntermediate.DataToAuth,
             SecOCIntermediate.DataToAuthLen,
             SecOCIntermediate.mac,
@@ -1310,7 +1310,7 @@ STATIC Std_ReturnType verify_PQC(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_V
 
         Std_ReturnType Sig_verify = Csm_SignatureVerify(
             SecOCRxPduProcessing[RxPduId].SecOCDataId,
-            Crypto_stub,
+            CRYPTO_OPERATIONMODE_SINGLECALL,
             SecOCIntermediate.DataToAuth,
             SecOCIntermediate.DataToAuthLen,
             SecOCIntermediate.mac,  // Actually contains signature for PQC

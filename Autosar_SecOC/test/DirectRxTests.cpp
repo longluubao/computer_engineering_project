@@ -38,6 +38,7 @@ extern PduLengthType                authRecieveLength[SECOC_NUM_OF_RX_PDU_PROCES
 
 
 
+#ifdef __linux__
 TEST(AuthenticationTests, directRx)
 {
     SecOC_Init(&SecOC_Config);
@@ -48,28 +49,23 @@ TEST(AuthenticationTests, directRx)
     uint8 authPduCheck[] = {100,200};
 
 
-    #ifdef __linux__
+    #define BUS_LENGTH_RECEIVE 8
+    static uint8 dataRecieve [BUS_LENGTH_RECEIVE];
+    uint16 id;
+    ethernet_receive(dataRecieve , BUS_LENGTH_RECEIVE, &id);
+    ASSERT_EQ(memcmp(dataRecieve , securedPduCheck, BUS_LENGTH_RECEIVE), 0);
+    ASSERT_EQ(id, 0);
+    PduInfoType PduInfoPtr = {
+        .SduDataPtr = dataRecieve,
+        .MetaDataPtr = (uint8*) &PdusCollections[id],
+        .SduLength = BUS_LENGTH_RECEIVE,
+    };
 
-        #define BUS_LENGTH_RECEIVE 8
-        static uint8 dataRecieve [BUS_LENGTH_RECEIVE];
-        uint16 id;
-        ethernet_receive(dataRecieve , BUS_LENGTH_RECEIVE, &id);
-        ASSERT_EQ(memcmp(dataRecieve , securedPduCheck, BUS_LENGTH_RECEIVE), 0);
-        ASSERT_EQ(id, 0);
-        PduInfoType PduInfoPtr = {
-            .SduDataPtr = dataRecieve,
-            .MetaDataPtr = (uint8*) &PdusCollections[id],
-            .SduLength = BUS_LENGTH_RECEIVE,
-        };
-
-        ASSERT_EQ(PdusCollections[id].Type, SECOC_SECURED_PDU_CANIF);
+    ASSERT_EQ(PdusCollections[id].Type, SECOC_SECURED_PDU_CANIF);
 
 
-        PduR_CanIfRxIndication(id, &PduInfoPtr);
-        
+    PduR_CanIfRxIndication(id, &PduInfoPtr);
 
-    #endif
-    
 
 
 
@@ -79,13 +75,13 @@ TEST(AuthenticationTests, directRx)
 
     PduInfoType *authPdu = &(SecOCRxPduProcessing[idx].SecOCRxAuthenticPduLayer->SecOCRxAuthenticLayerPduRef);
     PduInfoType *securedPdu = &(SecOCRxPduProcessing[idx].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCRxSecuredLayerPduRef);
-    
+
     uint8 AuthHeadlen = SecOCRxPduProcessing[idx].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCAuthPduHeaderLength;
     PduLengthType securePduLength = AuthHeadlen + authRecieveLength[idx] + BIT_TO_BYTES(SecOCRxPduProcessing[idx].SecOCFreshnessValueTruncLength) + BIT_TO_BYTES(SecOCRxPduProcessing[idx].SecOCAuthInfoTruncLength);
-    
+
     ASSERT_GE( securedPdu->SduLength , securePduLength);
     ASSERT_EQ(memcmp(securedPdu->SduDataPtr , securedPduCheck, securedPdu->SduLength), 0);
-    
+
 
     result = verify(idx, securedPdu, &result_ver);
 
@@ -97,5 +93,6 @@ TEST(AuthenticationTests, directRx)
     ASSERT_EQ(memcmp(authPdu->SduDataPtr , authPduCheck, authPdu->SduLength), 0);
 
 
-    PduR_SecOCIfRxIndication(idx,  authPdu);    
+    PduR_SecOCIfRxIndication(idx,  authPdu);
 }
+#endif

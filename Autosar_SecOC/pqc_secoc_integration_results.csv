@@ -1,0 +1,15 @@
+=== Csm Layer Performance Comparison ===
+Crypto_Method,Gen_Avg_us,Gen_Min_us,Gen_Max_us,Verify_Avg_us,Verify_Min_us,Verify_Max_us,Authenticator_Size_B,Gen_Throughput_ops_sec,Verify_Throughput_ops_sec
+Classical_MAC,16.23,14.10,28.10,47.38,33.60,172.00,16,61629.5,21106.8
+PQC_Signature,391.73,168.20,1322.90,85.11,76.00,130.60,3309,2552.8,11748.9
+
+=== Overhead Analysis ===
+Metric,Classical,PQC,Overhead_Ratio
+Generation_Time_us,16.23,391.73,24.14x
+Verification_Time_us,47.38,85.11,1.80x
+Authenticator_Size_B,16,3309,206.81x
+
+=== Security Test Results ===
+Test,Result
+Tampering_Detected,2
+Tampering_Missed,0

@@ -6,7 +6,7 @@
 /********************************************************************************************************/
 
 #include "Std_Types.h"
-#include "SecOC_Debug.h"
+#include "SecOC/SecOC_Debug.h"
 
 
 /********************************************************************************************************/
@@ -17,10 +17,13 @@
 #define CRYPTO_E_KEY_SIZE_MISMATCH  ((Std_ReturnType)0x0A)
 #define CRYPTO_E_KEY_EMPTY          ((Std_ReturnType)0x0D)
 
-/* Stub enumeration*/
+/* Crypto operation modes (AUTOSAR SWS_Csm) */
 typedef enum
-{    
-    Crypto_stub
+{
+    CRYPTO_OPERATIONMODE_SINGLECALL = 0x01,
+    CRYPTO_OPERATIONMODE_START = 0x02,
+    CRYPTO_OPERATIONMODE_UPDATE = 0x03,
+    CRYPTO_OPERATIONMODE_FINISH = 0x04
 }Crypto_OperationModeType;
 
 typedef enum

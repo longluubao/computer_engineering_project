@@ -1,0 +1,13 @@
+=== ML-KEM-768 Results ===
+Operation,Avg_Time_us,Min_us,Max_us,Stddev_us,Throughput_ops_sec,Size_bytes,Success_Rate
+KeyGen,75.59,67.00,230.40,7.40,13228.6,3584,100.00
+Encapsulate,73.83,67.20,428.10,13.10,13544.2,1088,100.00
+Decapsulate,27.03,25.90,42.00,1.02,37002.1,32,100.00
+
+=== ML-DSA-65 Results ===
+Message_Size,Sign_Avg_us,Sign_Min_us,Sign_Max_us,Verify_Avg_us,Verify_Min_us,Verify_Max_us,Signature_Size,Sign_Throughput,Verify_Throughput,Correctness
+8,365.62,162.70,1909.10,76.77,73.90,450.30,3309,2735.1,13025.5,100.00
+64,373.44,162.20,1936.90,76.93,73.60,259.40,3309,2677.8,12998.5,100.00
+256,347.35,163.20,1743.40,76.34,74.30,282.30,3309,2879.0,13098.7,100.00
+512,356.98,162.50,2487.40,79.77,74.70,440.40,3309,2801.3,12535.6,100.00
+1024,368.26,164.40,1336.20,80.08,75.90,101.90,3309,2715.5,12487.4,100.00

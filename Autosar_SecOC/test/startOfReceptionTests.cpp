@@ -42,9 +42,10 @@ TEST(StartOfReceptionTests, StartOfReception1)
 
 TEST(StartOfReceptionTests, StartOfReception2)
 {
-    /* 
+    /*
     Test :  SecOC_StartOfReception [SWS_SecOC_00215]
     Case : TpSduLength > buffer size
+    Note: Buffer size is 8192 bytes (for PQC support), so we need TpSduLength > 8192
     */
     SecOC_Init(&SecOC_Config);
 
@@ -57,15 +58,15 @@ TEST(StartOfReceptionTests, StartOfReception2)
     info.SduDataPtr = dataRec;
     info.SduLength = 4;
 
-    PduLengthType TpSduLength = 35;
+    PduLengthType TpSduLength = 9000;  /* Larger than SECOC_SECPDU_MAX_LENGTH (8192) */
     PduLengthType bufferSizePtr = 0;
-    
+
 
     BufReq_ReturnType Result  = SecOC_StartOfReception (id, &info, TpSduLength, &bufferSizePtr);
 
 
     EXPECT_EQ(Result , BUFREQ_E_OVFL);
-    
+
     EXPECT_NE(0, bufferSizePtr);
 
 }
