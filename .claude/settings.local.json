@@ -4,7 +4,17 @@
       "WebSearch",
       "Bash(git clone:*)",
       "Bash(bash rebuild_pqc.sh:*)",
-      "Bash(bash build_advanced_test.sh:*)"
+      "Bash(bash build_advanced_test.sh:*)",
+      "WebFetch(domain:www.autosar.org)",
+      "WebFetch(domain:automotive.wiki)",
+      "WebFetch(domain:www.autosartoday.com)",
+      "Bash(find:*)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:www.altenpolska.pl)",
+      "WebFetch(domain:autosartutorials.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:charliehdzmx.github.io)",
+      "WebFetch(domain:www.renesas.com)"
     ],
     "deny": [],
     "ask": []

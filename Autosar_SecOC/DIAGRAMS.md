@@ -800,4 +800,505 @@ mmdc -i DIAGRAMS.md -o diagram.png
 - **Performance trade-offs** between CAN and Ethernet clearly shown
 - **Dual-platform** deployment (Windows development → Raspberry Pi deployment)
 
+---
+
+## PHASE 3 COMPLETE: ML-KEM + HKDF + SoAd_PQC Integration Diagrams
+
+### 16. Phase 3 Complete Architecture Overview
+
+```mermaid
+graph TB
+    subgraph "PHASE 3 COMPLETE: ETHERNET GATEWAY WITH ML-KEM + ML-DSA"
+        subgraph "New Components Implemented"
+            PQC_KD[PQC_KeyDerivation.c<br/>HKDF Session Key Derivation<br/>122 lines]
+            SOAD_PQC[SoAd_PQC.c<br/>ML-KEM Key Exchange<br/>367 lines]
+            PHASE3_TEST[test_phase3_complete.c<br/>Comprehensive Integration Test<br/>700+ lines]
+        end
+
+        subgraph "AUTOSAR Stack with PQC"
+            COM[COM Manager]
+            PDUR[PduR Router]
+            SECOC[SecOC Engine]
+            CSM[Crypto Service Manager]
+
+            subgraph "PQC Module Complete"
+                PQC_MLKEM[ML-KEM-768<br/>Key Exchange<br/>PQC_KeyExchange.c]
+                PQC_MLDSA[ML-DSA-65<br/>Signatures<br/>PQC.c]
+                PQC_HKDF[HKDF<br/>Key Derivation<br/>PQC_KeyDerivation.c]
+            end
+
+            SOAD[Socket Adapter<br/>SoAd]
+            ETH[Ethernet<br/>TCP/IP]
+        end
+
+        subgraph "Test Coverage"
+            TEST1[Test 1:<br/>ML-KEM KeyGen/Encaps/Decaps<br/>1000 iterations each]
+            TEST2[Test 2:<br/>HKDF Extract/Expand<br/>32B encryption + 32B auth keys]
+            TEST3[Test 3:<br/>ML-DSA Sign/Verify<br/>100 iterations]
+            TEST4[Test 4:<br/>Combined Performance<br/>Handshake + Per-Message]
+            TEST5[Test 5:<br/>Security Validation<br/>Replay, Tampering, Quantum]
+        end
+    end
+
+    COM --> PDUR
+    PDUR --> SECOC
+    SECOC --> CSM
+    CSM --> PQC_MLDSA
+    CSM --> PQC_MLKEM
+    PQC_MLKEM --> PQC_HKDF
+    PQC_HKDF --> SOAD_PQC
+    SECOC --> SOAD
+    SOAD --> SOAD_PQC
+    SOAD --> ETH
+
+    PHASE3_TEST --> TEST1
+    PHASE3_TEST --> TEST2
+    PHASE3_TEST --> TEST3
+    PHASE3_TEST --> TEST4
+    PHASE3_TEST --> TEST5
+
+    style PQC_KD fill:#ff9800,color:#fff
+    style SOAD_PQC fill:#ff9800,color:#fff
+    style PHASE3_TEST fill:#2196f3,color:#fff
+    style PQC_HKDF fill:#f57c00,color:#fff
+```
+
+---
+
+### 17. ML-KEM-768 Key Exchange Flow (SoAd_PQC Integration)
+
+```mermaid
+sequenceDiagram
+    participant Gateway as Ethernet Gateway<br/>(Raspberry Pi)
+    participant SoAd as SoAd_PQC Module
+    participant PQC_KE as PQC_KeyExchange
+    participant PQC_KD as PQC_KeyDerivation
+    participant ETH as Ethernet Network
+    participant Backend as Central ECU
+
+    Note over Gateway,Backend: ML-KEM-768 SESSION ESTABLISHMENT
+
+    Gateway->>SoAd: SoAd_PQC_KeyExchange(PeerId=0, IsInitiator=TRUE)
+    activate SoAd
+
+    SoAd->>SoAd: State = KEY_EXCHANGE_INITIATED
+
+    SoAd->>PQC_KE: PQC_KeyExchange_Initiate(PeerId=0)
+    activate PQC_KE
+
+    PQC_KE->>PQC_KE: OQS_KEM_keypair()<br/>Time: 2.85ms
+    Note over PQC_KE: Generate ML-KEM-768 keypair<br/>Public: 1184 bytes<br/>Secret: 2400 bytes
+
+    PQC_KE-->>SoAd: Public Key (1184 bytes)
+    deactivate PQC_KE
+
+    SoAd->>ETH: ethernet_send(PeerId=0, PublicKey, 1184)
+    ETH->>Backend: TCP/IP Port 12345
+
+    Note over Backend: Responder Flow
+
+    Backend->>Backend: ethernet_receive()<br/>Receive Public Key
+    Backend->>Backend: PQC_KeyExchange_Respond()
+    Backend->>Backend: OQS_KEM_encaps(PublicKey)<br/>Time: 3.12ms
+    Note over Backend: Encapsulate<br/>Ciphertext: 1088 bytes<br/>Shared Secret: 32 bytes
+
+    Backend->>ETH: ethernet_send(Ciphertext, 1088)
+    ETH->>SoAd: TCP/IP
+
+    SoAd->>SoAd: ethernet_receive()<br/>Ciphertext (1088 bytes)
+    SoAd->>SoAd: State = KEY_EXCHANGE_COMPLETED
+
+    SoAd->>PQC_KE: PQC_KeyExchange_Complete(PeerId=0, Ciphertext)
+    activate PQC_KE
+
+    PQC_KE->>PQC_KE: OQS_KEM_decaps(Ciphertext)<br/>Time: 3.89ms
+    Note over PQC_KE: Decapsulate<br/>Recover Shared Secret: 32 bytes
+
+    PQC_KE-->>SoAd: Shared Secret (32 bytes)
+    deactivate PQC_KE
+
+    SoAd->>PQC_KD: PQC_DeriveSessionKeys(SharedSecret, PeerId=0)
+    activate PQC_KD
+
+    PQC_KD->>PQC_KD: HKDF-Extract<br/>PRK = HMAC-SHA256(salt, SharedSecret)
+    PQC_KD->>PQC_KD: HKDF-Expand<br/>EncryptionKey = HMAC-SHA256(PRK, "Encryption-Key" || 0x01)
+    PQC_KD->>PQC_KD: HKDF-Expand<br/>AuthenticationKey = HMAC-SHA256(PRK, "Authentication-Key" || 0x01)
+    Note over PQC_KD: Time: 0.3ms
+
+    PQC_KD-->>SoAd: SessionKeys<br/>32B Encryption + 32B Auth
+    deactivate PQC_KD
+
+    SoAd->>SoAd: Store PQC_SessionKeys[0]<br/>State = SESSION_ESTABLISHED
+    deactivate SoAd
+
+    Note over Gateway,Backend: SESSION READY - Both peers have identical session keys<br/>Total Handshake Time: ~10.16ms (one-time cost)
+
+    style SoAd fill:#ff9800,color:#fff
+    style PQC_KE fill:#f57c00,color:#fff
+    style PQC_KD fill:#f57c00,color:#fff
+```
+
+---
+
+### 18. HKDF Session Key Derivation (Detailed)
+
+```mermaid
+graph TB
+    subgraph "INPUT"
+        SS[ML-KEM Shared Secret<br/>32 bytes<br/>From OQS_KEM_decaps]
+        SALT[HKDF Salt<br/>AUTOSAR-SecOC-PQC-v1.0]
+        INFO_ENC[Info String: Encryption-Key]
+        INFO_AUTH[Info String: Authentication-Key]
+    end
+
+    subgraph "HKDF-Extract Phase"
+        CONCAT1[Concatenate: Salt || SharedSecret]
+        SHA256_1[SHA-256 Hash]
+        PRK[Pseudorandom Key PRK<br/>32 bytes]
+
+        SS --> CONCAT1
+        SALT --> CONCAT1
+        CONCAT1 --> SHA256_1
+        SHA256_1 --> PRK
+    end
+
+    subgraph "HKDF-Expand Phase Encryption Key"
+        CONCAT2[Concatenate: PRK || Info_Enc || 0x01]
+        SHA256_2[SHA-256 Hash]
+        ENC_KEY[Encryption Key<br/>32 bytes<br/>For AES-256-GCM]
+
+        PRK --> CONCAT2
+        INFO_ENC --> CONCAT2
+        CONCAT2 --> SHA256_2
+        SHA256_2 --> ENC_KEY
+    end
+
+    subgraph "HKDF-Expand Phase Authentication Key"
+        CONCAT3[Concatenate: PRK || Info_Auth || 0x01]
+        SHA256_3[SHA-256 Hash]
+        AUTH_KEY[Authentication Key<br/>32 bytes<br/>For HMAC-SHA256]
+
+        PRK --> CONCAT3
+        INFO_AUTH --> CONCAT3
+        CONCAT3 --> SHA256_3
+        SHA256_3 --> AUTH_KEY
+    end
+
+    subgraph "OUTPUT: PQC_SessionKeysType"
+        SESSION[Session Keys Stored<br/>PQC_SessionKeys PeerId]
+        ENC_FINAL[EncryptionKey 32B]
+        AUTH_FINAL[AuthenticationKey 32B]
+        VALID[IsValid = TRUE]
+
+        ENC_KEY --> ENC_FINAL
+        AUTH_KEY --> AUTH_FINAL
+        ENC_FINAL --> SESSION
+        AUTH_FINAL --> SESSION
+        VALID --> SESSION
+    end
+
+    subgraph "Security Properties"
+        PROP1[Key Independence:<br/>EncKey != AuthKey]
+        PROP2[Forward Secrecy:<br/>Different SS -> Different Keys]
+        PROP3[Deterministic:<br/>Same SS -> Same Keys]
+    end
+
+    SESSION --> PROP1
+    SESSION --> PROP2
+    SESSION --> PROP3
+
+    style PRK fill:#ff9800
+    style ENC_KEY fill:#4caf50
+    style AUTH_KEY fill:#2196f3
+    style SESSION fill:#f57c00,color:#fff
+```
+
+---
+
+### 19. Complete AUTOSAR Signal Flow with Phase 3 Components
+
+```mermaid
+graph TB
+    subgraph "APPLICATION LAYER"
+        APP[Vehicle Application<br/>8-byte CAN Message]
+    end
+
+    subgraph "COM LAYER"
+        COM[COM Manager<br/>Message Handling]
+    end
+
+    subgraph "PDUR LAYER"
+        PDUR[PduR Router<br/>Central Routing Hub]
+    end
+
+    subgraph "SECOC LAYER"
+        SECOC_TX[SecOC TX Processing]
+        FVM[Freshness Value Manager<br/>64-bit Counter]
+        SECOC_RX[SecOC RX Processing]
+    end
+
+    subgraph "CSM LAYER Crypto Service Manager"
+        CSM_SIGN[Csm_SignatureGenerate]
+        CSM_VERIFY[Csm_SignatureVerify]
+    end
+
+    subgraph "PQC MODULE Complete Integration"
+        direction TB
+
+        subgraph "ML-DSA-65 Signatures"
+            MLDSA_SIGN[PQC_MLDSA_Sign<br/>Generate 3309-byte signature<br/>Time: 8.13ms]
+            MLDSA_VERIFY[PQC_MLDSA_Verify<br/>Verify signature<br/>Time: 4.89ms]
+        end
+
+        subgraph "ML-KEM-768 Key Exchange"
+            MLKEM_INIT[PQC_KeyExchange_Initiate<br/>Generate keypair<br/>Send 1184B public key]
+            MLKEM_RESP[PQC_KeyExchange_Respond<br/>Encapsulate<br/>Send 1088B ciphertext]
+            MLKEM_COMP[PQC_KeyExchange_Complete<br/>Decapsulate<br/>Recover 32B shared secret]
+        end
+
+        subgraph "HKDF Key Derivation"
+            HKDF_EXT[HKDF-Extract<br/>Derive PRK from shared secret]
+            HKDF_EXP[HKDF-Expand<br/>32B encryption + 32B auth keys]
+        end
+    end
+
+    subgraph "SOAD LAYER Socket Adapter"
+        SOAD_TX[SoAdTp_Transmit<br/>TP Mode for Large PDUs]
+        SOAD_PQC_MOD[SoAd_PQC Module<br/>ML-KEM Integration]
+        SOAD_RX[SoAdTp_RxIndication]
+    end
+
+    subgraph "ETHERNET LAYER"
+        ETH_SEND[ethernet_send<br/>TCP Port 12345<br/>Max 4096 bytes]
+        ETH_RECV[ethernet_receive<br/>TCP Port 12345]
+    end
+
+    subgraph "BACKEND SYSTEM"
+        BACKEND[Central ECU<br/>Quantum-Resistant<br/>Verification]
+    end
+
+    APP --> COM
+    COM --> PDUR
+    PDUR --> SECOC_TX
+    SECOC_TX --> FVM
+    FVM --> SECOC_TX
+    SECOC_TX --> CSM_SIGN
+    CSM_SIGN --> MLDSA_SIGN
+    MLDSA_SIGN --> CSM_SIGN
+    CSM_SIGN --> SECOC_TX
+    SECOC_TX --> PDUR
+    PDUR --> SOAD_TX
+
+    SOAD_TX --> SOAD_PQC_MOD
+    SOAD_PQC_MOD --> MLKEM_INIT
+    MLKEM_INIT --> MLKEM_COMP
+    MLKEM_COMP --> HKDF_EXT
+    HKDF_EXT --> HKDF_EXP
+    HKDF_EXP --> SOAD_PQC_MOD
+
+    SOAD_TX --> ETH_SEND
+    ETH_SEND --> BACKEND
+    BACKEND --> ETH_RECV
+    ETH_RECV --> SOAD_RX
+    SOAD_RX --> PDUR
+    PDUR --> SECOC_RX
+    SECOC_RX --> CSM_VERIFY
+    CSM_VERIFY --> MLDSA_VERIFY
+    MLDSA_VERIFY --> CSM_VERIFY
+    CSM_VERIFY --> SECOC_RX
+    SECOC_RX --> PDUR
+    PDUR --> COM
+    COM --> APP
+
+    style MLDSA_SIGN fill:#f57c00,color:#fff
+    style MLDSA_VERIFY fill:#f57c00,color:#fff
+    style MLKEM_INIT fill:#ff9800,color:#fff
+    style MLKEM_COMP fill:#ff9800,color:#fff
+    style HKDF_EXT fill:#4caf50,color:#fff
+    style HKDF_EXP fill:#4caf50,color:#fff
+    style SOAD_PQC_MOD fill:#2196f3,color:#fff
+```
+
+---
+
+### 20. PQC Module Interaction Diagram (Phase 3 Complete)
+
+```mermaid
+graph TB
+    subgraph "EXTERNAL INTERFACE"
+        CSM[Csm Layer]
+        SOAD[SoAd Layer]
+        ETH[Ethernet ethernet_send/receive]
+    end
+
+    subgraph "PQC MODULE ARCHITECTURE"
+        subgraph "PQC.c ML-DSA Module"
+            MLDSA_INIT[PQC_Init<br/>Initialize liboqs]
+            MLDSA_KEYGEN[PQC_MLDSA_KeyGen<br/>1952B public + 4032B secret]
+            MLDSA_SIGN[PQC_MLDSA_Sign<br/>3309B signature<br/>8.13ms]
+            MLDSA_VERIFY[PQC_MLDSA_Verify<br/>Signature check<br/>4.89ms]
+        end
+
+        subgraph "PQC_KeyExchange.c ML-KEM Module"
+            KE_INIT_FUNC[PQC_KeyExchange_Init<br/>Initialize 8 peer slots]
+            KE_INITIATE[PQC_KeyExchange_Initiate<br/>KeyGen 2.85ms<br/>Store keypair]
+            KE_RESPOND[PQC_KeyExchange_Respond<br/>Encaps 3.12ms<br/>Create ciphertext]
+            KE_COMPLETE[PQC_KeyExchange_Complete<br/>Decaps 3.89ms<br/>Recover shared secret]
+            KE_GET_SS[PQC_KeyExchange_GetSharedSecret<br/>Retrieve 32B shared secret]
+        end
+
+        subgraph "PQC_KeyDerivation.c HKDF Module"
+            KD_INIT[PQC_KeyDerivation_Init<br/>Initialize session storage]
+            KD_DERIVE[PQC_DeriveSessionKeys<br/>HKDF Extract + Expand<br/>0.3ms]
+            KD_GET[PQC_GetSessionKeys<br/>Retrieve stored keys]
+            KD_CLEAR[PQC_ClearSessionKeys<br/>Clear sensitive data]
+        end
+
+        subgraph "liboqs Integration"
+            LIBOQS[Open Quantum Safe Library<br/>NIST FIPS 203 + 204]
+            OQS_KEM[OQS_KEM_ml_kem_768<br/>KeyGen, Encaps, Decaps]
+            OQS_SIG[OQS_SIG_ml_dsa_65<br/>KeyGen, Sign, Verify]
+            OQS_SHA[OQS_SHA2_sha256<br/>For HKDF]
+        end
+    end
+
+    subgraph "SESSION MANAGEMENT"
+        SESSION_KEYS[PQC_SessionKeys 8<br/>32B encryption + 32B auth per peer]
+        KE_SESSIONS[KE_Sessions 8<br/>Keypairs + Shared Secrets]
+    end
+
+    CSM --> MLDSA_SIGN
+    CSM --> MLDSA_VERIFY
+    SOAD --> KE_INITIATE
+    SOAD --> KE_RESPOND
+    SOAD --> KE_COMPLETE
+    ETH --> SOAD
+
+    MLDSA_INIT --> LIBOQS
+    MLDSA_KEYGEN --> OQS_SIG
+    MLDSA_SIGN --> OQS_SIG
+    MLDSA_VERIFY --> OQS_SIG
+
+    KE_INIT_FUNC --> LIBOQS
+    KE_INITIATE --> OQS_KEM
+    KE_RESPOND --> OQS_KEM
+    KE_COMPLETE --> OQS_KEM
+    KE_GET_SS --> KE_SESSIONS
+
+    KE_COMPLETE --> KD_DERIVE
+    KD_INIT --> OQS_SHA
+    KD_DERIVE --> OQS_SHA
+    KD_DERIVE --> SESSION_KEYS
+    KD_GET --> SESSION_KEYS
+
+    style MLDSA_SIGN fill:#f57c00,color:#fff
+    style KE_COMPLETE fill:#ff9800,color:#fff
+    style KD_DERIVE fill:#4caf50,color:#fff
+    style LIBOQS fill:#2196f3,color:#fff
+    style SESSION_KEYS fill:#9c27b0,color:#fff
+```
+
+---
+
+### 21. Phase 3 Test Coverage Map
+
+```mermaid
+graph TB
+    subgraph "TEST SUITE: test_phase3_complete_ethernet_gateway.c"
+        TEST_MAIN[Phase 3 Complete Test Suite<br/>700+ lines comprehensive testing]
+
+        subgraph "TEST 1: ML-KEM-768 Standalone"
+            T1_1[1.1: KeyGen 1000 iterations<br/>Verify 1184B public + 2400B secret]
+            T1_2[1.2: Encapsulation 1000 iterations<br/>Verify 1088B ciphertext + 32B secret]
+            T1_3[1.3: Decapsulation 1000 iterations<br/>Verify shared secret recovery]
+            T1_4[1.4: Multi-peer 8 concurrent sessions<br/>Session isolation test]
+        end
+
+        subgraph "TEST 2: HKDF Key Derivation"
+            T2_1[2.1: HKDF-Extract<br/>PRK from shared secret]
+            T2_2[2.2: HKDF-Expand Encryption<br/>32B encryption key]
+            T2_3[2.3: HKDF-Expand Authentication<br/>32B authentication key]
+            T2_4[2.4: Key Independence<br/>Verify EncKey != AuthKey != SS]
+            T2_5[2.5: Deterministic Derivation<br/>Same SS -> Same keys]
+        end
+
+        subgraph "TEST 3: ML-DSA-65 Integrated"
+            T3_1[3.1: Csm_SignatureGenerate<br/>100 iterations via Csm layer]
+            T3_2[3.2: Csm_SignatureVerify<br/>100 iterations]
+            T3_3[3.3: Invalid Signature Detection<br/>100 corrupted signatures]
+            T3_4[3.4: Performance Measurement<br/>Sign time + Verify time]
+        end
+
+        subgraph "TEST 4: Combined Performance"
+            T4_1[4.1: Handshake Total Time<br/>KeyGen + Encaps + Decaps]
+            T4_2[4.2: HKDF Overhead<br/>Extract + 2x Expand]
+            T4_3[4.3: Per-Message Overhead<br/>Sign + Verify]
+            T4_4[4.4: Amortized Cost Analysis<br/>Handshake / N messages]
+        end
+
+        subgraph "TEST 5: Security Validation"
+            T5_1[5.1: Replay Attack Detection<br/>Stale freshness rejection]
+            T5_2[5.2: Message Tampering Detection<br/>Modified data rejection]
+            T5_3[5.3: Signature Tampering Detection<br/>Corrupted signature rejection]
+            T5_4[5.4: Quantum Resistance Validation<br/>NIST FIPS compliance check]
+        end
+    end
+
+    subgraph "EXPECTED RESULTS"
+        PASS_CRITERIA[All Tests Must PASS:<br/>100% Success Rate]
+        PERF_METRICS[Performance Metrics:<br/>< 10ms handshake<br/>< 15ms per-message<br/>> 77 msg/sec throughput]
+        SEC_METRICS[Security Metrics:<br/>100% attack detection<br/>NIST Category 3 security]
+    end
+
+    TEST_MAIN --> T1_1
+    TEST_MAIN --> T1_2
+    TEST_MAIN --> T1_3
+    TEST_MAIN --> T1_4
+    TEST_MAIN --> T2_1
+    TEST_MAIN --> T2_2
+    TEST_MAIN --> T2_3
+    TEST_MAIN --> T2_4
+    TEST_MAIN --> T2_5
+    TEST_MAIN --> T3_1
+    TEST_MAIN --> T3_2
+    TEST_MAIN --> T3_3
+    TEST_MAIN --> T3_4
+    TEST_MAIN --> T4_1
+    TEST_MAIN --> T4_2
+    TEST_MAIN --> T4_3
+    TEST_MAIN --> T4_4
+    TEST_MAIN --> T5_1
+    TEST_MAIN --> T5_2
+    TEST_MAIN --> T5_3
+    TEST_MAIN --> T5_4
+
+    T1_4 --> PASS_CRITERIA
+    T2_5 --> PASS_CRITERIA
+    T3_4 --> PERF_METRICS
+    T4_4 --> PERF_METRICS
+    T5_4 --> SEC_METRICS
+
+    style TEST_MAIN fill:#2196f3,color:#fff
+    style PASS_CRITERIA fill:#4caf50,color:#fff
+    style PERF_METRICS fill:#ff9800,color:#fff
+    style SEC_METRICS fill:#f44336,color:#fff
+```
+
+---
+
+## Phase 3 Diagram Summary
+
+| # | Diagram Name | Purpose | New Components Shown |
+|---|-------------|---------|---------------------|
+| 16 | Phase 3 Complete Architecture | Overall system view | PQC_KeyDerivation, SoAd_PQC, Phase3 Test |
+| 17 | ML-KEM Key Exchange Flow | Detailed handshake sequence | SoAd_PQC, PQC_KeyExchange, HKDF integration |
+| 18 | HKDF Session Key Derivation | Cryptographic key derivation | HKDF-Extract, HKDF-Expand, Session Keys |
+| 19 | Complete AUTOSAR Signal Flow | Full stack with Phase 3 | All PQC modules integrated in AUTOSAR layers |
+| 20 | PQC Module Interaction | Internal PQC architecture | PQC.c, PQC_KeyExchange.c, PQC_KeyDerivation.c |
+| 21 | Phase 3 Test Coverage | Comprehensive test mapping | All 5 test suites with expected results |
+
+**Total Diagrams: 21** (15 original + 6 Phase 3 diagrams)
+
+---
+
 *END OF DIAGRAMS*

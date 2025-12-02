@@ -297,10 +297,10 @@ DLL_EXPORT char* GUIInterface_receive(uint8_t* rxId , uint8_t* finalRxLen)
 
     /* TO BE IMPLEMENTED*/
     #if defined(__linux__) || defined(WINDOWS)
-        #define BUS_LENGTH_RECEIVE 8
         static uint8 dataRecieve [BUS_LENGTH_RECEIVE];
         uint16 id;
-        result = ethernet_receive(dataRecieve , BUS_LENGTH_RECEIVE, &id);
+        uint16 actualSize;
+        result = ethernet_receive(dataRecieve , BUS_LENGTH_RECEIVE, &id, &actualSize);
 
         if (result != E_OK)
         {
@@ -310,7 +310,7 @@ DLL_EXPORT char* GUIInterface_receive(uint8_t* rxId , uint8_t* finalRxLen)
         PduInfoType PduInfoPtr = {
             .SduDataPtr = dataRecieve,
             .MetaDataPtr = (uint8*)&PdusCollections[id],
-            .SduLength = BUS_LENGTH_RECEIVE,
+            .SduLength = actualSize,  /* Use actual received size, not buffer size */
         };
         switch (PdusCollections[id].Type)
         {

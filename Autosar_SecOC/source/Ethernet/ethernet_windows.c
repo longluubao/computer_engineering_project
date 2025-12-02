@@ -165,7 +165,7 @@ Std_ReturnType ethernet_send(unsigned short id, unsigned char* data, uint16 data
     return E_OK;
 }
 
-Std_ReturnType ethernet_receive(unsigned char* data, uint16 dataLen, unsigned short* id)
+Std_ReturnType ethernet_receive(unsigned char* data, uint16 dataLen, unsigned short* id, uint16* actualSize)
 {
     #ifdef ETHERNET_DEBUG
         printf("######## in Receive Ethernet\n");
@@ -250,18 +250,29 @@ Std_ReturnType ethernet_receive(unsigned char* data, uint16 dataLen, unsigned sh
         return E_NOT_OK;
     }
 
+    /* Calculate actual PDU size (received bytes - ID size) */
+    int actualPduSize = recv_result - sizeof(unsigned short);
+
     #ifdef ETHERNET_DEBUG
         printf("in Receive Ethernet \t");
-        printf("Info Received: \n");
-        for (int j = 0; j < (dataLen + sizeof(unsigned short)); j++)
+        printf("Received %d bytes total, PDU size = %d\n", recv_result, actualPduSize);
+        printf("Info Received (first 20 bytes): \n");
+        for (int j = 0; j < recv_result && j < 20; j++)
         {
             printf("%d ", recData[j]);
         }
         printf("\n\n\n");
     #endif
 
-    (void)memcpy(id, recData + dataLen, sizeof(unsigned short));
-    (void)memcpy(data, recData, dataLen);
+    /* Extract ID from END of received data (not from fixed buffer position!) */
+    (void)memcpy(id, recData + actualPduSize, sizeof(unsigned short));
+    (void)memcpy(data, recData, actualPduSize);
+
+    /* Return actual PDU size to caller */
+    if (actualSize != NULL)
+    {
+        *actualSize = (uint16)actualPduSize;
+    }
 
     #ifdef ETHERNET_DEBUG
         printf("id = %d \n", *id);
@@ -277,14 +288,15 @@ void ethernet_RecieveMainFunction(void)
 {
     static uint8 dataRecieve[BUS_LENGTH_RECEIVE];
     uint16 id;
-    if (ethernet_receive(dataRecieve, BUS_LENGTH_RECEIVE, &id) != E_OK)
+    uint16 actualSize;
+    if (ethernet_receive(dataRecieve, BUS_LENGTH_RECEIVE, &id, &actualSize) != E_OK)
     {
         return;
     }
     PduInfoType PduInfoPtr = {
         .SduDataPtr = dataRecieve,
         .MetaDataPtr = (uint8*)&PdusCollections[id],
-        .SduLength = BUS_LENGTH_RECEIVE,
+        .SduLength = actualSize,  /* Use actual received size, not buffer size */
     };
     switch (PdusCollections[id].Type)
     {

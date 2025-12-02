@@ -114,6 +114,18 @@ elseif(UNIX)
     target_compile_definitions(SecOCLibShared PUBLIC LINUX)
 endif()
 
+# Add Phase 3: Complete Ethernet Gateway Integration Test
+add_executable(Phase3_Complete_Test test_phase3_complete_ethernet_gateway.c)
+target_include_directories(Phase3_Complete_Test PUBLIC ${headerDirs} ${LIBOQS_INCLUDE_DIR})
+target_link_libraries(Phase3_Complete_Test SecOCLib ${LIBOQS_LIBRARY})
+if(WIN32)
+    target_compile_definitions(Phase3_Complete_Test PUBLIC WINDOWS)
+    target_link_libraries(Phase3_Complete_Test ws2_32)
+elseif(UNIX)
+    target_compile_definitions(Phase3_Complete_Test PUBLIC LINUX)
+endif()
+add_test(NAME Phase3_Complete_Integration COMMAND Phase3_Complete_Test)
+
 # Add our test folder cmakelists
 add_subdirectory(test)
 

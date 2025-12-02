@@ -58,8 +58,9 @@ Std_ReturnType ethernet_send(unsigned short id, unsigned char* data, uint16 data
  * Function_File        :                               *
  * Function_Descripton  : Used to Receive the data using*
  * Winsock sockets                                      *
+ * @param actualSize [out] Actual number of bytes received*
  *******************************************************/
-Std_ReturnType ethernet_receive(unsigned char* data, uint16 dataLen, unsigned short* id);
+Std_ReturnType ethernet_receive(unsigned char* data, uint16 dataLen, unsigned short* id, uint16* actualSize);
 
 
 /*******************************************************

@@ -7,10 +7,6 @@
 // #include "OSconfig.h"
 #include "SecOC.h"
 #include "SecOC_Debug.h"
-
-#ifdef LINUX
-#include "ethernet.h"
-#endif
 #include "PduR_CanIf.h"
 
 
@@ -50,9 +46,8 @@ Std_ReturnType CanIf_Transmit(PduIdType TxPduId,const PduInfoType* PduInfoPtr)
         printf("\n");
     #endif
 
-    #ifdef __linux__
-    result = ethernet_send(TxPduId, PduInfoPtr->SduDataPtr , PduInfoPtr->SduLength);
-    #endif
+    /* CanIF is for CAN communication, NOT Ethernet */
+    /* Ethernet communication should use SoAd (Socket Adapter) */
     int delay = 50000000;
     while (delay--);
     switch (PdusCollections[TxPduId].Type)

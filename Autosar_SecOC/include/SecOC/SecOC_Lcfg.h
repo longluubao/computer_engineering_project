@@ -21,7 +21,7 @@
 // MAC mode: 4-32 bytes sufficient
 // PQC mode (ML-DSA-65): 3309 bytes required
 // Use 4096 bytes to support both MAC and PQC signatures
-#define SECOC_AUTHENTICATOR_MAX_LENGTH                              4096U
+#define SECOC_AUTHENTICATOR_MAX_LENGTH                              27200U  /* 3400 bytes for ML-DSA-65 signatures (3309 bytes) */
 
 #define SECOC_FRESHNESS_MAX_LENGTH                                  ((uint8)32)
 

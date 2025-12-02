@@ -32,6 +32,79 @@ print_banner() {
     echo ""
 }
 
+# Function: Validate PQC and Ethernet configuration (MANDATORY)
+validate_pqc_ethernet_config() {
+    echo ""
+    echo -e "${CYAN}+============================================================+${NC}"
+    echo -e "${CYAN}|     VALIDATING PQC + ETHERNET GATEWAY CONFIGURATION        |${NC}"
+    echo -e "${CYAN}+============================================================+${NC}"
+    echo ""
+
+    local config_valid=true
+
+    # Check 1: SECOC_USE_PQC_MODE must be TRUE
+    echo -e "${BLUE}[CHECK 1/3] Verifying PQC Mode (ML-KEM-768 + ML-DSA-65)...${NC}"
+    if grep -q "SECOC_USE_PQC_MODE.*TRUE" include/SecOC/SecOC_PQC_Cfg.h 2>/dev/null; then
+        echo -e "${GREEN}[OK] PQC Mode: ENABLED${NC}"
+        echo -e "         ML-KEM-768: Key Encapsulation Mechanism"
+        echo -e "         ML-DSA-65: Digital Signature Algorithm"
+    else
+        echo -e "${RED}[FAIL] PQC Mode: NOT ENABLED!${NC}"
+        echo -e "${YELLOW}       Required: SECOC_USE_PQC_MODE = TRUE${NC}"
+        echo -e "${YELLOW}       Location: include/SecOC/SecOC_PQC_Cfg.h${NC}"
+        config_valid=false
+    fi
+    echo ""
+
+    # Check 2: SECOC_ETHERNET_GATEWAY_MODE must be TRUE
+    echo -e "${BLUE}[CHECK 2/3] Verifying Ethernet Gateway Mode...${NC}"
+    if grep -q "SECOC_ETHERNET_GATEWAY_MODE.*TRUE" include/SecOC/SecOC_PQC_Cfg.h 2>/dev/null; then
+        echo -e "${GREEN}[OK] Ethernet Gateway: ENABLED${NC}"
+        echo -e "         Multi-transport support (CAN + Ethernet)"
+        echo -e "         SoAd (Socket Adapter) layer active"
+    else
+        echo -e "${RED}[FAIL] Ethernet Gateway: NOT ENABLED!${NC}"
+        echo -e "${YELLOW}       Required: SECOC_ETHERNET_GATEWAY_MODE = TRUE${NC}"
+        echo -e "${YELLOW}       Location: include/SecOC/SecOC_PQC_Cfg.h${NC}"
+        config_valid=false
+    fi
+    echo ""
+
+    # Check 3: Verify large PDU support for ML-DSA signatures
+    echo -e "${BLUE}[CHECK 3/3] Verifying PDU Size for PQC Signatures...${NC}"
+    if grep -q "SECOC_PQC_MAX_PDU_SIZE.*8192" include/SecOC/SecOC_PQC_Cfg.h 2>/dev/null; then
+        echo -e "${GREEN}[OK] PDU Size: 8192 bytes${NC}"
+        echo -e "         Sufficient for ML-DSA-65 signatures (3309 bytes)"
+    else
+        echo -e "${YELLOW}[WARN] PDU Size may need adjustment for PQC${NC}"
+        echo -e "${YELLOW}       Recommended: SECOC_PQC_MAX_PDU_SIZE = 8192U${NC}"
+    fi
+    echo ""
+
+    if [ "$config_valid" = false ]; then
+        echo -e "${RED}+============================================================+${NC}"
+        echo -e "${RED}|  CONFIGURATION ERROR: PQC/Ethernet NOT properly enabled!  |${NC}"
+        echo -e "${RED}+============================================================+${NC}"
+        echo ""
+        echo -e "${YELLOW}This project REQUIRES:${NC}"
+        echo -e "  1. Post-Quantum Cryptography (ML-KEM-768 + ML-DSA-65)"
+        echo -e "  2. Ethernet Gateway Mode for multi-transport support"
+        echo ""
+        echo -e "${YELLOW}Please verify:${NC}"
+        echo -e "  - include/SecOC/SecOC_PQC_Cfg.h has correct settings"
+        echo -e "  - SECOC_USE_PQC_MODE = TRUE"
+        echo -e "  - SECOC_ETHERNET_GATEWAY_MODE = TRUE"
+        echo ""
+        return 1
+    fi
+
+    echo -e "${GREEN}+============================================================+${NC}"
+    echo -e "${GREEN}|  CONFIGURATION VALID: PQC + Ethernet Ready!                |${NC}"
+    echo -e "${GREEN}+============================================================+${NC}"
+    echo ""
+    return 0
+}
+
 # Function: Check dependencies
 check_dependencies() {
     echo -e "${YELLOW}[CHECK] Checking dependencies...${NC}"
@@ -55,6 +128,9 @@ check_dependencies() {
     else
         echo -e "${GREEN} Python3 found${NC}"
     fi
+
+    # MANDATORY: Validate PQC + Ethernet configuration
+    validate_pqc_ethernet_config || return 1
 
     return 0
 }
@@ -419,6 +495,93 @@ build_comprehensive_pqc_test() {
     fi
 }
 
+# Function: Build Phase 3 Complete Ethernet Gateway Test
+build_phase3_complete_test() {
+    echo ""
+    echo -e "${CYAN}+============================================================+${NC}"
+    echo -e "${CYAN}|  BUILDING PHASE 3 COMPLETE ETHERNET GATEWAY TEST (ML-KEM) |${NC}"
+    echo -e "${CYAN}+============================================================+${NC}"
+    echo ""
+
+    # Check liboqs
+    if [ ! -f "external/liboqs/build/lib/liboqs.a" ]; then
+        echo -e "${RED} liboqs not found!${NC}"
+        echo "   Building liboqs first..."
+        build_liboqs || return 1
+    fi
+
+    echo -e "${BLUE}[BUILD] Compiling test_phase3_complete_ethernet_gateway.c...${NC}"
+    echo ""
+    echo -e "${YELLOW}This test includes:${NC}"
+    echo -e "  ${GREEN}[OK]${NC} Phase 3.1: ML-KEM-768 Key Exchange (Full Stack)"
+    echo -e "  ${GREEN}[OK]${NC} Phase 3.2: HKDF Session Key Derivation"
+    echo -e "  ${GREEN}[OK]${NC} Phase 3.3: ML-DSA-65 Signatures (Integrated)"
+    echo -e "  ${GREEN}[OK]${NC} Phase 3.4: Combined Performance Analysis"
+    echo -e "  ${GREEN}[OK]${NC} Phase 3.5: Security Validation & Attack Tests"
+    echo -e "  ${GREEN}[OK]${NC} Full AUTOSAR Stack: COM -> PduR -> SecOC -> Csm -> PQC -> SoAd -> Ethernet"
+    echo ""
+
+    gcc -o test_phase3_complete.exe \
+        test_phase3_complete_ethernet_gateway.c \
+        source/PQC/PQC.c \
+        source/PQC/PQC_KeyExchange.c \
+        source/PQC/PQC_KeyDerivation.c \
+        source/SoAd/SoAd_PQC.c \
+        source/SoAd/SoAd.c \
+        source/Csm/Csm.c \
+        source/Encrypt/encrypt.c \
+        source/SecOC/SecOC.c \
+        source/SecOC/FVM.c \
+        source/SecOC/SecOC_Lcfg.c \
+        source/SecOC/SecOC_PBcfg.c \
+        source/PduR/PduR_Com.c \
+        source/PduR/Pdur_SecOC.c \
+        source/PduR/Pdur_Canif.c \
+        source/PduR/Pdur_CanTP.c \
+        source/PduR/PduR_SoAd.c \
+        source/Com/Com.c \
+        source/Can/CanIF.c \
+        source/Can/CanTP.c \
+        source/Dcm/Dcm.c \
+        source/Ethernet/ethernet_windows.c \
+        -I include \
+        -I include/PQC \
+        -I include/Csm \
+        -I include/Encrypt \
+        -I include/SecOC \
+        -I include/PduR \
+        -I include/Com \
+        -I include/Can \
+        -I include/Dcm \
+        -I include/SoAd \
+        -I include/Ethernet \
+        -I external/liboqs/build/include \
+        -L external/liboqs/build/lib \
+        -loqs \
+        -lws2_32 \
+        -lm \
+        -lpthread \
+        $PLATFORM_FLAGS
+
+    if [ $? -eq 0 ]; then
+        echo ""
+        echo -e "${GREEN}+============================================================+${NC}"
+        echo -e "${GREEN}|    PHASE 3 COMPLETE ETHERNET GATEWAY BUILD SUCCESSFUL     |${NC}"
+        echo -e "${GREEN}+============================================================+${NC}"
+        echo ""
+        echo -e "${BLUE}[OK] Output: test_phase3_complete.exe${NC}"
+        echo -e "${BLUE}[OK] Tests: ML-KEM + ML-DSA + HKDF + SoAd Integration${NC}"
+        echo -e "${BLUE}[OK] Coverage: Full AUTOSAR Stack (Ethernet Gateway)${NC}"
+        return 0
+    else
+        echo ""
+        echo -e "${RED}+============================================================+${NC}"
+        echo -e "${RED}|               BUILD FAILED!                               |${NC}"
+        echo -e "${RED}+============================================================+${NC}"
+        return 1
+    fi
+}
+
 # Function: Build Google Test Suite (Including PQC Comparison Tests)
 build_google_test_suite() {
     echo ""
@@ -429,7 +592,7 @@ build_google_test_suite() {
 
     # Check liboqs
     if [ ! -f "external/liboqs/build/lib/liboqs.a" ]; then
-        echo -e "${RED}✗ liboqs not found!${NC}"
+        echo -e "${RED} liboqs not found!${NC}"
         echo "   Building liboqs first..."
         build_liboqs || return 1
     fi
@@ -456,7 +619,7 @@ build_google_test_suite() {
     echo -e "${BLUE}[CMAKE] Configuring build system...${NC}"
     cmake -G "MinGW Makefiles" .. > cmake_output.log 2>&1
     if [ $? -ne 0 ]; then
-        echo -e "${RED}✗ CMake configuration failed!${NC}"
+        echo -e "${RED} CMake configuration failed!${NC}"
         echo "   Check build/cmake_output.log for details"
         cd ..
         return 1
@@ -467,7 +630,7 @@ build_google_test_suite() {
     echo -e "${BLUE}[BUILD] Building test executables...${NC}"
     mingw32-make -j4 > make_output.log 2>&1
     if [ $? -ne 0 ]; then
-        echo -e "${RED}✗ Build failed!${NC}"
+        echo -e "${RED} Build failed!${NC}"
         echo "   Check build/make_output.log for details"
         cd ..
         return 1
@@ -496,7 +659,7 @@ run_google_test_suite() {
     echo ""
 
     if [ ! -d "build" ]; then
-        echo -e "${RED}✗ Build directory not found!${NC}"
+        echo -e "${RED} Build directory not found!${NC}"
         echo "   Run: bash build_and_run.sh googletest"
         return 1
     fi
@@ -570,6 +733,7 @@ run_tests() {
     local has_integration=false
     local has_comprehensive=false
     local has_advanced=false
+    local has_phase3=false
 
     if [ -f "test_pqc_standalone.exe" ]; then
         has_standalone=true
@@ -591,7 +755,11 @@ run_tests() {
         has_advanced=true
     fi
 
-    if [ "$has_standalone" = false ] && [ "$has_integration_pqc" = false ] && [ "$has_integration" = false ] && [ "$has_comprehensive" = false ] && [ "$has_advanced" = false ]; then
+    if [ -f "test_phase3_complete.exe" ]; then
+        has_phase3=true
+    fi
+
+    if [ "$has_standalone" = false ] && [ "$has_integration_pqc" = false ] && [ "$has_integration" = false ] && [ "$has_comprehensive" = false ] && [ "$has_advanced" = false ] && [ "$has_phase3" = false ]; then
         echo -e "${RED} No test executables found!${NC}"
         echo -e "   Build tests first:"
         echo -e "   ${YELLOW}8)${NC} PQC Standalone Test ${GREEN}(RECOMMENDED)${NC}"
@@ -654,6 +822,28 @@ run_tests() {
             fi
         else
             echo -e "${RED} Comprehensive test failed${NC}"
+        fi
+        echo ""
+    fi
+
+    # Run Phase 3 Complete Ethernet Gateway Test if available
+    if [ "$has_phase3" = true ]; then
+        echo -e "${BLUE}[RUN] Running Phase 3 Complete Ethernet Gateway Test...${NC}"
+        echo -e "${YELLOW}   (ML-KEM-768 + ML-DSA-65 + HKDF + SoAd Integration)${NC}"
+        echo -e "${YELLOW}   (Full AUTOSAR Stack: COM -> PduR -> SecOC -> Csm -> PQC -> SoAd -> Ethernet)${NC}"
+        echo ""
+
+        ./test_phase3_complete.exe
+
+        if [ $? -eq 0 ]; then
+            echo ""
+            echo -e "${GREEN}[PASS] Phase 3 Complete test completed successfully!${NC}"
+            echo -e "${GREEN}[PASS] ML-KEM key exchange: VERIFIED${NC}"
+            echo -e "${GREEN}[PASS] HKDF key derivation: VERIFIED${NC}"
+            echo -e "${GREEN}[PASS] ML-DSA signatures: VERIFIED${NC}"
+            echo -e "${GREEN}[PASS] Combined integration: VERIFIED${NC}"
+        else
+            echo -e "${RED}[FAIL] Phase 3 Complete test failed${NC}"
         fi
         echo ""
     fi
@@ -1076,7 +1266,7 @@ run_thesis_storytelling_sequence() {
         echo "  2. VerificationTests (5 tests)"
         echo "  3. FreshnessTests (10 tests)"
         echo "  4. DirectTxTests (1 test)"
-        echo "  5. DirectRxTests (0 tests - platform specific)"
+        echo "  5. DirectRxTests (1 test - Ethernet + PQC/Classical verification)"
         echo "  6. startOfReceptionTests (5 tests)"
         echo "  7. SecOCTests (3 tests)"
         echo "  8. PQC_ComparisonTests (13 tests - THESIS CONTRIBUTION)"
@@ -1089,10 +1279,13 @@ run_thesis_storytelling_sequence() {
     if [ $? -eq 0 ]; then
         echo ""
         echo -e "${BLUE}[EXECUTE] Running Google Test comparison suite...${NC}"
+        echo -e "${YELLOW}[NOTE] Skipping Ethernet-dependent tests (require dual-system setup)${NC}"
         echo ""
 
         cd build
-        ctest --output-on-failure --verbose > ctest_output.txt 2>&1
+
+        # Run tests excluding DirectRxTests which requires dual-system Ethernet setup
+        ctest --output-on-failure --verbose -E "DirectRxTests" > ctest_output.txt 2>&1
         local ctest_result=$?
 
         # Log the complete output
@@ -1110,9 +1303,10 @@ run_thesis_storytelling_sequence() {
                 {
                     echo ""
                     echo "--- TEST RESULTS SUMMARY ---"
-                    echo "Total test suites: $total_unit_tests"
+                    echo "Total test suites: $total_unit_tests (excluding DirectRxTests)"
                     echo "Passed: $passed_unit_tests"
                     echo "Failed: $failed_tests"
+                    echo "Skipped: DirectRxTests (requires dual-system Ethernet setup)"
                     echo ""
                 } >> "../$phase2_log"
             fi
@@ -1126,7 +1320,9 @@ run_thesis_storytelling_sequence() {
             echo -e "${GREEN}[OK] Classical mode: All authentication/verification tests passed${NC}"
             echo -e "${GREEN}[OK] PQC mode: All ML-DSA signature tests passed${NC}"
             echo -e "${GREEN}[OK] ML-KEM: Key exchange tests passed${NC}"
+            echo -e "${YELLOW}[SKIP] DirectRxTests: Requires dual-system Ethernet (1 sender + 1 receiver)${NC}"
             echo "RESULT: PASSED ($passed_unit_tests/$total_unit_tests tests)" >> "$phase2_log"
+            echo "NOTE: DirectRxTests skipped - requires dual-system Ethernet setup" >> "$phase2_log"
         else
             echo -e "${YELLOW}[WARN] PHASE 2: $passed_unit_tests/$total_unit_tests tests passed${NC}"
             echo "RESULT: PARTIAL PASS ($passed_unit_tests/$total_unit_tests tests)" >> "$phase2_log"
@@ -1142,68 +1338,88 @@ run_thesis_storytelling_sequence() {
     read -p "Press Enter to continue to Phase 3..." dummy
     echo ""
 
-    # ========== PHASE 3: AUTOSAR INTEGRATION ==========
-    local phase3_log="test_logs/phase3_autosar_integration_$(date +%Y%m%d_%H%M%S).txt"
+    # ========== PHASE 3: COMPLETE ETHERNET GATEWAY WITH ML-KEM + ML-DSA ==========
+    local phase3_log="test_logs/phase3_complete_ethernet_gateway_$(date +%Y%m%d_%H%M%S).txt"
 
     echo -e "${CYAN}+================================================================+${NC}"
-    echo -e "${CYAN}|  PHASE 3: AUTOSAR SecOC INTEGRATION (Csm Layer)                |${NC}"
-    echo -e "${CYAN}|  PQC Integration with Automotive Cryptography Service Manager  |${NC}"
+    echo -e "${CYAN}|  PHASE 3: COMPLETE ETHERNET GATEWAY (ML-KEM + ML-DSA)         |${NC}"
+    echo -e "${CYAN}|  Full AUTOSAR Stack: COM -> PduR -> SecOC -> Csm -> PQC -> SoAd -> Ethernet |${NC}"
     echo -e "${CYAN}+================================================================+${NC}"
     echo ""
-    echo -e "${YELLOW}Objective:${NC} Validate PQC integration with AUTOSAR BSW stack"
-    echo -e "${YELLOW}Integration Points:${NC}"
-    echo -e "  > Csm_SignatureGenerate (PQC ML-DSA)"
-    echo -e "  > Csm_SignatureVerify (PQC ML-DSA)"
-    echo -e "  > Csm_MacGenerate (Classical AES-CMAC)"
-    echo -e "  > Csm_MacVerify (Classical AES-CMAC)"
-    echo -e "  > Performance comparison & security testing"
+    echo -e "${YELLOW}Objective:${NC} Validate complete PQC integration in Ethernet Gateway"
+    echo -e "${YELLOW}Integration Coverage:${NC}"
+    echo -e "  > ML-KEM-768: Key Exchange (KeyGen, Encaps, Decaps)"
+    echo -e "  > HKDF: Session Key Derivation (32-byte encryption + 32-byte auth keys)"
+    echo -e "  > ML-DSA-65: Message Signatures (Sign, Verify)"
+    echo -e "  > SoAd_PQC: Socket Adapter PQC Integration"
+    echo -e "  > Full AUTOSAR Signal Flow: COM -> PduR -> SecOC -> Csm -> PQC -> SoAd -> Ethernet"
+    echo -e "  > Security Testing: Replay attacks, tampering detection, quantum resistance"
     echo -e "${BLUE}Log file:${NC} $phase3_log"
     echo ""
 
     {
         echo "================================================================"
-        echo "PHASE 3: AUTOSAR INTEGRATION TEST LOG"
+        echo "PHASE 3: COMPLETE ETHERNET GATEWAY TEST LOG"
         echo "Date: $(date '+%Y-%m-%d %H:%M:%S')"
         echo "================================================================"
         echo ""
-        echo "INTEGRATION TESTS:"
-        echo "  - Csm Layer PQC Integration"
-        echo "  - Classical MAC vs PQC Signature Comparison"
-        echo "  - Performance Benchmarking"
-        echo "  - Security Testing (Tampering Detection)"
+        echo "COMPLETE PQC INTEGRATION TESTS:"
+        echo "  Test 1: ML-KEM-768 Key Exchange"
+        echo "    - KeyGen: Generate 1184-byte public key + 2400-byte secret key"
+        echo "    - Encapsulation: Create 1088-byte ciphertext + 32-byte shared secret"
+        echo "    - Decapsulation: Recover shared secret from ciphertext"
+        echo "    - Multi-peer key exchange (Gateway supports 8 concurrent peers)"
+        echo ""
+        echo "  Test 2: HKDF Session Key Derivation"
+        echo "    - Extract: Derive pseudorandom key from ML-KEM shared secret"
+        echo "    - Expand: Generate 32-byte encryption key"
+        echo "    - Expand: Generate 32-byte authentication key"
+        echo "    - Salt: AUTOSAR-SecOC-PQC-v1.0"
+        echo ""
+        echo "  Test 3: ML-DSA-65 Signatures (Integrated with Csm)"
+        echo "    - Sign: Generate 3309-byte quantum-resistant signatures"
+        echo "    - Verify: Validate signature integrity"
+        echo "    - Performance: Measure signing and verification latency"
+        echo ""
+        echo "  Test 4: Combined ML-KEM + ML-DSA Performance"
+        echo "    - Total handshake time (ML-KEM key exchange)"
+        echo "    - Per-message overhead (ML-DSA signature)"
+        echo "    - Amortized cost analysis"
+        echo ""
+        echo "  Test 5: Security Validation"
+        echo "    - Replay attack detection (freshness counter)"
+        echo "    - Message tampering detection (signature verification)"
+        echo "    - Quantum resistance validation"
         echo ""
         echo "EXPECTED OUTPUTS:"
-        echo "  - pqc_advanced_results.csv (Performance metrics)"
-        echo "  - Security test results (2 tampering tests)"
+        echo "  - Complete test report with pass/fail for each test"
+        echo "  - Performance metrics: ML-KEM + HKDF + ML-DSA timing"
+        echo "  - Security test results: Attack detection rates"
         echo ""
         echo "================================================================"
         echo ""
     } > "$phase3_log"
 
-    build_pqc_secoc_integration_test
+    build_phase3_complete_test
     if [ $? -eq 0 ]; then
         echo ""
-        echo -e "${BLUE}[EXECUTE] Running Csm layer integration tests...${NC}"
+        echo -e "${BLUE}[EXECUTE] Running Phase 3 Complete Ethernet Gateway Test...${NC}"
         echo ""
-        ./test_pqc_secoc_integration.exe 2>&1 | tee -a "$phase3_log"
+        ./test_phase3_complete.exe 2>&1 | tee -a "$phase3_log"
         local result=${PIPESTATUS[0]}
 
         if [ $result -eq 0 ]; then
             phase3_pass=true
             echo ""
             echo -e "${GREEN}*** PHASE 3: PASSED ***${NC}"
-            echo -e "${GREEN}[OK] PQC signatures integrated with Csm layer${NC}"
-            echo -e "${GREEN}[OK] Classical MAC still functional (backward compatibility)${NC}"
-            echo -e "${GREEN}[OK] Tampering detection working in both modes${NC}"
+            echo -e "${GREEN}[OK] ML-KEM-768: Key exchange completed successfully${NC}"
+            echo -e "${GREEN}[OK] HKDF: Session keys derived from shared secret${NC}"
+            echo -e "${GREEN}[OK] ML-DSA-65: Signatures integrated with AUTOSAR SecOC${NC}"
+            echo -e "${GREEN}[OK] SoAd_PQC: Socket Adapter PQC integration working${NC}"
+            echo -e "${GREEN}[OK] Security: Replay and tampering attacks detected${NC}"
+            echo -e "${GREEN}[OK] Full AUTOSAR Stack: End-to-end signal flow validated${NC}"
             echo "" >> "$phase3_log"
-            echo "RESULT: PASSED" >> "$phase3_log"
-
-            # Append CSV results if available
-            if [ -f "pqc_advanced_results.csv" ]; then
-                echo "" >> "$phase3_log"
-                echo "--- CSV Performance Results ---" >> "$phase3_log"
-                cat pqc_advanced_results.csv >> "$phase3_log"
-            fi
+            echo "RESULT: PASSED - COMPLETE PQC ETHERNET GATEWAY VALIDATED" >> "$phase3_log"
         else
             echo -e "${RED}[FAIL] PHASE 3: FAILED${NC}"
             echo "" >> "$phase3_log"
@@ -1558,10 +1774,10 @@ run_all_tests_with_report() {
             echo -e "${GREEN}[PASS] PQC Standalone: PASSED${NC}"
             ((passed_test_suites++))
         else
-            echo -e "${RED}✗ PQC Standalone: FAILED${NC}"
+            echo -e "${RED} PQC Standalone: FAILED${NC}"
         fi
     else
-        echo -e "${RED}✗ PQC Standalone: BUILD FAILED${NC}"
+        echo -e "${RED} PQC Standalone: BUILD FAILED${NC}"
     fi
     ((total_test_suites++))
     echo ""
@@ -1576,10 +1792,10 @@ run_all_tests_with_report() {
             echo -e "${GREEN}[PASS] PQC Integration: PASSED${NC}"
             ((passed_test_suites++))
         else
-            echo -e "${RED}✗ PQC Integration: FAILED${NC}"
+            echo -e "${RED} PQC Integration: FAILED${NC}"
         fi
     else
-        echo -e "${RED}✗ PQC Integration: BUILD FAILED${NC}"
+        echo -e "${RED} PQC Integration: BUILD FAILED${NC}"
     fi
     ((total_test_suites++))
     echo ""
@@ -1623,11 +1839,11 @@ run_all_tests_with_report() {
             echo -e "${GREEN}[PASS] Google Test Unit Tests: ALL PASSED ($passed_unit_tests/$total_unit_tests)${NC}"
             ((passed_test_suites++))
         else
-            echo -e "${YELLOW}⚠ Google Test Unit Tests: $passed_unit_tests/$total_unit_tests passed${NC}"
+            echo -e "${YELLOW} Google Test Unit Tests: $passed_unit_tests/$total_unit_tests passed${NC}"
         fi
         ((total_test_suites++))
     else
-        echo -e "${RED}✗ Google Test: BUILD FAILED${NC}"
+        echo -e "${RED} Google Test: BUILD FAILED${NC}"
     fi
     echo ""
 
@@ -1656,8 +1872,8 @@ run_all_tests_with_report() {
     echo -e "${CYAN}+============================================================+${NC}"
     echo ""
     echo -e "${YELLOW}Test Suites:${NC}"
-    echo -e "  PQC Standalone:       $([ $((passed_test_suites >= 1)) -eq 1 ] && echo -e "${GREEN}[PASS] PASS${NC}" || echo -e "${RED}✗ FAIL${NC}")"
-    echo -e "  PQC Integration:      $([ $((passed_test_suites >= 2)) -eq 1 ] && echo -e "${GREEN}[PASS] PASS${NC}" || echo -e "${RED}✗ FAIL${NC}")"
+    echo -e "  PQC Standalone:       $([ $((passed_test_suites >= 1)) -eq 1 ] && echo -e "${GREEN}[PASS] PASS${NC}" || echo -e "${RED} FAIL${NC}")"
+    echo -e "  PQC Integration:      $([ $((passed_test_suites >= 2)) -eq 1 ] && echo -e "${GREEN}[PASS] PASS${NC}" || echo -e "${RED} FAIL${NC}")"
     if [ $total_unit_tests -gt 0 ]; then
         echo -e "  Google Test Units:    ${GREEN}$passed_unit_tests${NC}/${BLUE}$total_unit_tests${NC} passed"
     fi
@@ -1709,6 +1925,11 @@ show_usage() {
     echo -e "  ${GREEN}bash build_and_run.sh thesis${NC}"
     echo -e "     Interactive validation with detailed phase-by-phase logs"
     echo ""
+    echo -e "  ${GREEN}bash build_and_run.sh phase3${NC}"
+    echo -e "     Build and run Phase 3 Complete Ethernet Gateway Test"
+    echo -e "     ${CYAN}>>> ML-KEM-768 + ML-DSA-65 + HKDF + SoAd Integration${NC}"
+    echo -e "     ${CYAN}>>> Full AUTOSAR Stack: COM -> PduR -> SecOC -> Csm -> PQC -> SoAd -> Ethernet${NC}"
+    echo ""
     echo -e "  ${GREEN}bash build_and_run.sh googletest${NC}"
     echo -e "     Run only Google Test suite (38 tests, 8 suites)"
     echo ""
@@ -1733,6 +1954,15 @@ main() {
             "integration")
                 build_liboqs || exit 1
                 build_pqc_secoc_integration_test
+                ;;
+            "phase3")
+                build_liboqs || exit 1
+                build_phase3_complete_test
+                if [ $? -eq 0 ]; then
+                    echo ""
+                    echo -e "${BLUE}[RUN] Executing Phase 3 Complete Ethernet Gateway Test...${NC}"
+                    ./test_phase3_complete.exe
+                fi
                 ;;
             "googletest")
                 build_liboqs || exit 1
@@ -1760,7 +1990,7 @@ main() {
                 generate_test_report
                 ;;
             *)
-                echo -e "${RED}✗ Unknown command: $1${NC}"
+                echo -e "${RED} Unknown command: $1${NC}"
                 echo ""
                 show_usage
                 exit 1

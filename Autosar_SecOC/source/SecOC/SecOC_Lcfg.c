@@ -69,14 +69,14 @@ uint8_t AuthPduCollection5BufferTx[SECOC_AUTHPDU_MAX_LENGTH];
 uint8_t CryptoPduCollection5BufferTx[SECOC_SECPDU_MAX_LENGTH];
 
 
-SecOC_PduCollection PdusCollections[] = 
+SecOC_PduCollection PdusCollections[] =
 {
-    {SECOC_SECURED_PDU_CANIF,0,0,0,0},
-    {SECOC_SECURED_PDU_CANTP,0,0,0,0},
-    {SECOC_SECURED_PDU_SOADTP,0,0,0,0},
-    {SECOC_SECURED_PDU_CANIF,0,0,0,0},
-    {SECOC_SECURED_PDU_CANTP,0,0,0,0},
-    {SECOC_SECURED_PDU_CANIF,0,0,0,0},
+    {SECOC_SECURED_PDU_CANIF,0,0,0,0},        // ID 0: CAN Interface
+    {SECOC_SECURED_PDU_CANTP,0,0,0,0},        // ID 1: CAN Transport Protocol
+    {SECOC_SECURED_PDU_SOADIF,0,0,0,0},       // ID 2: SoAd Interface (Ethernet) - FIXED!
+    {SECOC_SECURED_PDU_CANIF,0,0,0,0},        // ID 3: CAN Interface
+    {SECOC_SECURED_PDU_CANTP,0,0,0,0},        // ID 4: CAN Transport Protocol
+    {SECOC_SECURED_PDU_CANIF,0,0,0,0},        // ID 5: CAN Interface
     {
         .Type =         SECOC_AUTH_COLLECTON_PDU,
         .CollectionId =     5,

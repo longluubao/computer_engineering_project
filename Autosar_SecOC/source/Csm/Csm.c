@@ -132,15 +132,34 @@ static Std_ReturnType Csm_PQC_EnsureInit(void)
         return E_NOT_OK;
     }
 
-    /* Generate ML-DSA key pair for signature operations */
-    result = PQC_MLDSA_KeyGen(&Csm_MLDSA_KeyPair);
-    if (result != PQC_E_OK)
+    /* Try to load existing ML-DSA key pair from files */
+    result = PQC_MLDSA_LoadKeys(&Csm_MLDSA_KeyPair, "mldsa_secoc");
+    if (result == PQC_E_OK)
     {
-        printf("ERROR: Failed to generate ML-DSA key pair\n");
-        return E_NOT_OK;
+        printf("CSM: ML-DSA-65 keys loaded from files\n");
+    }
+    else
+    {
+        /* Keys don't exist - generate new ones and save them */
+        printf("CSM: Generating new ML-DSA-65 key pair...\n");
+        result = PQC_MLDSA_KeyGen(&Csm_MLDSA_KeyPair);
+        if (result != PQC_E_OK)
+        {
+            printf("ERROR: Failed to generate ML-DSA key pair\n");
+            return E_NOT_OK;
+        }
+
+        /* Save keys for future use */
+        result = PQC_MLDSA_SaveKeys(&Csm_MLDSA_KeyPair, "mldsa_secoc");
+        if (result != PQC_E_OK)
+        {
+            printf("WARNING: Failed to save ML-DSA keys to files\n");
+            /* Continue anyway - keys are in memory */
+        }
+
+        printf("CSM: ML-DSA-65 keys generated and saved successfully\n");
     }
 
-    printf("CSM: ML-DSA-65 keys generated successfully\n");
     Csm_PQC_Initialized = TRUE;
 
     return E_OK;

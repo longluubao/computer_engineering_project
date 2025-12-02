@@ -7,6 +7,7 @@
 #include "SecOC_Lcfg.h"
 #include "SecOC_Cfg.h"
 #include "SecOC_PBcfg.h"
+#include "SecOC_PQC_Cfg.h"
 #include "SecOC_Cbk.h"
 #include "ComStack_Types.h"
 #include "Rte_SecOC.h"
@@ -817,8 +818,21 @@ void SecOC_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
         {
             (void)memcpy(&authLen, &PduInfoPtr->SduDataPtr[0] ,headerLen);
             authRecieveLength[RxPduId] = authLen;
+#if SECOC_USE_PQC_MODE == TRUE
+            /* PQC Mode: Use actual received length (ML-DSA signature is 3309 bytes, not 4) */
+            securedPdu->SduLength = MIN(PduInfoPtr->SduLength, SECOC_SECPDU_MAX_LENGTH);
+            #ifdef SECOC_DEBUG
+                printf("PQC Mode: Setting securedPdu->SduLength = %u (from PduInfoPtr->SduLength = %u)\n",
+                       securedPdu->SduLength, PduInfoPtr->SduLength);
+            #endif
+#else
+            /* Classical Mode: Calculate from configuration (fixed MAC size) */
             PduLengthType securePduLength = headerLen + authRecieveLength[RxPduId] + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueTruncLength) + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCAuthInfoTruncLength);
             securedPdu->SduLength = securePduLength;
+            #ifdef SECOC_DEBUG
+                printf("Classical Mode: Setting securedPdu->SduLength = %u (calculated)\n", securedPdu->SduLength);
+            #endif
+#endif
         }
         else
         {
@@ -1011,11 +1025,23 @@ static void parseSecuredPdu(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_RxInte
 
     SecCursor += BIT_TO_BYTES(SecOCTruncatedFreshnessValueLength);
 
-    /* Copy Mac to intermediate */
+    /* Copy Mac/Signature to intermediate */
+#if SECOC_USE_PQC_MODE == TRUE
+    /* PQC Mode: Signature is all remaining bytes (ML-DSA-65 = 3309 bytes) */
+    uint32 actualSignatureLen = SecPdu->SduLength - SecCursor;
+    SecOCIntermediate->macLenBits = actualSignatureLen * 8;  /* Convert bytes to bits */
+    (void)memcpy(SecOCIntermediate->mac, &SecPdu->SduDataPtr[SecCursor], actualSignatureLen);
+    SecCursor += actualSignatureLen;
+    #ifdef SECOC_DEBUG
+        printf("PQC Mode: Extracted signature, actualSignatureLen = %lu bytes (SecPdu->SduLength=%u, SecCursor was=%lu)\n",
+               actualSignatureLen, SecPdu->SduLength, SecPdu->SduLength - actualSignatureLen);
+    #endif
+#else
+    /* Classical Mode: MAC size from configuration (32 bits = 4 bytes) */
     SecOCIntermediate->macLenBits = SecOCRxPduProcessing[RxPduId].SecOCAuthInfoTruncLength;
-
     (void)memcpy(SecOCIntermediate->mac, &SecPdu->SduDataPtr[SecCursor], BIT_TO_BYTES(SecOCIntermediate->macLenBits));
     SecCursor += BIT_TO_BYTES(SecOCIntermediate->macLenBits);
+#endif
     #ifdef SECOC_DEBUG
         printf("After Parsing \n");
         printf("auth \n");

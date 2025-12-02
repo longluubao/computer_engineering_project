@@ -121,6 +121,22 @@ Std_ReturnType PQC_MLKEM_Decapsulate(
 Std_ReturnType PQC_MLDSA_KeyGen(PQC_MLDSA_KeyPairType* KeyPair);
 
 /**
+ * @brief Save ML-DSA-65 key pair to files
+ * @param[in] KeyPair Pointer to key pair to save
+ * @param[in] filePrefix Prefix for key files (e.g., "mldsa" creates mldsa.pub and mldsa.key)
+ * @return PQC_E_OK if successful, PQC_E_NOT_OK otherwise
+ */
+Std_ReturnType PQC_MLDSA_SaveKeys(const PQC_MLDSA_KeyPairType* KeyPair, const char* filePrefix);
+
+/**
+ * @brief Load ML-DSA-65 key pair from files
+ * @param[out] KeyPair Pointer to store loaded key pair
+ * @param[in] filePrefix Prefix for key files (e.g., "mldsa" loads mldsa.pub and mldsa.key)
+ * @return PQC_E_OK if successful, PQC_E_NOT_OK if files don't exist or error
+ */
+Std_ReturnType PQC_MLDSA_LoadKeys(PQC_MLDSA_KeyPairType* KeyPair, const char* filePrefix);
+
+/**
  * @brief Generate ML-DSA-65 digital signature
  * @param[in] Message Pointer to message data
  * @param[in] MessageLength Length of message in bytes

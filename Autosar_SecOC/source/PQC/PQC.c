@@ -249,6 +249,106 @@ Std_ReturnType PQC_MLDSA_KeyGen(PQC_MLDSA_KeyPairType* KeyPair)
 }
 
 /**
+ * @brief Save ML-DSA-65 key pair to files
+ */
+Std_ReturnType PQC_MLDSA_SaveKeys(const PQC_MLDSA_KeyPairType* KeyPair, const char* filePrefix)
+{
+    FILE* fp;
+    char filename[256];
+    size_t written;
+
+    if (KeyPair == NULL || filePrefix == NULL)
+    {
+        return PQC_E_INVALID_PARAM;
+    }
+
+    /* Save public key in current directory */
+    snprintf(filename, sizeof(filename), "%s.pub", filePrefix);
+    fp = fopen(filename, "wb");
+    if (fp == NULL)
+    {
+        printf("ERROR: Failed to create public key file: %s\n", filename);
+        return PQC_E_NOT_OK;
+    }
+    written = fwrite(KeyPair->PublicKey, 1, PQC_MLDSA_PUBLIC_KEY_BYTES, fp);
+    fclose(fp);
+    if (written != PQC_MLDSA_PUBLIC_KEY_BYTES)
+    {
+        printf("ERROR: Failed to write complete public key\n");
+        return PQC_E_NOT_OK;
+    }
+
+    /* Save secret key in current directory */
+    snprintf(filename, sizeof(filename), "%s.key", filePrefix);
+    fp = fopen(filename, "wb");
+    if (fp == NULL)
+    {
+        printf("ERROR: Failed to create secret key file: %s\n", filename);
+        return PQC_E_NOT_OK;
+    }
+    written = fwrite(KeyPair->SecretKey, 1, PQC_MLDSA_SECRET_KEY_BYTES, fp);
+    fclose(fp);
+    if (written != PQC_MLDSA_SECRET_KEY_BYTES)
+    {
+        printf("ERROR: Failed to write complete secret key\n");
+        return PQC_E_NOT_OK;
+    }
+
+    printf("ML-DSA keys saved to %s.pub and %s.key\n", filePrefix, filePrefix);
+    return PQC_E_OK;
+}
+
+/**
+ * @brief Load ML-DSA-65 key pair from files
+ */
+Std_ReturnType PQC_MLDSA_LoadKeys(PQC_MLDSA_KeyPairType* KeyPair, const char* filePrefix)
+{
+    FILE* fp;
+    char filename[256];
+    size_t read_bytes;
+
+    if (KeyPair == NULL || filePrefix == NULL)
+    {
+        return PQC_E_INVALID_PARAM;
+    }
+
+    /* Load public key from current directory */
+    snprintf(filename, sizeof(filename), "%s.pub", filePrefix);
+    fp = fopen(filename, "rb");
+    if (fp == NULL)
+    {
+        /* File doesn't exist - not an error, caller will generate new keys */
+        return PQC_E_NOT_OK;
+    }
+    read_bytes = fread(KeyPair->PublicKey, 1, PQC_MLDSA_PUBLIC_KEY_BYTES, fp);
+    fclose(fp);
+    if (read_bytes != PQC_MLDSA_PUBLIC_KEY_BYTES)
+    {
+        printf("ERROR: Failed to read complete public key from %s\n", filename);
+        return PQC_E_NOT_OK;
+    }
+
+    /* Load secret key from current directory */
+    snprintf(filename, sizeof(filename), "%s.key", filePrefix);
+    fp = fopen(filename, "rb");
+    if (fp == NULL)
+    {
+        printf("ERROR: Secret key file not found: %s\n", filename);
+        return PQC_E_NOT_OK;
+    }
+    read_bytes = fread(KeyPair->SecretKey, 1, PQC_MLDSA_SECRET_KEY_BYTES, fp);
+    fclose(fp);
+    if (read_bytes != PQC_MLDSA_SECRET_KEY_BYTES)
+    {
+        printf("ERROR: Failed to read complete secret key from %s\n", filename);
+        return PQC_E_NOT_OK;
+    }
+
+    printf("ML-DSA keys loaded from %s.pub and %s.key\n", filePrefix, filePrefix);
+    return PQC_E_OK;
+}
+
+/**
  * @brief Generate ML-DSA-65 digital signature
  */
 Std_ReturnType PQC_MLDSA_Sign(

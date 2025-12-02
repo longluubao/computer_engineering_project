@@ -1,6 +1,6 @@
 ================================================================
 PHASE 1: PQC FUNDAMENTALS TEST LOG
-Date: 2025-11-15 19:22:04
+Date: 2025-11-16 12:21:57
 ================================================================
 
 
@@ -31,11 +31,11 @@ Security Level: Category 3 (AES-192 equivalent)
   +------------------------+----------------+
   | Metric                 | Value          |
   +------------------------+----------------+
-  | Average Time           |      75.59 us |
-  | Min Time               |      67.00 us |
-  | Max Time               |     230.40 us |
-  | Std Deviation          |       7.40 us |
-  | Throughput             |    13228.6/s  |
+  | Average Time           |     116.47 us |
+  | Min Time               |     108.70 us |
+  | Max Time               |     298.50 us |
+  | Std Deviation          |      15.28 us |
+  | Throughput             |     8586.0/s  |
   | Public Key Size        |       1184 B   |
   | Secret Key Size        |       2400 B   |
   | Success Rate           |    100.00 %  |
@@ -50,19 +50,19 @@ Security Level: Category 3 (AES-192 equivalent)
 
   [OK] Encapsulation Results:
   +------------------------+----------------+
-  | Average Time           |      73.83 us |
-  | Min Time               |      67.20 us |
-  | Max Time               |     428.10 us |
-  | Throughput             |    13544.2/s  |
+  | Average Time           |     114.96 us |
+  | Min Time               |     107.90 us |
+  | Max Time               |     279.80 us |
+  | Throughput             |     8698.5/s  |
   | Ciphertext Size        |       1088 B   |
   +------------------------+----------------+
 
   [OK] Decapsulation Results:
   +------------------------+----------------+
-  | Average Time           |      27.03 us |
-  | Min Time               |      25.90 us |
-  | Max Time               |      42.00 us |
-  | Throughput             |    37002.1/s  |
+  | Average Time           |      41.43 us |
+  | Min Time               |      40.60 us |
+  | Max Time               |      90.80 us |
+  | Throughput             |    24138.3/s  |
   | Shared Secret Size     |         32 B   |
   | Correctness Rate       |    100.00 %  |
   +------------------------+----------------+
@@ -107,11 +107,11 @@ Security Level: Category 3 (AES-192 equivalent)
   +------------------------+----------------+
   | Metric                 | Value          |
   +------------------------+----------------+
-  | Average Time           |     139.44 us |
-  | Min Time               |     128.50 us |
-  | Max Time               |     402.70 us |
-  | Std Deviation          |      16.94 us |
-  | Throughput             |     7171.4/s  |
+  | Average Time           |     232.67 us |
+  | Min Time               |     206.50 us |
+  | Max Time               |    4818.80 us |
+  | Std Deviation          |     175.40 us |
+  | Throughput             |     4297.9/s  |
   | Public Key Size        |       1952 B   |
   | Secret Key Size        |       4032 B   |
   | Success Rate           |    100.00 %  |
@@ -125,19 +125,19 @@ Security Level: Category 3 (AES-192 equivalent)
 
     [OK] Sign Results (8 bytes):
     +------------------+----------------+
-    | Average Time     |     365.62 us |
-    | Min Time         |     162.70 us |
-    | Max Time         |    1909.10 us |
-    | Throughput       |     2735.1/s  |
+    | Average Time     |     565.32 us |
+    | Min Time         |     259.10 us |
+    | Max Time         |    4160.80 us |
+    | Throughput       |     1768.9/s  |
     | Signature Size   |       3309 B   |
     +------------------+----------------+
 
     [OK] Verify Results (8 bytes):
     +------------------+----------------+
-    | Average Time     |      76.77 us |
-    | Min Time         |      73.90 us |
-    | Max Time         |     450.30 us |
-    | Throughput       |    13025.5/s  |
+    | Average Time     |     123.05 us |
+    | Min Time         |     118.10 us |
+    | Max Time         |     448.60 us |
+    | Throughput       |     8126.6/s  |
     | Correctness      |    100.00 %  |
     +------------------+----------------+
 
@@ -145,19 +145,19 @@ Security Level: Category 3 (AES-192 equivalent)
 
     [OK] Sign Results (64 bytes):
     +------------------+----------------+
-    | Average Time     |     373.44 us |
-    | Min Time         |     162.20 us |
-    | Max Time         |    1936.90 us |
-    | Throughput       |     2677.8/s  |
+    | Average Time     |     603.92 us |
+    | Min Time         |     259.10 us |
+    | Max Time         |   16691.20 us |
+    | Throughput       |     1655.8/s  |
     | Signature Size   |       3309 B   |
     +------------------+----------------+
 
     [OK] Verify Results (64 bytes):
     +------------------+----------------+
-    | Average Time     |      76.93 us |
-    | Min Time         |      73.60 us |
-    | Max Time         |     259.40 us |
-    | Throughput       |    12998.5/s  |
+    | Average Time     |     135.76 us |
+    | Min Time         |     118.50 us |
+    | Max Time         |    6097.80 us |
+    | Throughput       |     7366.0/s  |
     | Correctness      |    100.00 %  |
     +------------------+----------------+
 
@@ -165,19 +165,19 @@ Security Level: Category 3 (AES-192 equivalent)
 
     [OK] Sign Results (256 bytes):
     +------------------+----------------+
-    | Average Time     |     347.35 us |
-    | Min Time         |     163.20 us |
-    | Max Time         |    1743.40 us |
-    | Throughput       |     2879.0/s  |
+    | Average Time     |     592.98 us |
+    | Min Time         |     259.30 us |
+    | Max Time         |    2841.20 us |
+    | Throughput       |     1686.4/s  |
     | Signature Size   |       3309 B   |
     +------------------+----------------+
 
     [OK] Verify Results (256 bytes):
     +------------------+----------------+
-    | Average Time     |      76.34 us |
-    | Min Time         |      74.30 us |
-    | Max Time         |     282.30 us |
-    | Throughput       |    13098.7/s  |
+    | Average Time     |     129.28 us |
+    | Min Time         |     119.20 us |
+    | Max Time         |    2042.10 us |
+    | Throughput       |     7735.4/s  |
     | Correctness      |    100.00 %  |
     +------------------+----------------+
 
@@ -185,19 +185,19 @@ Security Level: Category 3 (AES-192 equivalent)
 
     [OK] Sign Results (512 bytes):
     +------------------+----------------+
-    | Average Time     |     356.98 us |
-    | Min Time         |     162.50 us |
-    | Max Time         |    2487.40 us |
-    | Throughput       |     2801.3/s  |
+    | Average Time     |     656.01 us |
+    | Min Time         |     261.60 us |
+    | Max Time         |    6394.90 us |
+    | Throughput       |     1524.4/s  |
     | Signature Size   |       3309 B   |
     +------------------+----------------+
 
     [OK] Verify Results (512 bytes):
     +------------------+----------------+
-    | Average Time     |      79.77 us |
-    | Min Time         |      74.70 us |
-    | Max Time         |     440.40 us |
-    | Throughput       |    12535.6/s  |
+    | Average Time     |     145.37 us |
+    | Min Time         |     119.80 us |
+    | Max Time         |    4880.10 us |
+    | Throughput       |     6879.0/s  |
     | Correctness      |    100.00 %  |
     +------------------+----------------+
 
@@ -205,19 +205,19 @@ Security Level: Category 3 (AES-192 equivalent)
 
     [OK] Sign Results (1024 bytes):
     +------------------+----------------+
-    | Average Time     |     368.26 us |
-    | Min Time         |     164.40 us |
-    | Max Time         |    1336.20 us |
-    | Throughput       |     2715.5/s  |
+    | Average Time     |     693.12 us |
+    | Min Time         |     263.10 us |
+    | Max Time         |   15785.80 us |
+    | Throughput       |     1442.8/s  |
     | Signature Size   |       3309 B   |
     +------------------+----------------+
 
     [OK] Verify Results (1024 bytes):
     +------------------+----------------+
-    | Average Time     |      80.08 us |
-    | Min Time         |      75.90 us |
-    | Max Time         |     101.90 us |
-    | Throughput       |    12487.4/s  |
+    | Average Time     |     114.75 us |
+    | Min Time         |      99.50 us |
+    | Max Time         |    1789.10 us |
+    | Throughput       |     8714.6/s  |
     | Correctness      |    100.00 %  |
     +------------------+----------------+
 
@@ -264,14 +264,14 @@ Generated: pqc_standalone_results.csv
 --- CSV Results ---
 === ML-KEM-768 Results ===
 Operation,Avg_Time_us,Min_us,Max_us,Stddev_us,Throughput_ops_sec,Size_bytes,Success_Rate
-KeyGen,75.59,67.00,230.40,7.40,13228.6,3584,100.00
-Encapsulate,73.83,67.20,428.10,13.10,13544.2,1088,100.00
-Decapsulate,27.03,25.90,42.00,1.02,37002.1,32,100.00
+KeyGen,116.47,108.70,298.50,15.28,8586.0,3584,100.00
+Encapsulate,114.96,107.90,279.80,15.65,8698.5,1088,100.00
+Decapsulate,41.43,40.60,90.80,2.39,24138.3,32,100.00
 
 === ML-DSA-65 Results ===
 Message_Size,Sign_Avg_us,Sign_Min_us,Sign_Max_us,Verify_Avg_us,Verify_Min_us,Verify_Max_us,Signature_Size,Sign_Throughput,Verify_Throughput,Correctness
-8,365.62,162.70,1909.10,76.77,73.90,450.30,3309,2735.1,13025.5,100.00
-64,373.44,162.20,1936.90,76.93,73.60,259.40,3309,2677.8,12998.5,100.00
-256,347.35,163.20,1743.40,76.34,74.30,282.30,3309,2879.0,13098.7,100.00
-512,356.98,162.50,2487.40,79.77,74.70,440.40,3309,2801.3,12535.6,100.00
-1024,368.26,164.40,1336.20,80.08,75.90,101.90,3309,2715.5,12487.4,100.00
+8,565.32,259.10,4160.80,123.05,118.10,448.60,3309,1768.9,8126.6,100.00
+64,603.92,259.10,16691.20,135.76,118.50,6097.80,3309,1655.8,7366.0,100.00
+256,592.98,259.30,2841.20,129.28,119.20,2042.10,3309,1686.4,7735.4,100.00
+512,656.01,261.60,6394.90,145.37,119.80,4880.10,3309,1524.4,6879.0,100.00
+1024,693.12,263.10,15785.80,114.75,99.50,1789.10,3309,1442.8,8714.6,100.00

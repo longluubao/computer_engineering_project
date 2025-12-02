@@ -115,9 +115,9 @@ Std_ReturnType ethernet_send(unsigned short id, unsigned char* data , uint16 dat
 
 }
 
-Std_ReturnType ethernet_receive(unsigned char* data , uint16 dataLen, unsigned short* id)
+Std_ReturnType ethernet_receive(unsigned char* data , uint16 dataLen, unsigned short* id, uint16* actualSize)
 {
-    
+
     #ifdef ETHERNET_DEBUG
         printf("######## in Recieve Ethernet\n");
     #endif
@@ -180,24 +180,46 @@ Std_ReturnType ethernet_receive(unsigned char* data , uint16 dataLen, unsigned s
     }
     /* Receive data*/
     unsigned char recData [dataLen + sizeof(unsigned short)];
-    recv( client_socket , recData , (dataLen + sizeof(unsigned short)) , 0);
+    int recv_result = recv( client_socket , recData , (dataLen + sizeof(unsigned short)) , 0);
+
+    if (recv_result < 0)
+    {
+        #ifdef ETHERNET_DEBUG
+            printf("Receive Error\n");
+        #endif
+        close(server_socket);
+        return E_NOT_OK;
+    }
+
+    /* Calculate actual PDU size (received bytes - ID size) */
+    int actualPduSize = recv_result - sizeof(unsigned short);
+
     #ifdef ETHERNET_DEBUG
         printf("in Recieve Ethernet \t");
-        printf("Info Received: \n");
-        for(int j  = 0 ; j < (dataLen+sizeof(unsigned short)) ; j++)
+        printf("Received %d bytes total, PDU size = %d\n", recv_result, actualPduSize);
+        printf("Info Received (first 20 bytes): \n");
+        for(int j  = 0 ; j < recv_result && j < 20 ; j++)
         {
             printf("%d ",recData[j]);
         }
         printf("\n\n\n");
     #endif
-    
+
 
     #ifdef SCHEDULER_ON
         pthread_mutex_lock(&lock);
-    #endif 
-    
-    (void)memcpy(id, recData+dataLen, sizeof(unsigned short));
-    (void)memcpy(data, recData, dataLen);
+    #endif
+
+    /* Extract ID from END of received data (not from fixed buffer position!) */
+    (void)memcpy(id, recData + actualPduSize, sizeof(unsigned short));
+    (void)memcpy(data, recData, actualPduSize);
+
+    /* Return actual PDU size to caller */
+    if (actualSize != NULL)
+    {
+        *actualSize = (uint16)actualPduSize;
+    }
+
     #ifdef ETHERNET_DEBUG
         printf("id = %d \n",*id);
     #endif
@@ -212,14 +234,15 @@ void ethernet_RecieveMainFunction(void)
 {
     static uint8 dataRecieve [BUS_LENGTH_RECEIVE];
     uint16 id;
-    if ( ethernet_receive(dataRecieve , BUS_LENGTH_RECEIVE, &id) != E_OK )
+    uint16 actualSize;
+    if ( ethernet_receive(dataRecieve , BUS_LENGTH_RECEIVE, &id, &actualSize) != E_OK )
     {
         return;
     }
     PduInfoType PduInfoPtr = {
         .SduDataPtr = dataRecieve,
         .MetaDataPtr = &PdusCollections[id],
-        .SduLength = BUS_LENGTH_RECEIVE,
+        .SduLength = actualSize,  /* Use actual received size, not buffer size */
     };
     switch (PdusCollections[id].Type)
     {
