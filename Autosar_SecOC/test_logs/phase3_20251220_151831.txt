@@ -1,43 +1,3 @@
-================================================================
-PHASE 3: COMPLETE ETHERNET GATEWAY TEST LOG
-Date: 2025-11-16 12:22:41
-================================================================
-
-COMPLETE PQC INTEGRATION TESTS:
-  Test 1: ML-KEM-768 Key Exchange
-    - KeyGen: Generate 1184-byte public key + 2400-byte secret key
-    - Encapsulation: Create 1088-byte ciphertext + 32-byte shared secret
-    - Decapsulation: Recover shared secret from ciphertext
-    - Multi-peer key exchange (Gateway supports 8 concurrent peers)
-
-  Test 2: HKDF Session Key Derivation
-    - Extract: Derive pseudorandom key from ML-KEM shared secret
-    - Expand: Generate 32-byte encryption key
-    - Expand: Generate 32-byte authentication key
-    - Salt: AUTOSAR-SecOC-PQC-v1.0
-
-  Test 3: ML-DSA-65 Signatures (Integrated with Csm)
-    - Sign: Generate 3309-byte quantum-resistant signatures
-    - Verify: Validate signature integrity
-    - Performance: Measure signing and verification latency
-
-  Test 4: Combined ML-KEM + ML-DSA Performance
-    - Total handshake time (ML-KEM key exchange)
-    - Per-message overhead (ML-DSA signature)
-    - Amortized cost analysis
-
-  Test 5: Security Validation
-    - Replay attack detection (freshness counter)
-    - Message tampering detection (signature verification)
-    - Quantum resistance validation
-
-EXPECTED OUTPUTS:
-  - Complete test report with pass/fail for each test
-  - Performance metrics: ML-KEM + HKDF + ML-DSA timing
-  - Security test results: Attack detection rates
-
-================================================================
-
 
 ╔════════════════════════════════════════════════════════════╗
 ║    PHASE 3: COMPLETE ETHERNET GATEWAY INTEGRATION TEST    ║
@@ -73,12 +33,12 @@ SoAd PQC Integration initialized successfully
 [STEP 1] Testing as INITIATOR (Alice)...
 KE: Initiated key exchange with peer 0 (sent 1184 byte public key)
   ✅ PASSED: Public key generated (1184 bytes)
-  ⏱️  Time: 3056.80 µs
+  ⏱️  Time: 1425.00 µs
 
 [STEP 2] Testing ENCAPSULATION (Bob)...
 KE: Responded to peer 0 (sent 1088 byte ciphertext, established 32 byte shared secret)
   ✅ PASSED: Ciphertext created (1088 bytes)
-  ⏱️  Time: 211.50 µs
+  ⏱️  Time: 100.20 µs
 
 [STEP 3] Testing DECAPSULATION (Alice)...
 KE: Reset session with peer 0
@@ -86,17 +46,17 @@ KE: Initiated key exchange with peer 0 (sent 1184 byte public key)
 KE: Responded to peer 1 (sent 1088 byte ciphertext, established 32 byte shared secret)
 KE: Completed key exchange with peer 0 (established 32 byte shared secret)
   ✅ PASSED: Shared secret extracted
-  ⏱️  Time: 58.70 µs
+  ⏱️  Time: 29.10 µs
   ✅ PASSED: Shared secrets match (32 bytes)
 
 [SUMMARY] ML-KEM-768 Performance:
-  KeyGen:       3056.80 µs
-  Encapsulate:  211.50 µs
-  Decapsulate:  58.70 µs
-  Total:        3327.00 µs
+  KeyGen:       1425.00 µs
+  Encapsulate:  100.20 µs
+  Decapsulate:  29.10 µs
+  Total:        1554.30 µs
 
 ╔════════════════════════════════════════════════════════════╗
-║        TEST 2: SESSION KEY DERIVATION (HKDF)               ║
+║        TEST 2: SESSION KEY DERIVATION (HKDF)              ║
 ╚════════════════════════════════════════════════════════════╝
 
 [STEP 1] Deriving session keys from shared secret...
@@ -105,7 +65,7 @@ Session keys derived successfully:
   Encryption Key:     32 bytes
   Authentication Key: 32 bytes
   ✅ PASSED: Session keys derived successfully
-  ⏱️  Time: 16.90 µs
+  ⏱️  Time: 9.60 µs
   📊 Derived Keys:
      - Encryption Key:     32 bytes (AES-256-GCM)
      - Authentication Key: 32 bytes (HMAC-SHA256)
@@ -123,16 +83,16 @@ CSM: ML-DSA-65 keys loaded from files
 ######## in Csm_SignatureGenerate (ML-DSA-65)
 Data length: 256 bytes
 Signature generated: 3309 bytes
-First 16 bytes: a1 e1 da 09 7e 09 0b 8f 27 1c fe 25 ba 2f 96 cd 
+First 16 bytes: c0 55 15 97 b3 47 db 9c 7f 00 0e 9d 32 c4 9c 99 
   ✅ PASSED: Signature generated (3309 bytes)
-  ⏱️  Time: 1252.90 µs
+  ⏱️  Time: 389.20 µs
 
 [STEP 2] Verifying ML-DSA-65 signature...
 ######## in Csm_SignatureVerify (ML-DSA-65)
 Data length: 256 bytes, Signature length: 3309 bytes
 Signature verification: PASSED
   ✅ PASSED: Signature verified successfully
-  ⏱️  Time: 140.00 µs
+  ⏱️  Time: 79.20 µs
 
 ╔════════════════════════════════════════════════════════════╗
 ║        TEST 4: COMBINED ML-KEM + ML-DSA PERFORMANCE       ║
@@ -143,15 +103,15 @@ Signature verification: PASSED
     Messages per session: 1000
 
   ML-KEM-768 (once per session):
-    Overhead: 3327.00 µs
-    Amortized per message: 3.33 µs
+    Overhead: 1554.30 µs
+    Amortized per message: 1.55 µs
 
   ML-DSA-65 (per message):
-    Overhead: 1392.90 µs (sign + verify)
+    Overhead: 468.40 µs (sign + verify)
 
   Combined Overhead:
-    Per message: 1396.23 µs
-    Throughput: 716 messages/second
+    Per message: 469.95 µs
+    Throughput: 2128 messages/second
 
   Bandwidth (Ethernet 100 Mbps):
     ML-KEM handshake: 2272 bytes (once)
@@ -170,7 +130,7 @@ Signature verification: PASSED
 ######## in Csm_SignatureGenerate (ML-DSA-65)
 Data length: 64 bytes
 Signature generated: 3309 bytes
-First 16 bytes: 44 80 aa b0 1a 94 2f ed 69 79 fe 9c b6 9c be 35 
+First 16 bytes: 83 36 d4 53 85 26 01 cb 84 89 99 ac 7d 1c b7 e5 
 ######## in Csm_SignatureVerify (ML-DSA-65)
 Data length: 64 bytes, Signature length: 3309 bytes
 Signature verification: FAILED
@@ -180,7 +140,7 @@ Signature verification: FAILED
 ######## in Csm_SignatureGenerate (ML-DSA-65)
 Data length: 64 bytes
 Signature generated: 3309 bytes
-First 16 bytes: 6a 0e 3f 66 da d8 68 f7 4f 61 60 06 93 d4 3b e3 
+First 16 bytes: 5c ff 1e a3 a0 ee cf b5 71 54 6d 66 fe ad 45 e5 
 ######## in Csm_SignatureVerify (ML-DSA-65)
 Data length: 64 bytes, Signature length: 3309 bytes
 Signature verification: FAILED
@@ -199,10 +159,10 @@ Signature verification: FAILED
 Test Results: 5 / 5 passed (100.0%)
 
 Performance Summary:
-  ML-KEM-768 Total:     3327.00 µs
-  ML-DSA-65 Sign:       1252.90 µs
-  ML-DSA-65 Verify:     140.00 µs
-  Per-Message Overhead: 1396.23 µs
+  ML-KEM-768 Total:     1554.30 µs
+  ML-DSA-65 Sign:       389.20 µs
+  ML-DSA-65 Verify:     79.20 µs
+  Per-Message Overhead: 469.95 µs
 
 Security Validation:
   Tampering Attacks Detected:    2 / 2
@@ -216,5 +176,3 @@ Security Validation:
 ║  Quantum-Resistant Security:          ACHIEVED             ║
 ╚════════════════════════════════════════════════════════════╝
 
-
-RESULT: PASSED - COMPLETE PQC ETHERNET GATEWAY VALIDATED

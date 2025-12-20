@@ -1,0 +1,1361 @@
+UpdateCTestConfiguration  from :C:/Users/LLU2HC/Documents/Long-Stuff/HCMUT/computer_engineering_project/Autosar_SecOC/build/DartConfiguration.tcl
+Parse Config file:C:/Users/LLU2HC/Documents/Long-Stuff/HCMUT/computer_engineering_project/Autosar_SecOC/build/DartConfiguration.tcl
+Test project C:/Users/LLU2HC/Documents/Long-Stuff/HCMUT/computer_engineering_project/Autosar_SecOC/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: Phase3_Complete_Integration
+
+1: Test command: C:\Users\LLU2HC\Documents\Long-Stuff\HCMUT\computer_engineering_project\Autosar_SecOC\build\Phase3_Complete_Test.exe
+1: Working Directory: C:/Users/LLU2HC/Documents/Long-Stuff/HCMUT/computer_engineering_project/Autosar_SecOC/build
+1: Test timeout computed to be: 1500
+1: 
+1: ╔════════════════════════════════════════════════════════════╗
+1: ║    PHASE 3: COMPLETE ETHERNET GATEWAY INTEGRATION TEST    ║
+1: ║           ML-KEM-768 + ML-DSA-65 Full Stack Testing       ║
+1: ╚════════════════════════════════════════════════════════════╝
+1: 
+1: ╔════════════════════════════════════════════════════════════╗
+1: ║                    INITIALIZATION                          ║
+1: ╚════════════════════════════════════════════════════════════╝
+1: 
+1: PQC Module initialized successfully
+1:   ML-KEM-768: Public Key=1184 bytes, Ciphertext=1088 bytes
+1:   ML-DSA-65: Public Key=1952 bytes, Signature=3309 bytes
+1: ✅ PQC Module initialized
+1: PQC Key Exchange Manager initialized (8 peer slots)
+1: ✅ ML-KEM Key Exchange Manager initialized
+1: PQC Key Derivation Module initialized (16 session slots)
+1: ✅ HKDF Key Derivation Module initialized
+1: SoAd PQC Integration initialized successfully
+1:   ML-KEM-768: Enabled for key exchange
+1:   ML-DSA-65: Enabled for signatures
+1:   Max Peers: 8
+1: ✅ SoAd PQC Integration initialized
+1: 
+1: ═══════════════════════════════════════════════════════════
+1:                     RUNNING TESTS
+1: ═══════════════════════════════════════════════════════════
+1: 
+1: ╔════════════════════════════════════════════════════════════╗
+1: ║        TEST 1: ML-KEM-768 KEY EXCHANGE OVER ETHERNET      ║
+1: ╚════════════════════════════════════════════════════════════╝
+1: 
+1: [STEP 1] Testing as INITIATOR (Alice)...
+1: KE: Initiated key exchange with peer 0 (sent 1184 byte public key)
+1:   ✅ PASSED: Public key generated (1184 bytes)
+1:   ⏱️  Time: 1458.80 µs
+1: 
+1: [STEP 2] Testing ENCAPSULATION (Bob)...
+1: KE: Responded to peer 0 (sent 1088 byte ciphertext, established 32 byte shared secret)
+1:   ✅ PASSED: Ciphertext created (1088 bytes)
+1:   ⏱️  Time: 99.10 µs
+1: 
+1: [STEP 3] Testing DECAPSULATION (Alice)...
+1: KE: Reset session with peer 0
+1: KE: Initiated key exchange with peer 0 (sent 1184 byte public key)
+1: KE: Responded to peer 1 (sent 1088 byte ciphertext, established 32 byte shared secret)
+1: KE: Completed key exchange with peer 0 (established 32 byte shared secret)
+1:   ✅ PASSED: Shared secret extracted
+1:   ⏱️  Time: 30.30 µs
+1:   ✅ PASSED: Shared secrets match (32 bytes)
+1: 
+1: [SUMMARY] ML-KEM-768 Performance:
+1:   KeyGen:       1458.80 µs
+1:   Encapsulate:  99.10 µs
+1:   Decapsulate:  30.30 µs
+1:   Total:        1588.20 µs
+1: 
+1: ╔════════════════════════════════════════════════════════════╗
+1: ║        TEST 2: SESSION KEY DERIVATION (HKDF)              ║
+1: ╚════════════════════════════════════════════════════════════╝
+1: 
+1: [STEP 1] Deriving session keys from shared secret...
+1: Deriving session keys for peer 0 from ML-KEM shared secret...
+1: Session keys derived successfully:
+1:   Encryption Key:     32 bytes
+1:   Authentication Key: 32 bytes
+1:   ✅ PASSED: Session keys derived successfully
+1:   ⏱️  Time: 9.80 µs
+1:   📊 Derived Keys:
+1:      - Encryption Key:     32 bytes (AES-256-GCM)
+1:      - Authentication Key: 32 bytes (HMAC-SHA256)
+1: 
+1: [STEP 2] Testing key retrieval...
+1:   ✅ PASSED: Session keys stored and retrieved correctly
+1: 
+1: ╔════════════════════════════════════════════════════════════╗
+1: ║        TEST 3: ML-DSA-65 SIGNATURE GENERATION/VERIFY      ║
+1: ╚════════════════════════════════════════════════════════════╝
+1: 
+1: [STEP 1] Generating ML-DSA-65 signature...
+1: ML-DSA keys loaded from mldsa_secoc.pub and mldsa_secoc.key
+1: CSM: ML-DSA-65 keys loaded from files
+1: ######## in Csm_SignatureGenerate (ML-DSA-65)
+1: Data length: 256 bytes
+1: Signature generated: 3309 bytes
+1: First 16 bytes: e1 ea 7d c1 92 90 87 a4 eb de 89 50 b8 5e 94 ef 
+1:   ✅ PASSED: Signature generated (3309 bytes)
+1:   ⏱️  Time: 564.60 µs
+1: 
+1: [STEP 2] Verifying ML-DSA-65 signature...
+1: ######## in Csm_SignatureVerify (ML-DSA-65)
+1: Data length: 256 bytes, Signature length: 3309 bytes
+1: Signature verification: PASSED
+1:   ✅ PASSED: Signature verified successfully
+1:   ⏱️  Time: 83.00 µs
+1: 
+1: ╔════════════════════════════════════════════════════════════╗
+1: ║        TEST 4: COMBINED ML-KEM + ML-DSA PERFORMANCE       ║
+1: ╚════════════════════════════════════════════════════════════╝
+1: 
+1: [ANALYSIS] Performance Analysis:
+1:   Session Parameters:
+1:     Messages per session: 1000
+1: 
+1:   ML-KEM-768 (once per session):
+1:     Overhead: 1588.20 µs
+1:     Amortized per message: 1.59 µs
+1: 
+1:   ML-DSA-65 (per message):
+1:     Overhead: 647.60 µs (sign + verify)
+1: 
+1:   Combined Overhead:
+1:     Per message: 649.19 µs
+1:     Throughput: 1540 messages/second
+1: 
+1:   Bandwidth (Ethernet 100 Mbps):
+1:     ML-KEM handshake: 2272 bytes (once)
+1:     ML-DSA signature: 3309 bytes (per message)
+1:     Secured PDU size: ~3316 bytes
+1:     Max throughput:   ~3,768 messages/second
+1: 
+1:   ✅ CONCLUSION: Performance acceptable for Windows development
+1:      Note: Target platform (Raspberry Pi) will be significantly faster
+1: 
+1: ╔════════════════════════════════════════════════════════════╗
+1: ║        TEST 5: SECURITY ATTACK SIMULATIONS                ║
+1: ╚════════════════════════════════════════════════════════════╝
+1: 
+1: [TEST 5.1] Message Tampering Detection...
+1: ######## in Csm_SignatureGenerate (ML-DSA-65)
+1: Data length: 64 bytes
+1: Signature generated: 3309 bytes
+1: First 16 bytes: 1a 32 1b 37 3a 43 c8 aa 0e 1c 6c fa bb 29 10 00 
+1: ######## in Csm_SignatureVerify (ML-DSA-65)
+1: Data length: 64 bytes, Signature length: 3309 bytes
+1: Signature verification: FAILED
+1:   ✅ PASSED: Tampering detected successfully
+1: 
+1: [TEST 5.2] Signature Tampering Detection...
+1: ######## in Csm_SignatureGenerate (ML-DSA-65)
+1: Data length: 64 bytes
+1: Signature generated: 3309 bytes
+1: First 16 bytes: 65 9d 98 d8 78 ee 80 8e 4c 22 c1 13 fe b6 bd 20 
+1: ######## in Csm_SignatureVerify (ML-DSA-65)
+1: Data length: 64 bytes, Signature length: 3309 bytes
+1: Signature verification: FAILED
+1:   ✅ PASSED: Signature tampering detected
+1: 
+1: [TEST 5.3] Quantum Resistance Validation...
+1:   ✅ Using NIST FIPS 203 (ML-KEM-768)
+1:   ✅ Using NIST FIPS 204 (ML-DSA-65)
+1:   ✅ Both algorithms quantum-resistant
+1:   ✅ Security Level 3 (equivalent to AES-192)
+1: 
+1: ╔════════════════════════════════════════════════════════════╗
+1: ║                      FINAL SUMMARY                         ║
+1: ╚════════════════════════════════════════════════════════════╝
+1: 
+1: Test Results: 5 / 5 passed (100.0%)
+1: 
+1: Performance Summary:
+1:   ML-KEM-768 Total:     1588.20 µs
+1:   ML-DSA-65 Sign:       564.60 µs
+1:   ML-DSA-65 Verify:     83.00 µs
+1:   Per-Message Overhead: 649.19 µs
+1: 
+1: Security Validation:
+1:   Tampering Attacks Detected:    2 / 2
+1:   Quantum Resistance:            VERIFIED
+1: 
+1: ╔════════════════════════════════════════════════════════════╗
+1: ║                 ✅ ALL TESTS PASSED ✅                     ║
+1: ║                                                            ║
+1: ║  ML-KEM-768 + ML-DSA-65 Integration: COMPLETE             ║
+1: ║  Full AUTOSAR Stack Validation:      SUCCESSFUL           ║
+1: ║  Quantum-Resistant Security:          ACHIEVED             ║
+1: ╚════════════════════════════════════════════════════════════╝
+1: 
+1/7 Test #1: Phase3_Complete_Integration ......   Passed    0.12 sec
+test 2
+    Start 2: AuthenticationTests
+
+2: Test command: C:\Users\LLU2HC\Documents\Long-Stuff\HCMUT\computer_engineering_project\Autosar_SecOC\build\test\AuthenticationTests.exe
+2: Working Directory: C:/Users/LLU2HC/Documents/Long-Stuff/HCMUT/computer_engineering_project/Autosar_SecOC/build/test
+2: Test timeout computed to be: 1500
+2: Running main() from C:\Users\LLU2HC\Documents\Long-Stuff\HCMUT\computer_engineering_project\Autosar_SecOC\build\_deps\googletest-src\googletest\src\gtest_main.cc
+2: [==========] Running 3 tests from 1 test suite.
+2: [----------] Global test environment set-up.
+2: [----------] 3 tests from AuthenticationTests
+2: [ RUN      ] AuthenticationTests.authenticate1
+2: ######## in SecOC_Init 
+2: ######## FVM_IncreaseCounter for id 10
+2: ######## FVM_IncreaseCounter for id 11
+2: ######## FVM_IncreaseCounter for id 12
+2: ######## FVM_IncreaseCounter for id 13
+2: ######## FVM_IncreaseCounter for id 14
+2: ######## FVM_IncreaseCounter for id 15
+2: 
+2: AuthenticationTest authenticate1:
+2:   Mode: PQC (ML-DSA-65 Signature)
+2: ######## in authenticate_PQC (ML-DSA-65)
+2: ######## in prepareFreshnessTx 
+2: ######## in SecOC_GetTxFreshnessTruncData
+2: ######## in FVM_GetTxFreshnessTruncData
+2: result is 0
+2: FV is 1 
+2: Trunc FV is 1 
+2: ######## in constructDataToAuthenticatorTx
+2: PQC Module initialized successfully
+2:   ML-KEM-768: Public Key=1184 bytes, Ciphertext=1088 bytes
+2:   ML-DSA-65: Public Key=1952 bytes, Signature=3309 bytes
+2: ML-DSA keys loaded from mldsa_secoc.pub and mldsa_secoc.key
+2: CSM: ML-DSA-65 keys loaded from files
+2: ######## in Csm_SignatureGenerate (ML-DSA-65)
+2: Data length: 5 bytes
+2: Signature generated: 3309 bytes
+2: First 16 bytes: 81 d4 c8 57 7b a3 93 cf e2 ad 42 ff 38 f6 6a 37 
+2: PQC Signature generated: 3309 bytes (vs ~4 bytes for MAC)
+2: 
+2: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+2: ║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║
+2: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+2: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+2: ║    1 bytes    ║        2 bytes        ║     1 bytes     ║        3309 bytes                ║
+2: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+2: ║ 0x02 ║ 0x64 0xC8     ║ 0x01         ║ 0x81 0xD4 0xC8 0x57 ...   ║
+2: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+2: Total Secured PDU: 3313 bytes (Header=1 + Auth=2 + Fresh=1 + Signature=3309)
+2: 
+2:   Expected: Large PDU with ML-DSA-65 signature (>3000 bytes)
+2:   Actual SecPdu.SduLength: 3313 bytes
+2:   PASS: PQC signature detected
+2: [       OK ] AuthenticationTests.authenticate1 (1 ms)
+2: [ RUN      ] AuthenticationTests.authenticate2
+2: ######## in SecOC_Init 
+2: ######## FVM_IncreaseCounter for id 10
+2: ######## FVM_IncreaseCounter for id 11
+2: ######## FVM_IncreaseCounter for id 12
+2: ######## FVM_IncreaseCounter for id 13
+2: ######## FVM_IncreaseCounter for id 14
+2: ######## FVM_IncreaseCounter for id 15
+2: 
+2: AuthenticationTest authenticate2:
+2:   Mode: PQC - Testing freshness increment (8-byte counter)
+2: ######## in authenticate_PQC (ML-DSA-65)
+2: ######## in prepareFreshnessTx 
+2: ######## in SecOC_GetTxFreshnessTruncData
+2: ######## in FVM_GetTxFreshnessTruncData
+2: result is 0
+2: FV is 2 
+2: Trunc FV is 2 
+2: ######## in constructDataToAuthenticatorTx
+2: ######## in Csm_SignatureGenerate (ML-DSA-65)
+2: Data length: 5 bytes
+2: Signature generated: 3309 bytes
+2: First 16 bytes: 77 84 32 b6 c5 94 d3 26 bd 7d d1 20 91 14 ad 6b 
+2: PQC Signature generated: 3309 bytes (vs ~4 bytes for MAC)
+2: 
+2: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+2: ║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║
+2: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+2: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+2: ║    1 bytes    ║        2 bytes        ║     1 bytes     ║        3309 bytes                ║
+2: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+2: ║ 0x02 ║ 0x64 0xC8     ║ 0x02         ║ 0x77 0x84 0x32 0xB6 ...   ║
+2: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+2: Total Secured PDU: 3313 bytes (Header=1 + Auth=2 + Fresh=1 + Signature=3309)
+2: 
+2:   Expected: Freshness counter incremented
+2:   SecPdu.SduLength: 3313 bytes
+2:   PASS: PQC mode working, freshness managed
+2: [       OK ] AuthenticationTests.authenticate2 (0 ms)
+2: [ RUN      ] AuthenticationTests.authenticate3
+2: ######## in SecOC_Init 
+2: ######## FVM_IncreaseCounter for id 10
+2: ######## FVM_IncreaseCounter for id 11
+2: ######## FVM_IncreaseCounter for id 12
+2: ######## FVM_IncreaseCounter for id 13
+2: ######## FVM_IncreaseCounter for id 14
+2: ######## FVM_IncreaseCounter for id 15
+2: 
+2: AuthenticationTest authenticate3:
+2:   Mode: PQC - Testing with ASCII text data
+2: ######## in authenticate_PQC (ML-DSA-65)
+2: ######## in prepareFreshnessTx 
+2: ######## in SecOC_GetTxFreshnessTruncData
+2: ######## in FVM_GetTxFreshnessTruncData
+2: result is 0
+2: FV is 3 
+2: Trunc FV is 3 
+2: ######## in constructDataToAuthenticatorTx
+2: ######## in Csm_SignatureGenerate (ML-DSA-65)
+2: Data length: 7 bytes
+2: Signature generated: 3309 bytes
+2: First 16 bytes: 46 61 9f 5f c8 5b 03 99 99 5f 09 5c 86 a9 3e 6b 
+2: PQC Signature generated: 3309 bytes (vs ~4 bytes for MAC)
+2: 
+2: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+2: ║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║
+2: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+2: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+2: ║    1 bytes    ║        4 bytes        ║     1 bytes     ║        3309 bytes                ║
+2: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+2: ║ 0x04 ║ 0x48 0x53 0x68 0x73     ║ 0x03         ║ 0x46 0x61 0x9F 0x5F ...   ║
+2: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+2: Total Secured PDU: 3315 bytes (Header=1 + Auth=4 + Fresh=1 + Signature=3309)
+2: 
+2:   Input: ['H', 'S', 'h', 's'] (4 bytes ASCII)
+2:   SecPdu.SduLength: 3315 bytes
+2:   PASS: PQC signature generated for text data
+2: [       OK ] AuthenticationTests.authenticate3 (0 ms)
+2: [----------] 3 tests from AuthenticationTests (2 ms total)
+2: 
+2: [----------] Global test environment tear-down
+2: [==========] 3 tests from 1 test suite ran. (2 ms total)
+2: [  PASSED  ] 3 tests.
+2/7 Test #2: AuthenticationTests ..............   Passed    0.16 sec
+test 3
+    Start 3: FreshnessTests
+
+3: Test command: C:\Users\LLU2HC\Documents\Long-Stuff\HCMUT\computer_engineering_project\Autosar_SecOC\build\test\FreshnessTests.exe
+3: Working Directory: C:/Users/LLU2HC/Documents/Long-Stuff/HCMUT/computer_engineering_project/Autosar_SecOC/build/test
+3: Test timeout computed to be: 1500
+3: Running main() from C:\Users\LLU2HC\Documents\Long-Stuff\HCMUT\computer_engineering_project\Autosar_SecOC\build\_deps\googletest-src\googletest\src\gtest_main.cc
+3: [==========] Running 10 tests from 1 test suite.
+3: [----------] Global test environment set-up.
+3: [----------] 10 tests from FreshnessTests
+3: [ RUN      ] FreshnessTests.RXFreshnessEquality1
+3: ######## in FVM_GetRxFreshness
+3: length counter = length trunc
+3: constructed FreshnessVerifyValue is  
+3: byte 0: 255  byte 1: 1  
+3: Result is 0  
+3: [       OK ] FreshnessTests.RXFreshnessEquality1 (0 ms)
+3: [ RUN      ] FreshnessTests.RXFreshnessEquality2
+3: ######## in FVM_GetRxFreshness
+3: length counter = length trunc
+3: constructed FreshnessVerifyValue is  
+3: byte 0: 255  byte 1: 1  
+3: Result is 1  
+3: [       OK ] FreshnessTests.RXFreshnessEquality2 (0 ms)
+3: [ RUN      ] FreshnessTests.RXFreshnessEquality3
+3: ######## in FVM_GetRxFreshness
+3: length counter = length trunc
+3: constructed FreshnessVerifyValue is  
+3: byte 0: 255  byte 1: 2  
+3: Result is 1  
+3: [       OK ] FreshnessTests.RXFreshnessEquality3 (0 ms)
+3: [ RUN      ] FreshnessTests.RXFreshnessGreaterThan
+3: ######## in FVM_GetRxFreshness
+3: LSB  counter < LSB trunc
+3: constructed FreshnessVerifyValue is  
+3: byte 0: 255  byte 1: 31  
+3: Result is 0  
+3: [       OK ] FreshnessTests.RXFreshnessGreaterThan (0 ms)
+3: [ RUN      ] FreshnessTests.RXFreshnessLowerThan1
+3: ######## in FVM_GetRxFreshness
+3: LSB counter > LSB trunc
+3: constructed FreshnessVerifyValue is  
+3: byte 0: 1  
+3: Result is 0  
+3: ######## in FVM_GetRxFreshness
+3: LSB counter > LSB trunc
+3: constructed FreshnessVerifyValue is  
+3: byte 0: 2  
+3: Result is 0  
+3: [       OK ] FreshnessTests.RXFreshnessLowerThan1 (0 ms)
+3: [ RUN      ] FreshnessTests.RXFreshnessLowerThan2
+3: before : length is 0 and Values is --> 
+3: ######## in FVM_GetRxFreshness
+3: LSB counter > LSB trunc
+3: constructed FreshnessVerifyValue is  
+3: byte 0: 15  byte 1: 2  
+3: Result is 0  
+3: [       OK ] FreshnessTests.RXFreshnessLowerThan2 (0 ms)
+3: [ RUN      ] FreshnessTests.RXFreshnessLowerThan3
+3: ######## in FVM_GetRxFreshness
+3: LSB  counter < LSB trunc
+3: constructed FreshnessVerifyValue is  
+3: byte 0: 255  byte 1: 4  
+3: Result is 0  
+3: [       OK ] FreshnessTests.RXFreshnessLowerThan3 (0 ms)
+3: [ RUN      ] FreshnessTests.RXFreshnessLowerThan4
+3: ######## in FVM_GetRxFreshness
+3: LSB counter > LSB trunc
+3: constructed FreshnessVerifyValue is  
+3: byte 0: 0  byte 1: 5  
+3: Result is 0  
+3: [       OK ] FreshnessTests.RXFreshnessLowerThan4 (0 ms)
+3: [ RUN      ] FreshnessTests.TXFreshness
+3: ######## in FVM_GetTxFreshness
+3: return  : 0 .. 
+3: Byte 0 : 255 Byte 1 : 4 
+3: [       OK ] FreshnessTests.TXFreshness (0 ms)
+3: [ RUN      ] FreshnessTests.TXFreshnesstrunc
+3: ######## in FVM_GetTxFreshnessTruncData
+3: result is 0
+3: FV is 255 4 
+3: Trunc FV is 63 
+3: [       OK ] FreshnessTests.TXFreshnesstrunc (0 ms)
+3: [----------] 10 tests from FreshnessTests (0 ms total)
+3: 
+3: [----------] Global test environment tear-down
+3: [==========] 10 tests from 1 test suite ran. (0 ms total)
+3: [  PASSED  ] 10 tests.
+3/7 Test #3: FreshnessTests ...................   Passed    0.08 sec
+test 4
+    Start 4: PQC_ComparisonTests
+
+4: Test command: C:\Users\LLU2HC\Documents\Long-Stuff\HCMUT\computer_engineering_project\Autosar_SecOC\build\test\PQC_ComparisonTests.exe
+4: Working Directory: C:/Users/LLU2HC/Documents/Long-Stuff/HCMUT/computer_engineering_project/Autosar_SecOC/build/test
+4: Test timeout computed to be: 1500
+4: Running main() from C:\Users\LLU2HC\Documents\Long-Stuff\HCMUT\computer_engineering_project\Autosar_SecOC\build\_deps\googletest-src\googletest\src\gtest_main.cc
+4: [==========] Running 13 tests from 1 test suite.
+4: [----------] Global test environment set-up.
+4: [----------] 13 tests from PQC_ComparisonTests
+4: [ RUN      ] PQC_ComparisonTests.ConfigurationDetection
+4: 
+4: =================================================================
+4:          SECOC PQC vs CLASSICAL MODE COMPARISON TESTS          
+4: =================================================================
+4: CURRENT MODE: POST-QUANTUM CRYPTOGRAPHY (PQC) MODE
+4:   - Algorithm: ML-DSA-65 (NIST FIPS 204)
+4:   - Signature Size: ~3309 bytes
+4:   - Security Level: Quantum-resistant
+4:   - Key Type: Public key cryptography
+4:   - ML-KEM-768 Key Exchange: ENABLED
+4: =================================================================
+4: 
+4: [       OK ] PQC_ComparisonTests.ConfigurationDetection (0 ms)
+4: [ RUN      ] PQC_ComparisonTests.Authentication_Comparison_1
+4: 
+4: Test: Authentication Comparison 1 - Basic PDU
+4: ------------------------------------------------------------
+4: ######## in SecOC_Init 
+4: ######## FVM_IncreaseCounter for id 10
+4: ######## FVM_IncreaseCounter for id 11
+4: ######## FVM_IncreaseCounter for id 12
+4: ######## FVM_IncreaseCounter for id 13
+4: ######## FVM_IncreaseCounter for id 14
+4: ######## FVM_IncreaseCounter for id 15
+4: ######## in authenticate_PQC (ML-DSA-65)
+4: ######## in prepareFreshnessTx 
+4: ######## in SecOC_GetTxFreshnessTruncData
+4: ######## in FVM_GetTxFreshnessTruncData
+4: result is 0
+4: FV is 1 
+4: Trunc FV is 1 
+4: ######## in constructDataToAuthenticatorTx
+4: PQC Module initialized successfully
+4:   ML-KEM-768: Public Key=1184 bytes, Ciphertext=1088 bytes
+4:   ML-DSA-65: Public Key=1952 bytes, Signature=3309 bytes
+4: ML-DSA keys loaded from mldsa_secoc.pub and mldsa_secoc.key
+4: CSM: ML-DSA-65 keys loaded from files
+4: ######## in Csm_SignatureGenerate (ML-DSA-65)
+4: Data length: 5 bytes
+4: Signature generated: 3309 bytes
+4: First 16 bytes: 63 6f 59 f1 e8 5e 75 c4 b7 29 e5 2d 40 95 f9 46 
+4: PQC Signature generated: 3309 bytes (vs ~4 bytes for MAC)
+4: 
+4: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+4: ║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║
+4: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+4: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+4: ║    1 bytes    ║        2 bytes        ║     1 bytes     ║        3309 bytes                ║
+4: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+4: ║ 0x02 ║ 0x64 0xC8     ║ 0x01         ║ 0x63 0x6F 0x59 0xF1 ...   ║
+4: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+4: Total Secured PDU: 3313 bytes (Header=1 + Auth=2 + Fresh=1 + Signature=3309)
+4: 
+4: Input:  AuthPdu = [100, 200] (2 bytes)
+4: Result: E_OK
+4: Secured PDU Length: 3313 bytes
+4: Expected Secured PDU Structure (PQC Mode):
+4:   [Header(1-2)] + [AuthPdu(2)] + [Freshness(8)] + [ML-DSA Signature(~3309)]
+4:   Total: ~3320 bytes
+4: Verification: Large signature detected (PQC mode working)
+4: PASS: Authentication PQC mode functional
+4: ------------------------------------------------------------
+4: [       OK ] PQC_ComparisonTests.Authentication_Comparison_1 (1 ms)
+4: [ RUN      ] PQC_ComparisonTests.Authentication_Comparison_2
+4: 
+4: Test: Authentication Comparison 2 - Text Data
+4: ------------------------------------------------------------
+4: ######## in SecOC_Init 
+4: ######## FVM_IncreaseCounter for id 10
+4: ######## FVM_IncreaseCounter for id 11
+4: ######## FVM_IncreaseCounter for id 12
+4: ######## FVM_IncreaseCounter for id 13
+4: ######## FVM_IncreaseCounter for id 14
+4: ######## FVM_IncreaseCounter for id 15
+4: ######## in authenticate_PQC (ML-DSA-65)
+4: ######## in prepareFreshnessTx 
+4: ######## in SecOC_GetTxFreshnessTruncData
+4: ######## in FVM_GetTxFreshnessTruncData
+4: result is 0
+4: FV is 2 
+4: Trunc FV is 2 
+4: ######## in constructDataToAuthenticatorTx
+4: ######## in Csm_SignatureGenerate (ML-DSA-65)
+4: Data length: 7 bytes
+4: Signature generated: 3309 bytes
+4: First 16 bytes: 38 eb c8 16 ba fd 03 cd 15 ed fb b0 14 ee d7 7e 
+4: PQC Signature generated: 3309 bytes (vs ~4 bytes for MAC)
+4: 
+4: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+4: ║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║
+4: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+4: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+4: ║    1 bytes    ║        4 bytes        ║     1 bytes     ║        3309 bytes                ║
+4: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+4: ║ 0x04 ║ 0x48 0x53 0x68 0x73     ║ 0x02         ║ 0x38 0xEB 0xC8 0x16 ...   ║
+4: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+4: Total Secured PDU: 3315 bytes (Header=1 + Auth=4 + Fresh=1 + Signature=3309)
+4: 
+4: Input:  AuthPdu = ['H', 'S', 'h', 's'] (4 bytes)
+4: Result: E_OK
+4: Secured PDU Length: 3315 bytes
+4: Verification: PQC signature generation successful
+4: PASS: Authentication handles variable data correctly
+4: ------------------------------------------------------------
+4: [       OK ] PQC_ComparisonTests.Authentication_Comparison_2 (0 ms)
+4: [ RUN      ] PQC_ComparisonTests.Verification_Comparison_Valid
+4: 
+4: Test: Verification Comparison - Valid Data
+4: ------------------------------------------------------------
+4: ######## in SecOC_Init 
+4: ######## FVM_IncreaseCounter for id 10
+4: ######## FVM_IncreaseCounter for id 11
+4: ######## FVM_IncreaseCounter for id 12
+4: ######## FVM_IncreaseCounter for id 13
+4: ######## FVM_IncreaseCounter for id 14
+4: ######## FVM_IncreaseCounter for id 15
+4: ######## in authenticate_PQC (ML-DSA-65)
+4: ######## in prepareFreshnessTx 
+4: ######## in SecOC_GetTxFreshnessTruncData
+4: ######## in FVM_GetTxFreshnessTruncData
+4: result is 0
+4: FV is 3 
+4: Trunc FV is 3 
+4: ######## in constructDataToAuthenticatorTx
+4: ######## in Csm_SignatureGenerate (ML-DSA-65)
+4: Data length: 5 bytes
+4: Signature generated: 3309 bytes
+4: First 16 bytes: 5b 43 d9 a2 e1 a9 68 70 97 bb 58 65 dc aa da 5e 
+4: PQC Signature generated: 3309 bytes (vs ~4 bytes for MAC)
+4: 
+4: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+4: ║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║
+4: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+4: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+4: ║    1 bytes    ║        2 bytes        ║     1 bytes     ║        3309 bytes                ║
+4: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+4: ║ 0x02 ║ 0x64 0xC8     ║ 0x03         ║ 0x5B 0x43 0xD9 0xA2 ...   ║
+4: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+4: Total Secured PDU: 3313 bytes (Header=1 + Auth=2 + Fresh=1 + Signature=3309)
+4: 
+4: Step 1: Generated secured PDU (3313 bytes)
+4: ######## in verify_PQC (ML-DSA-65)
+4: ######## in parseSecuredPdu 
+4: ######## in SecOC_GetRxFreshness 
+4: ######## in FVM_GetRxFreshness
+4: LSB  counter < LSB trunc
+4: constructed FreshnessVerifyValue is  
+4: byte 0: 3  
+4: Result is 0  
+4: PQC Mode: Extracted signature, actualSignatureLen = 3309 bytes (SecPdu->SduLength=3313, SecCursor was=4)
+4: 
+4: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+4: ║                      SECURED I-PDU STRUCTURE (RX) - PQC Mode (ML-DSA-65)                   ║
+4: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+4: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+4: ║    1 bytes    ║        2 bytes        ║     1 bytes     ║        3309 bytes                ║
+4: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+4: ║ 0x02         ║ 0x64 0xC8     ║ 0x03         ║ 0x5B 0x43 0xD9 0xA2 ...  ║
+4: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+4: Total Received PDU: 3313 bytes
+4: Parsed: Header=1 + Auth=2 + Fresh=1 + MAC/Sig=3309
+4: 
+4: ######## in constructDataToAuthenticatorRx 
+4: ######## in Csm_SignatureVerify (ML-DSA-65)
+4: Data length: 5 bytes, Signature length: 3309 bytes
+4: Signature verification: PASSED
+4: PQC Signature verification: sig_len=3309 bytes, result=0
+4: Step 2: Verification result: E_OK
+4: Verification status: 0
+4: Extracted AuthPdu length: 2 bytes
+4: Mode: PQC - ML-DSA-65 signature verification
+4: SUCCESS: PQC signature verification passed
+4: Verification: Quantum-resistant signature verified successfully
+4: PASS: Verification test completed
+4: ------------------------------------------------------------
+4: [       OK ] PQC_ComparisonTests.Verification_Comparison_Valid (0 ms)
+4: [ RUN      ] PQC_ComparisonTests.Verification_Comparison_Tampered
+4: 
+4: Test: Verification Comparison - Tampered Data Detection
+4: ------------------------------------------------------------
+4: ######## in SecOC_DeInit 
+4: ######## in SecOC_Init 
+4: ######## FVM_IncreaseCounter for id 10
+4: ######## FVM_IncreaseCounter for id 11
+4: ######## FVM_IncreaseCounter for id 12
+4: ######## FVM_IncreaseCounter for id 13
+4: ######## FVM_IncreaseCounter for id 14
+4: ######## FVM_IncreaseCounter for id 15
+4: ######## in authenticate_PQC (ML-DSA-65)
+4: ######## in prepareFreshnessTx 
+4: ######## in SecOC_GetTxFreshnessTruncData
+4: ######## in FVM_GetTxFreshnessTruncData
+4: result is 0
+4: FV is 4 
+4: Trunc FV is 4 
+4: ######## in constructDataToAuthenticatorTx
+4: ######## in Csm_SignatureGenerate (ML-DSA-65)
+4: Data length: 5 bytes
+4: Signature generated: 3309 bytes
+4: First 16 bytes: eb a6 94 61 43 6c 26 c3 3a 74 d0 ec d4 de b1 8a 
+4: PQC Signature generated: 3309 bytes (vs ~4 bytes for MAC)
+4: 
+4: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+4: ║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║
+4: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+4: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+4: ║    1 bytes    ║        2 bytes        ║     1 bytes     ║        3309 bytes                ║
+4: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+4: ║ 0x02 ║ 0x64 0xC8     ║ 0x04         ║ 0xEB 0xA6 0x94 0x61 ...   ║
+4: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+4: Total Secured PDU: 3313 bytes (Header=1 + Auth=2 + Fresh=1 + Signature=3309)
+4: 
+4: Tampering: Changed AuthPdu[0] from 100 to 101
+4: Secured PDU length: 3313 bytes (ML-DSA signature)
+4: ######## in verify_PQC (ML-DSA-65)
+4: ######## in parseSecuredPdu 
+4: ######## in SecOC_GetRxFreshness 
+4: ######## in FVM_GetRxFreshness
+4: LSB  counter < LSB trunc
+4: constructed FreshnessVerifyValue is  
+4: byte 0: 4  
+4: Result is 0  
+4: PQC Mode: Extracted signature, actualSignatureLen = 3309 bytes (SecPdu->SduLength=3313, SecCursor was=4)
+4: 
+4: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+4: ║                      SECURED I-PDU STRUCTURE (RX) - PQC Mode (ML-DSA-65)                   ║
+4: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+4: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+4: ║    1 bytes    ║        2 bytes        ║     1 bytes     ║        3309 bytes                ║
+4: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+4: ║ 0x02         ║ 0x65 0xC8     ║ 0x04         ║ 0xEB 0xA6 0x94 0x61 ...  ║
+4: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+4: Total Received PDU: 3313 bytes
+4: Parsed: Header=1 + Auth=2 + Fresh=1 + MAC/Sig=3309
+4: 
+4: ######## in constructDataToAuthenticatorRx 
+4: ######## in Csm_SignatureVerify (ML-DSA-65)
+4: Data length: 5 bytes, Signature length: 3309 bytes
+4: Signature verification: FAILED
+4: PQC Signature verification: sig_len=3309 bytes, result=1
+4: Verification result: E_NOT_OK
+4: Expected: E_NOT_OK (ML-DSA signature should fail on tampered data)
+4: SUCCESS: PQC mode detected tampering
+4: PASS: Tampering detection functional
+4: ------------------------------------------------------------
+4: [       OK ] PQC_ComparisonTests.Verification_Comparison_Tampered (0 ms)
+4: [ RUN      ] PQC_ComparisonTests.Freshness_Comparison
+4: 
+4: Test: Freshness Comparison - Counter Management
+4: ------------------------------------------------------------
+4: ######## in SecOC_Init 
+4: ######## FVM_IncreaseCounter for id 10
+4: ######## FVM_IncreaseCounter for id 11
+4: ######## FVM_IncreaseCounter for id 12
+4: ######## FVM_IncreaseCounter for id 13
+4: ######## FVM_IncreaseCounter for id 14
+4: ######## FVM_IncreaseCounter for id 15
+4: PQC Mode: Using 64-bit freshness counter
+4:   - Counter size: 8 bytes
+4:   - Provides extended replay protection
+4: ######## in authenticate_PQC (ML-DSA-65)
+4: ######## in prepareFreshnessTx 
+4: ######## in SecOC_GetTxFreshnessTruncData
+4: ######## in FVM_GetTxFreshnessTruncData
+4: result is 0
+4: FV is 5 
+4: Trunc FV is 5 
+4: ######## in constructDataToAuthenticatorTx
+4: ######## in Csm_SignatureGenerate (ML-DSA-65)
+4: Data length: 5 bytes
+4: Signature generated: 3309 bytes
+4: First 16 bytes: a4 d9 ad 81 46 18 3d 4e 74 9f 70 05 55 04 da fc 
+4: PQC Signature generated: 3309 bytes (vs ~4 bytes for MAC)
+4: 
+4: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+4: ║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║
+4: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+4: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+4: ║    1 bytes    ║        2 bytes        ║     1 bytes     ║        3309 bytes                ║
+4: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+4: ║ 0x02 ║ 0x64 0xC8     ║ 0x05         ║ 0xA4 0xD9 0xAD 0x81 ...   ║
+4: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+4: Total Secured PDU: 3313 bytes (Header=1 + Auth=2 + Fresh=1 + Signature=3309)
+4: 
+4: Message 1: Secured PDU generated (3313 bytes)
+4: ######## in authenticate_PQC (ML-DSA-65)
+4: ######## in prepareFreshnessTx 
+4: ######## in SecOC_GetTxFreshnessTruncData
+4: ######## in FVM_GetTxFreshnessTruncData
+4: result is 0
+4: FV is 5 
+4: Trunc FV is 5 
+4: ######## in constructDataToAuthenticatorTx
+4: ######## in Csm_SignatureGenerate (ML-DSA-65)
+4: Data length: 5 bytes
+4: Signature generated: 3309 bytes
+4: First 16 bytes: 25 67 ef 85 68 94 84 3e 86 fa 2e c6 a8 59 7e f5 
+4: PQC Signature generated: 3309 bytes (vs ~4 bytes for MAC)
+4: 
+4: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+4: ║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║
+4: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+4: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+4: ║    1 bytes    ║        2 bytes        ║     1 bytes     ║        3309 bytes                ║
+4: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+4: ║ 0x02 ║ 0x65 0xC8     ║ 0x05         ║ 0x25 0x67 0xEF 0x85 ...   ║
+4: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+4: Total Secured PDU: 3313 bytes (Header=1 + Auth=2 + Fresh=1 + Signature=3309)
+4: 
+4: Message 2: Secured PDU generated (3313 bytes)
+4: ######## in authenticate_PQC (ML-DSA-65)
+4: ######## in prepareFreshnessTx 
+4: ######## in SecOC_GetTxFreshnessTruncData
+4: ######## in FVM_GetTxFreshnessTruncData
+4: result is 0
+4: FV is 5 
+4: Trunc FV is 5 
+4: ######## in constructDataToAuthenticatorTx
+4: ######## in Csm_SignatureGenerate (ML-DSA-65)
+4: Data length: 5 bytes
+4: Signature generated: 3309 bytes
+4: First 16 bytes: 86 73 dc d2 89 48 f1 ec e2 2e 1a d8 59 03 25 c8 
+4: PQC Signature generated: 3309 bytes (vs ~4 bytes for MAC)
+4: 
+4: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+4: ║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║
+4: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+4: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+4: ║    1 bytes    ║        2 bytes        ║     1 bytes     ║        3309 bytes                ║
+4: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+4: ║ 0x02 ║ 0x66 0xC8     ║ 0x05         ║ 0x86 0x73 0xDC 0xD2 ...   ║
+4: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+4: Total Secured PDU: 3313 bytes (Header=1 + Auth=2 + Fresh=1 + Signature=3309)
+4: 
+4: Message 3: Secured PDU generated (3313 bytes)
+4: PASS: Freshness counter working in PQC mode
+4: ------------------------------------------------------------
+4: [       OK ] PQC_ComparisonTests.Freshness_Comparison (2 ms)
+4: [ RUN      ] PQC_ComparisonTests.Performance_Comparison
+4: 
+4: Test: Performance Comparison
+4: ------------------------------------------------------------
+4: ######## in SecOC_Init 
+4: ######## FVM_IncreaseCounter for id 10
+4: ######## FVM_IncreaseCounter for id 11
+4: ######## FVM_IncreaseCounter for id 12
+4: ######## FVM_IncreaseCounter for id 13
+4: ######## FVM_IncreaseCounter for id 14
+4: ######## FVM_IncreaseCounter for id 15
+4: PQC Mode Performance Characteristics:
+4:   - ML-DSA-65 Sign: ~250 microseconds
+4:   - ML-DSA-65 Verify: ~120 microseconds
+4:   - Total latency: ~370 microseconds
+4:   - Signature size: ~3309 bytes
+4:   - Requires Ethernet (high bandwidth)
+4:   - Security: Quantum-resistant
+4: ######## in authenticate_PQC (ML-DSA-65)
+4: ######## in prepareFreshnessTx 
+4: ######## in SecOC_GetTxFreshnessTruncData
+4: ######## in FVM_GetTxFreshnessTruncData
+4: result is 0
+4: FV is 6 
+4: Trunc FV is 6 
+4: ######## in constructDataToAuthenticatorTx
+4: ######## in Csm_SignatureGenerate (ML-DSA-65)
+4: Data length: 5 bytes
+4: Signature generated: 3309 bytes
+4: First 16 bytes: a9 7c a5 65 08 9b 04 5b c9 f5 b0 88 86 cc 6d 84 
+4: PQC Signature generated: 3309 bytes (vs ~4 bytes for MAC)
+4: 
+4: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+4: ║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║
+4: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+4: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+4: ║    1 bytes    ║        2 bytes        ║     1 bytes     ║        3309 bytes                ║
+4: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+4: ║ 0x02 ║ 0x64 0xC8     ║ 0x06         ║ 0xA9 0x7C 0xA5 0x65 ...   ║
+4: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+4: Total Secured PDU: 3313 bytes (Header=1 + Auth=2 + Fresh=1 + Signature=3309)
+4: 
+4: 
+4: Functional Test Result: PASS
+4: Secured PDU Size: 3313 bytes
+4: ------------------------------------------------------------
+4: [       OK ] PQC_ComparisonTests.Performance_Comparison (0 ms)
+4: [ RUN      ] PQC_ComparisonTests.MLKEM_KeyGeneration
+4: 
+4: Test: ML-KEM-768 Key Generation
+4: ------------------------------------------------------------
+4: ML-KEM-768 Key Exchange: ENABLED
+4: 
+4: Step 1: PQC module initialized
+4: Step 2: ML-KEM-768 keypair generated
+4:   Public Key Size:  1184 bytes (expected: 1184)
+4:   Private Key Size: 2400 bytes (expected: 2400)
+4:   Ciphertext Size:  1088 bytes (expected: 1088)
+4:   Shared Secret:    32 bytes
+4: 
+4: PASS: ML-KEM-768 key generation successful
+4: Quantum Resistance: NIST Security Level 3 (~192-bit classical)
+4: ------------------------------------------------------------
+4: [       OK ] PQC_ComparisonTests.MLKEM_KeyGeneration (0 ms)
+4: [ RUN      ] PQC_ComparisonTests.MLKEM_Encapsulation_Decapsulation
+4: 
+4: Test: ML-KEM-768 Encapsulation & Decapsulation
+4: ------------------------------------------------------------
+4: Simulating: ECU A wants to send encrypted key to ECU B
+4: 
+4: Step 1: ECU B generated ML-KEM keypair
+4:   ECU B shares public key (1184 bytes) over network
+4: 
+4: Step 2: ECU A encapsulated shared secret
+4:   Generated: 32-byte shared secret
+4:   Generated: 1088-byte ciphertext
+4:   ECU A sends ciphertext (1088 bytes) to ECU B
+4: 
+4: Step 3: ECU B decapsulated ciphertext
+4:   Recovered: 32-byte shared secret
+4: 
+4: Step 4: Verification
+4:   SUCCESS: Shared secrets match!
+4:   ECU A secret == ECU B secret (32 bytes)
+4:   Secure channel established (quantum-resistant)
+4: 
+4: PASS: ML-KEM-768 key encapsulation working
+4: Security: Resistant to quantum attacks (Shor's algorithm)
+4: ------------------------------------------------------------
+4: [       OK ] PQC_ComparisonTests.MLKEM_Encapsulation_Decapsulation (0 ms)
+4: [ RUN      ] PQC_ComparisonTests.MLKEM_MultiParty_KeyExchange
+4: 
+4: Test: ML-KEM-768 Multi-Party Key Exchange (Gateway)
+4: ------------------------------------------------------------
+4: Scenario: ECU A <---> Gateway <---> ECU B
+4: 
+4: Step 1: Key Generation
+4:   ECU A: Generated ML-KEM keypair
+4:   Gateway: Generated ML-KEM keypair
+4:   ECU B: Generated ML-KEM keypair
+4: 
+4: Step 2: ECU A <---> Gateway Key Exchange
+4:   ECU A encapsulated secret for Gateway
+4:   Gateway decapsulated secret from ECU A
+4:   Verified: ECU A <---> Gateway secure channel established
+4: 
+4: Step 3: Gateway <---> ECU B Key Exchange
+4:   Gateway encapsulated secret for ECU B
+4:   ECU B decapsulated secret from Gateway
+4:   Verified: Gateway <---> ECU B secure channel established
+4: 
+4: Step 4: Summary
+4:   Total Public Keys Exchanged: 3 x 1184 bytes = 3552 bytes
+4:   Total Ciphertexts Exchanged: 2 x 1088 bytes = 2176 bytes
+4:   Secure Channels Established: 2
+4:   Gateway can now proxy encrypted messages between ECU A and ECU B
+4: 
+4: PASS: Multi-party ML-KEM key exchange successful
+4: Use Case: Ethernet Gateway with quantum-resistant security
+4: ------------------------------------------------------------
+4: [       OK ] PQC_ComparisonTests.MLKEM_MultiParty_KeyExchange (0 ms)
+4: [ RUN      ] PQC_ComparisonTests.Complete_PQC_Stack_MLKEM_MLDSA
+4: 
+4: Test: Complete PQC Stack (ML-KEM + ML-DSA)
+4: ------------------------------------------------------------
+4: Demonstrating: Full quantum-resistant secure communication
+4: 
+4: ######## in SecOC_Init 
+4: ######## FVM_IncreaseCounter for id 10
+4: ######## FVM_IncreaseCounter for id 11
+4: ######## FVM_IncreaseCounter for id 12
+4: ######## FVM_IncreaseCounter for id 13
+4: ######## FVM_IncreaseCounter for id 14
+4: ######## FVM_IncreaseCounter for id 15
+4: PHASE 1: ML-KEM-768 Key Exchange
+4: ----------------------------------------
+4:   1. Key generation: 2 x ML-KEM keypairs
+4:   2. Encapsulation: 1088-byte ciphertext
+4:   3. Decapsulation: Shared secret recovered
+4:   4. Result: 32-byte shared secret established
+4:   Status: SECURE CHANNEL READY
+4: 
+4: PHASE 2: ML-DSA-65 Authenticated Message
+4: ----------------------------------------
+4: ######## in authenticate_PQC (ML-DSA-65)
+4: ######## in prepareFreshnessTx 
+4: ######## in SecOC_GetTxFreshnessTruncData
+4: ######## in FVM_GetTxFreshnessTruncData
+4: result is 0
+4: FV is 7 
+4: Trunc FV is 7 
+4: ######## in constructDataToAuthenticatorTx
+4: ######## in Csm_SignatureGenerate (ML-DSA-65)
+4: Data length: 5 bytes
+4: Signature generated: 3309 bytes
+4: First 16 bytes: df ed 2f 49 b1 db 6a 83 54 39 6f 45 5a 08 e6 54 
+4: PQC Signature generated: 3309 bytes (vs ~4 bytes for MAC)
+4: 
+4: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+4: ║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║
+4: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+4: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+4: ║    1 bytes    ║        2 bytes        ║     1 bytes     ║        3309 bytes                ║
+4: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+4: ║ 0x02 ║ 0x64 0xC8     ║ 0x07         ║ 0xDF 0xED 0x2F 0x49 ...   ║
+4: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+4: Total Secured PDU: 3313 bytes (Header=1 + Auth=2 + Fresh=1 + Signature=3309)
+4: 
+4:   1. Message: [100, 200] (2 bytes)
+4:   2. Freshness: 64-bit counter
+4:   3. Signature: ML-DSA-65 (~3309 bytes)
+4:   4. Secured PDU: 3313 bytes total
+4:   Status: MESSAGE AUTHENTICATED
+4: 
+4: PHASE 3: Complete PQC Security Stack
+4: ----------------------------------------
+4:   [Layer 1] ML-KEM-768:  Secure key exchange
+4:             - Public keys: 1184 bytes each
+4:             - Ciphertext: 1088 bytes
+4:             - Shared secret: 32 bytes
+4:             - Security: NIST Level 3
+4: 
+4:   [Layer 2] ML-DSA-65:   Message authentication
+4:             - Public key: 1952 bytes
+4:             - Signature: ~3309 bytes
+4:             - Security: NIST Level 3
+4: 
+4:   [Result] Quantum-Resistant Communication
+4:            - Key exchange: Secure against quantum attacks
+4:            - Authentication: Secure against quantum attacks
+4:            - Total security: Future-proof for 10+ years
+4: 
+4: PASS: Complete PQC stack operational
+4: Transport: Ethernet Gateway (required for large signatures)
+4: ------------------------------------------------------------
+4: [       OK ] PQC_ComparisonTests.Complete_PQC_Stack_MLKEM_MLDSA (0 ms)
+4: [ RUN      ] PQC_ComparisonTests.Security_Level_Comparison
+4: 
+4: Test: Security Level Comparison
+4: ------------------------------------------------------------
+4: CURRENT SECURITY LEVEL: POST-QUANTUM
+4: 
+4: Security Properties:
+4:   [x] Resistant to classical attacks
+4:   [x] Resistant to quantum attacks (Shor's algorithm)
+4:   [x] NIST FIPS 204 compliant (ML-DSA-65)
+4:   [x] Security level: NIST Level 3 (~192-bit classical)
+4:   [x] Forward secrecy (with ML-KEM key exchange)
+4:   [x] Long-term security (10+ years quantum threat)
+4: 
+4: Trade-offs:
+4:   [-] Larger signature size (~3309 bytes vs 4 bytes)
+4:   [-] Higher computational cost (~100x slower)
+4:   [-] Requires high-bandwidth transport (Ethernet)
+4: ------------------------------------------------------------
+4: [       OK ] PQC_ComparisonTests.Security_Level_Comparison (0 ms)
+4: [ RUN      ] PQC_ComparisonTests.ZZ_Final_Summary
+4: 
+4: =================================================================
+4:                     COMPREHENSIVE TEST SUMMARY                   
+4: =================================================================
+4: 
+4: MODE TESTED: POST-QUANTUM CRYPTOGRAPHY (PQC)
+4: 
+4: Tests Executed:
+4:   [x] Configuration Detection
+4:   [x] Authentication (ML-DSA-65 signatures)
+4:   [x] Verification (ML-DSA-65 signature checking)
+4:   [x] Freshness Management (64-bit counters)
+4:   [x] Tampering Detection
+4:   [x] Performance Characteristics
+4:   [x] Security Level Assessment
+4:   [x] ML-KEM-768 Key Generation
+4:   [x] ML-KEM-768 Encapsulation/Decapsulation
+4:   [x] ML-KEM-768 Multi-Party Key Exchange
+4:   [x] Complete PQC Stack (ML-KEM + ML-DSA)
+4: 
+4: Key Findings:
+4:   ML-DSA-65 (Digital Signatures):
+4:   - Signature generation: WORKING
+4:   - Signature verification: WORKING
+4:   - Secured PDU size: ~3320 bytes (as expected)
+4: 
+4:   ML-KEM-768 (Key Exchange):
+4:   - Keypair generation: WORKING
+4:   - Encapsulation: WORKING
+4:   - Decapsulation: WORKING
+4:   - Shared secret: 32 bytes established
+4:   - Multi-party exchange: WORKING
+4: 
+4:   Overall:
+4:   - Quantum resistance: VERIFIED
+4:   - NIST FIPS 203 & 204: COMPLIANT
+4:   - Suitable for: Ethernet Gateway applications
+4: 
+4: COMPARISON MATRIX:
+4: +-------------------------+------------------+----------------------+
+4: | Feature                 | Classical        | PQC                  |
+4: +-------------------------+------------------+----------------------+
+4: | Key Exchange            | DH/ECDH          | ML-KEM-768           |
+4: | - Key Size              | 256 bits         | 1184 bytes (pub)     |
+4: | - Quantum Resistant     | NO               | YES                  |
+4: |                         |                  |                      |
+4: | Authentication          | AES-CMAC         | ML-DSA-65            |
+4: | - Signature/MAC Size    | 4 bytes          | ~3309 bytes          |
+4: | - Computation Time      | ~2 us            | ~250 us (sign)       |
+4: | - Quantum Resistant     | NO               | YES                  |
+4: |                         |                  |                      |
+4: | Network Requirement     | Any              | Ethernet             |
+4: | Security Level          | 128-bit          | NIST Level 3         |
+4: | Future-proof (10+ yrs)  | NO               | YES                  |
+4: +-------------------------+------------------+----------------------+
+4: 
+4: CONCLUSION:
+4:   Both Classical and PQC modes have been tested and verified.
+4:   The system successfully supports dual-mode operation:
+4: 
+4:   CLASSICAL MODE:
+4:   - Symmetric key cryptography (AES-CMAC)
+4:   - Diffie-Hellman / ECDH key exchange
+4:   - Backward compatibility with existing ECUs
+4:   - Resource efficient (low overhead)
+4:   - Suitable for: CAN, FlexRay, Ethernet
+4:   - Limitation: Vulnerable to quantum attacks
+4: 
+4:   PQC MODE:
+4:   - ML-KEM-768 for quantum-resistant key exchange
+4:   - ML-DSA-65 for quantum-resistant signatures
+4:   - NIST FIPS 203 & 204 compliant
+4:   - Future-proof security (10+ years)
+4:   - Suitable for: Ethernet Gateway applications
+4:   - Trade-off: Requires high bandwidth
+4: 
+4:   RECOMMENDATION:
+4:   Use PQC mode for:
+4:   - Ethernet Gateway applications
+4:   - Long-term security requirements
+4:   - Systems requiring quantum resistance
+4:   - Applications with sufficient bandwidth
+4: 
+4: =================================================================
+4:                     ALL COMPARISON TESTS PASSED                  
+4: =================================================================
+4: 
+4: [       OK ] PQC_ComparisonTests.ZZ_Final_Summary (0 ms)
+4: [----------] 13 tests from PQC_ComparisonTests (7 ms total)
+4: 
+4: [----------] Global test environment tear-down
+4: [==========] 13 tests from 1 test suite ran. (7 ms total)
+4: [  PASSED  ] 13 tests.
+4/7 Test #4: PQC_ComparisonTests ..............   Passed    0.16 sec
+test 5
+    Start 5: SecOCTests
+
+5: Test command: C:\Users\LLU2HC\Documents\Long-Stuff\HCMUT\computer_engineering_project\Autosar_SecOC\build\test\SecOCTests.exe
+5: Working Directory: C:/Users/LLU2HC/Documents/Long-Stuff/HCMUT/computer_engineering_project/Autosar_SecOC/build/test
+5: Test timeout computed to be: 1500
+5: Running main() from C:\Users\LLU2HC\Documents\Long-Stuff\HCMUT\computer_engineering_project\Autosar_SecOC\build\_deps\googletest-src\googletest\src\gtest_main.cc
+5: [==========] Running 3 tests from 1 test suite.
+5: [----------] Global test environment set-up.
+5: [----------] 3 tests from SecOCTests
+5: [ RUN      ] SecOCTests.SecOC_TpTxConfirmation1
+5: ######## in SecOC_Init 
+5: ######## FVM_IncreaseCounter for id 10
+5: ######## FVM_IncreaseCounter for id 11
+5: ######## FVM_IncreaseCounter for id 12
+5: ######## FVM_IncreaseCounter for id 13
+5: ######## FVM_IncreaseCounter for id 14
+5: ######## FVM_IncreaseCounter for id 15
+5: ########  In SecOC_TpTxConfirmation 
+5:  result of SecOC_TpTxConfirmation is 0 
+5: ######## in PduR_SecOCIfTxConfirmation 
+5: ######## in Com_TxConfirmation 
+5: Returned confirmation 'E_OK' 
+5: [       OK ] SecOCTests.SecOC_TpTxConfirmation1 (0 ms)
+5: [ RUN      ] SecOCTests.SecOC_TpRxIndication1
+5: ######## in SecOC_Init 
+5: ######## FVM_IncreaseCounter for id 10
+5: ######## FVM_IncreaseCounter for id 11
+5: ######## FVM_IncreaseCounter for id 12
+5: ######## FVM_IncreaseCounter for id 13
+5: ######## FVM_IncreaseCounter for id 14
+5: ######## FVM_IncreaseCounter for id 15
+5: data received Before Calling The Function : 
+5: 156 44 22 45 34 23 26 
+5: 
+5: 
+5: ######## in SecOC_TpRxIndication 
+5: data received After Calling The Function : 
+5: 
+5: [       OK ] SecOCTests.SecOC_TpRxIndication1 (0 ms)
+5: [ RUN      ] SecOCTests.SecOC_TpRxIndication2
+5: ######## in SecOC_Init 
+5: ######## FVM_IncreaseCounter for id 10
+5: ######## FVM_IncreaseCounter for id 11
+5: ######## FVM_IncreaseCounter for id 12
+5: ######## FVM_IncreaseCounter for id 13
+5: ######## FVM_IncreaseCounter for id 14
+5: ######## FVM_IncreaseCounter for id 15
+5: data received Before Calling The Function : 
+5: 156 44 22 45 34 23 26 
+5: 
+5: 
+5: ######## in SecOC_TpRxIndication 
+5: data received After Calling The Function : 
+5: 156 44 22 45 34 23 26 
+5: [       OK ] SecOCTests.SecOC_TpRxIndication2 (0 ms)
+5: [----------] 3 tests from SecOCTests (0 ms total)
+5: 
+5: [----------] Global test environment tear-down
+5: [==========] 3 tests from 1 test suite ran. (0 ms total)
+5: [  PASSED  ] 3 tests.
+5/7 Test #5: SecOCTests .......................   Passed    0.16 sec
+test 6
+    Start 6: VerificationTests
+
+6: Test command: C:\Users\LLU2HC\Documents\Long-Stuff\HCMUT\computer_engineering_project\Autosar_SecOC\build\test\VerificationTests.exe
+6: Working Directory: C:/Users/LLU2HC/Documents/Long-Stuff/HCMUT/computer_engineering_project/Autosar_SecOC/build/test
+6: Test timeout computed to be: 1500
+6: Running main() from C:\Users\LLU2HC\Documents\Long-Stuff\HCMUT\computer_engineering_project\Autosar_SecOC\build\_deps\googletest-src\googletest\src\gtest_main.cc
+6: [==========] Running 3 tests from 1 test suite.
+6: [----------] Global test environment set-up.
+6: [----------] 3 tests from VerificationTests
+6: [ RUN      ] VerificationTests.verify1
+6: ######## in SecOC_Init 
+6: ######## FVM_IncreaseCounter for id 10
+6: ######## FVM_IncreaseCounter for id 11
+6: ######## FVM_IncreaseCounter for id 12
+6: ######## FVM_IncreaseCounter for id 13
+6: ######## FVM_IncreaseCounter for id 14
+6: ######## FVM_IncreaseCounter for id 15
+6: ######## in verify 
+6: ######## in parseSecuredPdu 
+6: ######## in SecOC_GetRxFreshness 
+6: ######## in FVM_GetRxFreshness
+6: LSB  counter < LSB trunc
+6: constructed FreshnessVerifyValue is  
+6: byte 0: 1  
+6: Result is 0  
+6: PQC Mode: Extracted signature, actualSignatureLen = 4 bytes (SecPdu->SduLength=8, SecCursor was=4)
+6: 
+6: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+6: ║                      SECURED I-PDU STRUCTURE (RX) - PQC Mode (ML-DSA-65)                   ║
+6: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+6: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+6: ║    1 bytes    ║        2 bytes        ║     1 bytes     ║           4 bytes                ║
+6: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+6: ║ 0x02         ║ 0x64 0xC8     ║ 0x01         ║ 0xC4 0xC8 0xDE 0x99   ║
+6: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+6: Total Received PDU: 8 bytes
+6: Parsed: Header=1 + Auth=2 + Fresh=1 + MAC/Sig=4
+6: 
+6: ######## in constructDataToAuthenticatorRx 
+6: ######## in Csm_MacVerify
+6: ######## in Csm_MacGenerate
+6: 
+6: Mac 196 200 222 153 
+6: data : 0 0 100 200 1 
+6: Mac 196  --  196 || 200  --  200 || 222  --  222 || 153  --  153 || 
+6: 0
+6: 100 200 
+6: [       OK ] VerificationTests.verify1 (0 ms)
+6: [ RUN      ] VerificationTests.verify2
+6: ######## in SecOC_DeInit 
+6: ######## in SecOC_Init 
+6: ######## FVM_IncreaseCounter for id 10
+6: ######## FVM_IncreaseCounter for id 11
+6: ######## FVM_IncreaseCounter for id 12
+6: ######## FVM_IncreaseCounter for id 13
+6: ######## FVM_IncreaseCounter for id 14
+6: ######## FVM_IncreaseCounter for id 15
+6: ######## in verify 
+6: ######## in parseSecuredPdu 
+6: ######## in SecOC_GetRxFreshness 
+6: ######## in FVM_GetRxFreshness
+6: LSB  counter < LSB trunc
+6: constructed FreshnessVerifyValue is  
+6: byte 0: 2  
+6: Result is 0  
+6: PQC Mode: Extracted signature, actualSignatureLen = 4 bytes (SecPdu->SduLength=8, SecCursor was=4)
+6: 
+6: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+6: ║                      SECURED I-PDU STRUCTURE (RX) - PQC Mode (ML-DSA-65)                   ║
+6: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+6: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+6: ║    1 bytes    ║        2 bytes        ║     1 bytes     ║           4 bytes                ║
+6: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+6: ║ 0x02         ║ 0x64 0xC8     ║ 0x02         ║ 0xC4 0xC8 0xDE 0x99   ║
+6: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+6: Total Received PDU: 8 bytes
+6: Parsed: Header=1 + Auth=2 + Fresh=1 + MAC/Sig=4
+6: 
+6: ######## in constructDataToAuthenticatorRx 
+6: ######## in Csm_MacVerify
+6: ######## in Csm_MacGenerate
+6: 
+6: Mac 227 67 90 79 
+6: data : 0 0 100 200 2 
+6: Mac 227  --  196 || 67  --  200 || 90  --  222 || 79  --  153 || 
+6: 
+6: [       OK ] VerificationTests.verify2 (0 ms)
+6: [ RUN      ] VerificationTests.verify3
+6: ######## in SecOC_DeInit 
+6: ######## in SecOC_Init 
+6: ######## FVM_IncreaseCounter for id 10
+6: ######## FVM_IncreaseCounter for id 11
+6: ######## FVM_IncreaseCounter for id 12
+6: ######## FVM_IncreaseCounter for id 13
+6: ######## FVM_IncreaseCounter for id 14
+6: ######## FVM_IncreaseCounter for id 15
+6: ######## in verify 
+6: ######## in parseSecuredPdu 
+6: ######## in SecOC_GetRxFreshness 
+6: ######## in FVM_GetRxFreshness
+6: LSB  counter < LSB trunc
+6: constructed FreshnessVerifyValue is  
+6: byte 0: 3  
+6: Result is 0  
+6: PQC Mode: Extracted signature, actualSignatureLen = 4 bytes (SecPdu->SduLength=10, SecCursor was=6)
+6: 
+6: ╔════════════════════════════════════════════════════════════════════════════════════════════╗
+6: ║                      SECURED I-PDU STRUCTURE (RX) - PQC Mode (ML-DSA-65)                   ║
+6: ╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣
+6: ║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║
+6: ║    1 bytes    ║        4 bytes        ║     1 bytes     ║           4 bytes                ║
+6: ╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣
+6: ║ 0x04         ║ 0x48 0x53 0x68 0x73     ║ 0x03         ║ 0xD1 0x14 0xCD 0xAC   ║
+6: ╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝
+6: Total Received PDU: 10 bytes
+6: Parsed: Header=1 + Auth=4 + Fresh=1 + MAC/Sig=4
+6: 
+6: ######## in constructDataToAuthenticatorRx 
+6: ######## in Csm_MacVerify
+6: ######## in Csm_MacGenerate
+6: 
+6: Mac 209 20 205 172 
+6: data : 0 0 72 83 104 115 3 
+6: Mac 209  --  209 || 20  --  20 || 205  --  205 || 172  --  172 || 
+6: 0
+6: H S h s 
+6: [       OK ] VerificationTests.verify3 (0 ms)
+6: [----------] 3 tests from VerificationTests (0 ms total)
+6: 
+6: [----------] Global test environment tear-down
+6: [==========] 3 tests from 1 test suite ran. (0 ms total)
+6: [  PASSED  ] 3 tests.
+6/7 Test #6: VerificationTests ................   Passed    0.15 sec
+test 7
+    Start 7: startOfReceptionTests
+
+7: Test command: C:\Users\LLU2HC\Documents\Long-Stuff\HCMUT\computer_engineering_project\Autosar_SecOC\build\test\startOfReceptionTests.exe
+7: Working Directory: C:/Users/LLU2HC/Documents/Long-Stuff/HCMUT/computer_engineering_project/Autosar_SecOC/build/test
+7: Test timeout computed to be: 1500
+7: Running main() from C:\Users\LLU2HC\Documents\Long-Stuff\HCMUT\computer_engineering_project\Autosar_SecOC\build\_deps\googletest-src\googletest\src\gtest_main.cc
+7: [==========] Running 5 tests from 1 test suite.
+7: [----------] Global test environment set-up.
+7: [----------] 5 tests from StartOfReceptionTests
+7: [ RUN      ] StartOfReceptionTests.StartOfReception1
+7: ######## in SecOC_Init 
+7: ######## FVM_IncreaseCounter for id 10
+7: ######## FVM_IncreaseCounter for id 11
+7: ######## FVM_IncreaseCounter for id 12
+7: ######## FVM_IncreaseCounter for id 13
+7: ######## FVM_IncreaseCounter for id 14
+7: ######## FVM_IncreaseCounter for id 15
+7: ######## in SecOC_StartOfReception 
+7: result of SecOC_StartOfReception is 0
+7: [       OK ] StartOfReceptionTests.StartOfReception1 (0 ms)
+7: [ RUN      ] StartOfReceptionTests.StartOfReception2
+7: ######## in SecOC_Init 
+7: ######## FVM_IncreaseCounter for id 10
+7: ######## FVM_IncreaseCounter for id 11
+7: ######## FVM_IncreaseCounter for id 12
+7: ######## FVM_IncreaseCounter for id 13
+7: ######## FVM_IncreaseCounter for id 14
+7: ######## FVM_IncreaseCounter for id 15
+7: ######## in SecOC_StartOfReception 
+7: result of SecOC_StartOfReception is 3
+7: [       OK ] StartOfReceptionTests.StartOfReception2 (0 ms)
+7: [ RUN      ] StartOfReceptionTests.StartOfReception3
+7: ######## in SecOC_Init 
+7: ######## FVM_IncreaseCounter for id 10
+7: ######## FVM_IncreaseCounter for id 11
+7: ######## FVM_IncreaseCounter for id 12
+7: ######## FVM_IncreaseCounter for id 13
+7: ######## FVM_IncreaseCounter for id 14
+7: ######## FVM_IncreaseCounter for id 15
+7: ######## in SecOC_StartOfReception 
+7: result of SecOC_StartOfReception is 1
+7: [       OK ] StartOfReceptionTests.StartOfReception3 (0 ms)
+7: [ RUN      ] StartOfReceptionTests.StartOfReception4
+7: ######## in SecOC_Init 
+7: ######## FVM_IncreaseCounter for id 10
+7: ######## FVM_IncreaseCounter for id 11
+7: ######## FVM_IncreaseCounter for id 12
+7: ######## FVM_IncreaseCounter for id 13
+7: ######## FVM_IncreaseCounter for id 14
+7: ######## FVM_IncreaseCounter for id 15
+7: ######## in SecOC_StartOfReception 
+7: result of SecOC_StartOfReception is 0
+7: [       OK ] StartOfReceptionTests.StartOfReception4 (0 ms)
+7: [ RUN      ] StartOfReceptionTests.StartOfReception5
+7: ######## in SecOC_Init 
+7: ######## FVM_IncreaseCounter for id 10
+7: ######## FVM_IncreaseCounter for id 11
+7: ######## FVM_IncreaseCounter for id 12
+7: ######## FVM_IncreaseCounter for id 13
+7: ######## FVM_IncreaseCounter for id 14
+7: ######## FVM_IncreaseCounter for id 15
+7: ######## in SecOC_StartOfReception 
+7: result of SecOC_StartOfReception is 1
+7: [       OK ] StartOfReceptionTests.StartOfReception5 (0 ms)
+7: [----------] 5 tests from StartOfReceptionTests (0 ms total)
+7: 
+7: [----------] Global test environment tear-down
+7: [==========] 5 tests from 1 test suite ran. (0 ms total)
+7: [  PASSED  ] 5 tests.
+7/7 Test #7: startOfReceptionTests ............   Passed    0.16 sec
+
+The following tests passed:
+	Phase3_Complete_Integration
+	AuthenticationTests
+	FreshnessTests
+	PQC_ComparisonTests
+	SecOCTests
+	VerificationTests
+	startOfReceptionTests
+
+100% tests passed, 0 tests failed out of 7
+
+Total Test time (real) =   1.03 sec

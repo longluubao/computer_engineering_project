@@ -376,6 +376,46 @@ STATIC Std_ReturnType authenticate(const PduIdType TxPduId, PduInfoType* AuthPdu
 
     #ifdef SECOC_DEBUG
         printf("result of authenticate is %d\n", result);
+
+        /* ===== PDU STRUCTURE VISUALIZATION (Classical MAC Mode) ===== */
+        printf("\n");
+        printf("╔══════════════════════════════════════════════════════════════════════════════════╗\n");
+        printf("║                    SECURED I-PDU STRUCTURE (TX) - Classical Mode                 ║\n");
+        printf("╠═══════════════╦═══════════════════════╦═════════════════╦════════════════════════╣\n");
+        printf("║    Header     ║    Authentic PDU      ║   Freshness     ║   Authenticator (MAC)  ║\n");
+        printf("║   %2u bytes    ║      %3lu bytes        ║    %2u bytes     ║      %4u bytes        ║\n",
+               headerLen, (unsigned long)(SecPduLen - headerLen - FreshnesslenBytes - SecOCIntermediate.AuthenticatorLen),
+               FreshnesslenBytes, SecOCIntermediate.AuthenticatorLen);
+        printf("╠═══════════════╬═══════════════════════╬═════════════════╬════════════════════════╣\n");
+
+        /* Print Header bytes */
+        printf("║ ");
+        if(headerLen > 0) {
+            for(uint32 i = 0; i < headerLen && i < 4; i++) printf("0x%02X ", SecPdu->SduDataPtr[i]);
+        } else {
+            printf("(none)       ");
+        }
+        printf("║ ");
+
+        /* Print first few AuthPdu bytes */
+        uint32 authStart = headerLen;
+        uint32 authLen = SecPduLen - headerLen - FreshnesslenBytes - SecOCIntermediate.AuthenticatorLen;
+        for(uint32 i = 0; i < authLen && i < 4; i++) printf("0x%02X ", SecPdu->SduDataPtr[authStart + i]);
+        if(authLen > 4) printf("...");
+        printf("    ║ ");
+
+        /* Print Freshness bytes */
+        uint32 freshStart = headerLen + authLen;
+        for(uint32 i = 0; i < FreshnesslenBytes && i < 2; i++) printf("0x%02X ", SecPdu->SduDataPtr[freshStart + i]);
+        printf("        ║ ");
+
+        /* Print first few MAC bytes */
+        uint32 macStart = freshStart + FreshnesslenBytes;
+        for(uint32 i = 0; i < SecOCIntermediate.AuthenticatorLen && i < 4; i++) printf("0x%02X ", SecPdu->SduDataPtr[macStart + i]);
+        printf("  ║\n");
+
+        printf("╚═══════════════╩═══════════════════════╩═════════════════╩════════════════════════╝\n");
+        printf("Total Secured PDU: %lu bytes\n\n", (unsigned long)SecPduLen);
     #endif
 
     return result;
@@ -1043,23 +1083,63 @@ static void parseSecuredPdu(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_RxInte
     SecCursor += BIT_TO_BYTES(SecOCIntermediate->macLenBits);
 #endif
     #ifdef SECOC_DEBUG
-        printf("After Parsing \n");
-        printf("auth \n");
-        for(int i = 0; i < SecOCIntermediate->authenticPduLen; i++)
-        {
-            printf("%d ",SecOCIntermediate->authenticPdu[i] );
-        }
-        printf("\nFreshness and lenbit is %lu :",SecOCIntermediate->freshnessLenBits);
-        for(int i = 0; i < BIT_TO_BYTES(SecOCIntermediate->freshnessLenBits); i++)
-        {
-            printf("%d ",SecOCIntermediate->freshness[i] );
-        }
-        printf("\nmac :");
-        for(int i = 0; i < BIT_TO_BYTES(SecOCIntermediate->macLenBits); i++)
-        {
-            printf("%d ",SecOCIntermediate->mac[i] );
-        }
+        /* ===== PDU STRUCTURE VISUALIZATION (RX - Parsing Received Secured PDU) ===== */
+        uint32 freshLenBytes = BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueTruncLength);
+        uint32 macLenBytes = BIT_TO_BYTES(SecOCIntermediate->macLenBits);
+
         printf("\n");
+#if SECOC_USE_PQC_MODE == TRUE
+        printf("╔════════════════════════════════════════════════════════════════════════════════════════════╗\n");
+        printf("║                      SECURED I-PDU STRUCTURE (RX) - PQC Mode (ML-DSA-65)                   ║\n");
+        printf("╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣\n");
+        printf("║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║\n");
+        printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║        %4u bytes                ║\n",
+               headerLen, SecOCIntermediate->authenticPduLen, freshLenBytes, macLenBytes);
+        printf("╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣\n");
+#else
+        printf("╔══════════════════════════════════════════════════════════════════════════════════╗\n");
+        printf("║                    SECURED I-PDU STRUCTURE (RX) - Classical Mode                 ║\n");
+        printf("╠═══════════════╦═══════════════════════╦═════════════════╦════════════════════════╣\n");
+        printf("║    Header     ║    Authentic PDU      ║   Freshness     ║   Authenticator (MAC)  ║\n");
+        printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║      %4u bytes        ║\n",
+               headerLen, SecOCIntermediate->authenticPduLen, freshLenBytes, macLenBytes);
+        printf("╠═══════════════╬═══════════════════════╬═════════════════╬════════════════════════╣\n");
+#endif
+
+        /* Print Header indicator */
+        printf("║ ");
+        if(headerLen > 0) {
+            printf("0x%02X         ", SecOCIntermediate->authenticPduLen);
+        } else {
+            printf("(none)       ");
+        }
+        printf("║ ");
+
+        /* Print first few AuthPdu bytes */
+        for(uint32 i = 0; i < SecOCIntermediate->authenticPduLen && i < 4; i++)
+            printf("0x%02X ", SecOCIntermediate->authenticPdu[i]);
+        if(SecOCIntermediate->authenticPduLen > 4) printf("...");
+        printf("    ║ ");
+
+        /* Print Freshness bytes */
+        for(uint32 i = 0; i < freshLenBytes && i < 2; i++)
+            printf("0x%02X ", SecOCIntermediate->freshness[i]);
+        printf("        ║ ");
+
+        /* Print first few MAC/Signature bytes */
+        for(uint32 i = 0; i < macLenBytes && i < 4; i++)
+            printf("0x%02X ", SecOCIntermediate->mac[i]);
+        if(macLenBytes > 4) printf("...");
+        printf("  ║\n");
+
+#if SECOC_USE_PQC_MODE == TRUE
+        printf("╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝\n");
+#else
+        printf("╚═══════════════╩═══════════════════════╩═════════════════╩════════════════════════════════════╝\n");
+#endif
+        printf("Total Received PDU: %u bytes\n", SecPdu->SduLength);
+        printf("Parsed: Header=%u + Auth=%u + Fresh=%u + MAC/Sig=%u\n\n",
+               headerLen, SecOCIntermediate->authenticPduLen, freshLenBytes, macLenBytes);
     #endif
     return;
 }
@@ -1275,12 +1355,51 @@ STATIC Std_ReturnType authenticate_PQC(const PduIdType TxPduId, PduInfoType* Aut
     SecPdu->SduLength = SecPduLen;
     SecPdu->MetaDataPtr = AuthPdu->MetaDataPtr;
 
+    /* Store authLen before clearing for debug output */
+    uint32 authLen = SecPduLen - headerLen - FreshnesslenBytes - SecOCIntermediate.AuthenticatorLen;
+
     /* Clear Auth PDU */
     AuthPdu->SduLength = 0;
 
     #ifdef SECOC_DEBUG
-        printf("Secured PDU length: %u bytes (Auth=%u + Fresh=%u + Sig=%u)\n",
-               SecPduLen, (uint32)AuthPdu->SduLength, FreshnesslenBytes, SecOCIntermediate.AuthenticatorLen);
+        /* ===== PDU STRUCTURE VISUALIZATION (PQC ML-DSA-65 Mode) ===== */
+        printf("\n");
+        printf("╔════════════════════════════════════════════════════════════════════════════════════════════╗\n");
+        printf("║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║\n");
+        printf("╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣\n");
+        printf("║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║\n");
+        printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║        %4u bytes                ║\n",
+               headerLen, authLen, FreshnesslenBytes, SecOCIntermediate.AuthenticatorLen);
+        printf("╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣\n");
+
+        /* Print Header bytes */
+        printf("║ ");
+        if(headerLen > 0) {
+            for(uint32 i = 0; i < headerLen && i < 4; i++) printf("0x%02X ", SecPdu->SduDataPtr[i]);
+        } else {
+            printf("(none)       ");
+        }
+        printf("║ ");
+
+        /* Print first few AuthPdu bytes */
+        uint32 authStart = headerLen;
+        for(uint32 i = 0; i < authLen && i < 4; i++) printf("0x%02X ", SecPdu->SduDataPtr[authStart + i]);
+        if(authLen > 4) printf("...");
+        printf("    ║ ");
+
+        /* Print Freshness bytes */
+        uint32 freshStart = headerLen + authLen;
+        for(uint32 i = 0; i < FreshnesslenBytes && i < 2; i++) printf("0x%02X ", SecPdu->SduDataPtr[freshStart + i]);
+        printf("        ║ ");
+
+        /* Print first few Signature bytes */
+        uint32 sigStart = freshStart + FreshnesslenBytes;
+        for(uint32 i = 0; i < 4; i++) printf("0x%02X ", SecPdu->SduDataPtr[sigStart + i]);
+        printf("...   ║\n");
+
+        printf("╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝\n");
+        printf("Total Secured PDU: %u bytes (Header=%u + Auth=%u + Fresh=%u + Signature=%u)\n\n",
+               SecPduLen, headerLen, authLen, FreshnesslenBytes, SecOCIntermediate.AuthenticatorLen);
     #endif
 
     return result;
