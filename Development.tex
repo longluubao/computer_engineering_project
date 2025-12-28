@@ -1,0 +1,415 @@
+\section{Deployment Guide}
+\subsection{Raspberry Pi 4 Setup}
+\label{subsec:rpi4_setup}
+
+This subsection describes the hardware platform, software stack, and deployment
+procedure used to validate the proposed AUTOSAR SecOC gateway with post-quantum
+cryptography on real embedded hardware.
+
+\paragraph{Hardware Platform}
+\mbox{}\\
+The target hardware platform is a Raspberry Pi~4 Model~B equipped with 4~GB of
+RAM. The board provides sufficient computational resources to evaluate the
+performance and feasibility of post-quantum cryptographic primitives in an
+automotive gateway context. An Ethernet interface is used as the primary
+communication channel for secured PDU transmission. A 32~GB microSD card is used
+for the operating system and development environment. An external MCP2515 CAN
+controller is optionally supported for future CAN bus integration, although it
+is not required for the Ethernet-based validation presented in this work.
+
+\begin{itemize}
+	\item Raspberry Pi~4 (4~GB RAM)
+	\item Ethernet network interface
+	\item microSD card (32~GB)
+	\item MCP2515 CAN controller (optional, future work)
+\end{itemize}
+
+\paragraph{Software Stack}
+\mbox{}\\
+Figure~\ref{fig:rpi_software_stack} illustrates the software stack deployed on
+the Raspberry Pi. The AUTOSAR SecOC application, extended with post-quantum
+cryptography, executes in user space and links against the Open Quantum Safe
+\texttt{liboqs} library compiled for ARM64. The application runs on top of a
+64-bit Linux kernel (version~6.1), provided by Raspberry Pi OS based on Debian
+Bookworm.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\linewidth]{images/Chapter3/pi_soft_stack}
+	\caption{Raspberry Pi Software Stack}
+	\label{fig:rpi_software_stack}
+\end{figure}
+
+This layered architecture enables a clear separation between the AUTOSAR
+security logic, the post-quantum cryptographic primitives, and the underlying
+operating system, closely reflecting a realistic automotive gateway deployment
+model.
+
+\paragraph{Build Environment Setup}
+\mbox{}\\
+Before building the project, the following dependencies must be installed on the
+target platform.
+
+\footnotesize
+\begin{longtable}{
+		>{\raggedright\arraybackslash}p{3.8cm}
+		>{\raggedright\arraybackslash}p{5.2cm}
+		>{\raggedright\arraybackslash}p{5.4cm}
+	}
+	\caption{Build Dependencies}
+	\label{tab:build_dependencies} \\
+	\hline
+	\textbf{Dependency} &
+	\textbf{Windows (MinGW)} &
+	\textbf{Raspberry Pi (Linux)} \\
+	\hline
+	\endfirsthead
+
+	\multicolumn{3}{c}{\textit{(Continued from previous page)}} \\ \hline
+	\textbf{Dependency} &
+	\textbf{Windows (MinGW)} &
+	\textbf{Raspberry Pi (Linux)} \\
+	\hline
+	\endhead
+
+	\hline
+	\multicolumn{3}{r}{\textit{(Continued on next page)}} \\
+	\endfoot
+
+	\hline
+	\endlastfoot
+
+	GCC Compiler &
+	MinGW-w64 (GCC 13+) &
+	\texttt{sudo apt install build-essential} \\
+
+	CMake &
+	CMake 3.20+ &
+	\texttt{sudo apt install cmake} \\
+
+	Ninja Build &
+	Ninja 1.10+ &
+	\texttt{sudo apt install ninja-build} \\
+
+	OpenSSL &
+	OpenSSL 3.0+ (bundled) &
+	\texttt{sudo apt install libssl-dev} \\
+
+	Git &
+	Git for Windows &
+	\texttt{sudo apt install git} \\
+
+\end{longtable}
+\normalsize
+
+\paragraph{Building liboqs Library}
+\mbox{}\\
+The Open Quantum Safe (liboqs) library must be compiled before building the main
+project. The build script automatically detects the platform and applies
+appropriate compiler flags.
+
+\begin{verbatim}
+# Navigate to liboqs directory
+cd Autosar_SecOC/external/liboqs
+mkdir -p build && cd build
+
+# Raspberry Pi (ARM64) configuration
+cmake -GNinja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DOQS_USE_OPENSSL=ON \
+    -DOQS_ENABLE_KEM_ml_kem_768=ON \
+    -DOQS_ENABLE_SIG_ml_dsa_65=ON \
+    -DCMAKE_C_FLAGS="-mcpu=cortex-a72 -O3 -fPIC" \
+    ..
+
+# Build the library
+ninja
+\end{verbatim}
+
+The resulting static library (\texttt{liboqs.a}) is located in
+\texttt{external/liboqs/build/lib/} and includes only the ML-KEM-768 and
+ML-DSA-65 algorithms required for this implementation.
+
+\paragraph{Building the Test Suite}
+\mbox{}\\
+The project uses Google Test (fetched automatically via CMake) for unit testing.
+The following test executables are built:
+
+\footnotesize
+\begin{longtable}{
+		>{\raggedright\arraybackslash}p{5.0cm}
+		>{\raggedright\arraybackslash}p{9.4cm}
+	}
+	\caption{Test Executables}
+	\label{tab:test_executables} \\
+	\hline
+	\textbf{Executable} &
+	\textbf{Description} \\
+	\hline
+	\endfirsthead
+
+	\multicolumn{2}{c}{\textit{(Continued from previous page)}} \\ \hline
+	\textbf{Executable} &
+	\textbf{Description} \\
+	\hline
+	\endhead
+
+	\hline
+	\multicolumn{2}{r}{\textit{(Continued on next page)}} \\
+	\endfoot
+
+	\hline
+	\endlastfoot
+
+	\texttt{test\_pqc\_standalone} &
+	ML-KEM-768 and ML-DSA-65 standalone algorithm validation \\
+
+	\texttt{test\_pqc\_secoc\_integration} &
+	CSM layer integration with classical MAC comparison \\
+
+	\texttt{test\_phase3\_complete} &
+	Complete Ethernet gateway with ML-KEM + HKDF + ML-DSA \\
+
+	\texttt{test\_phase4\_integration\_report} &
+	AUTOSAR architecture validation report generator \\
+
+	\texttt{AuthenticationTests} &
+	MAC and signature generation tests \\
+
+	\texttt{VerificationTests} &
+	MAC and signature verification tests \\
+
+	\texttt{FreshnessTests} &
+	Freshness counter and replay protection tests \\
+
+	\texttt{SecOCTests} &
+	Transport Protocol layer callback tests \\
+
+	\texttt{startOfReceptionTests} &
+	Buffer management and reception initiation tests \\
+
+	\texttt{PQC\_ComparisonTests} &
+	Classical vs PQC performance comparison tests \\
+
+\end{longtable}
+\normalsize
+
+\paragraph{Thesis Validation Script}
+\mbox{}\\
+The \texttt{build\_and\_run.sh} script automates the complete thesis validation
+process. It executes four phases of testing and generates comprehensive reports.
+
+\begin{verbatim}
+# Run complete thesis validation
+cd Autosar_SecOC
+bash build_and_run.sh
+\end{verbatim}
+
+The script performs the following validation sequence:
+
+\footnotesize
+\begin{longtable}{
+		>{\raggedright\arraybackslash}p{1.6cm}
+		>{\raggedright\arraybackslash}p{4.8cm}
+		>{\raggedright\arraybackslash}p{7.8cm}
+	}
+	\caption{Thesis Validation Phases}
+	\label{tab:validation_phases} \\
+	\hline
+	\textbf{Phase} &
+	\textbf{Name} &
+	\textbf{Coverage} \\
+	\hline
+	\endfirsthead
+
+	\multicolumn{3}{c}{\textit{(Continued from previous page)}} \\ \hline
+	\textbf{Phase} &
+	\textbf{Name} &
+	\textbf{Coverage} \\
+	\hline
+	\endhead
+
+	\hline
+	\multicolumn{3}{r}{\textit{(Continued on next page)}} \\
+	\endfoot
+
+	\hline
+	\endlastfoot
+
+	1 &
+	PQC Fundamentals &
+	ML-KEM-768 KeyGen/Encaps/Decaps, ML-DSA-65 KeyGen/Sign/Verify \\
+
+	2 &
+	Google Test Suite &
+	42 unit tests across 7 test suites (AuthenticationTests, VerificationTests, FreshnessTests, SecOCTests, startOfReceptionTests, PQC\_ComparisonTests, Phase3\_Complete\_Integration) \\
+
+	3 &
+	Ethernet Gateway &
+	ML-KEM key exchange, HKDF session key derivation, ML-DSA signatures, full AUTOSAR stack (COM $\rightarrow$ PduR $\rightarrow$ SecOC $\rightarrow$ Csm $\rightarrow$ SoAd) \\
+
+	4 &
+	Architecture Report &
+	AUTOSAR BSW layer architecture, TX/RX sequences, PDU structure visualization \\
+
+\end{longtable}
+\normalsize
+
+\paragraph{Configuration Validation}
+\mbox{}\\
+The script automatically validates the PQC configuration before running tests.
+The following parameters are checked:
+
+\begin{verbatim}
+# Required configuration in include/SecOC/SecOC_PQC_Cfg.h
+SECOC_USE_PQC_MODE              TRUE    # Enable ML-DSA-65 signatures
+SECOC_USE_MLKEM_KEY_EXCHANGE    TRUE    # Enable ML-KEM-768 key exchange
+SECOC_ETHERNET_GATEWAY_MODE     TRUE    # Enable Ethernet gateway mode
+SECOC_PQC_MAX_PDU_SIZE          8192    # Support 3,309-byte signatures
+\end{verbatim}
+
+\paragraph{Output Files}
+\mbox{}\\
+Upon successful completion, the validation script generates the following output
+files:
+
+\footnotesize
+\begin{longtable}{
+		>{\raggedright\arraybackslash}p{6.4cm}
+		>{\raggedright\arraybackslash}p{8.0cm}
+	}
+	\caption{Validation Output Files}
+	\label{tab:output_files} \\
+	\hline
+	\textbf{File} &
+	\textbf{Description} \\
+	\hline
+	\endfirsthead
+
+	\multicolumn{2}{c}{\textit{(Continued from previous page)}} \\ \hline
+	\textbf{File} &
+	\textbf{Description} \\
+	\hline
+	\endhead
+
+	\hline
+	\multicolumn{2}{r}{\textit{(Continued on next page)}} \\
+	\endfoot
+
+	\hline
+	\endlastfoot
+
+	\texttt{test\_summary.txt} &
+	Comprehensive thesis validation report \\
+
+	\texttt{test\_logs/phase1\_<timestamp>.txt} &
+	PQC fundamentals test output \\
+
+	\texttt{test\_logs/phase2\_<timestamp>.txt} &
+	Google Test suite results \\
+
+	\texttt{test\_logs/phase3\_<timestamp>.txt} &
+	Ethernet gateway integration results \\
+
+	\texttt{test\_logs/phase4\_<timestamp>.txt} &
+	Architecture integration report \\
+
+	\texttt{pqc\_standalone\_results.csv} &
+	ML-KEM and ML-DSA performance measurements \\
+
+	\texttt{pqc\_secoc\_integration\_results.csv} &
+	SecOC integration performance data \\
+
+\end{longtable}
+\normalsize
+
+\paragraph{Platform-Specific Build Commands}
+\mbox{}\\
+Table~\ref{tab:platform_build_commands} summarizes the build commands for each
+supported platform.
+
+\footnotesize
+\begin{longtable}{
+		>{\raggedright\arraybackslash}p{4.0cm}
+		>{\raggedright\arraybackslash}p{5.0cm}
+		>{\raggedright\arraybackslash}p{5.4cm}
+	}
+	\caption{Platform-Specific Build Commands}
+	\label{tab:platform_build_commands} \\
+	\hline
+	\textbf{Operation} &
+	\textbf{Windows (MinGW)} &
+	\textbf{Raspberry Pi (Linux)} \\
+	\hline
+	\endfirsthead
+
+	\multicolumn{3}{c}{\textit{(Continued from previous page)}} \\ \hline
+	\textbf{Operation} &
+	\textbf{Windows (MinGW)} &
+	\textbf{Raspberry Pi (Linux)} \\
+	\hline
+	\endhead
+
+	\hline
+	\multicolumn{3}{r}{\textit{(Continued on next page)}} \\
+	\endfoot
+
+	\hline
+	\endlastfoot
+
+	CMake Generator &
+	\texttt{-G "MinGW Makefiles"} &
+	\texttt{-G "Unix Makefiles"} \\
+
+	Build Command &
+	\texttt{mingw32-make -j4} &
+	\texttt{make -j4} \\
+
+	Platform Flag &
+	\texttt{-DWINDOWS} &
+	\texttt{-DRASPBERRY\_PI -mcpu=cortex-a72} \\
+
+	Socket Library &
+	\texttt{-lws2\_32} &
+	(POSIX sockets built-in) \\
+
+	Ethernet Source &
+	\texttt{ethernet\_windows.c} &
+	\texttt{ethernet.c} \\
+
+\end{longtable}
+\normalsize
+
+\paragraph{Raspberry Pi Deployment Procedure}
+\mbox{}\\
+The following steps deploy and validate the PQC Ethernet Gateway on a Raspberry
+Pi~4:
+
+\begin{enumerate}
+	\item \textbf{Clone Repository:}
+	\begin{verbatim}
+git clone <repository-url>
+cd computer_engineering_project/Autosar_SecOC
+	\end{verbatim}
+
+	\item \textbf{Install Dependencies:}
+	\begin{verbatim}
+sudo apt update
+sudo apt install build-essential cmake ninja-build libssl-dev git
+	\end{verbatim}
+
+	\item \textbf{Run Validation:}
+	\begin{verbatim}
+bash build_and_run.sh
+	\end{verbatim}
+
+	\item \textbf{Verify Results:}
+	\begin{verbatim}
+cat test_summary.txt
+	\end{verbatim}
+\end{enumerate}
+
+The validation script automatically detects the ARM64 platform and applies
+Cortex-A72 optimizations during compilation.
+
