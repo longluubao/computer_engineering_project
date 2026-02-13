@@ -18,9 +18,12 @@
 #include "PduR_Com.h"
 #include "PduR_SecOC.h"
 #include "Pdur_CanTP.h"
+#include "PduR_SecOC.h"
+#include "Pdur_CanTP.h"
 #include "PduR_CanIf.h"
 #include "CanTP.h"
 #include "SecOC_Debug.h"
+#include "Det.h"
 
 #include <string.h>
 
@@ -75,6 +78,14 @@ void SecOC_Init(const SecOC_ConfigType *config)
     #ifdef SECOC_DEBUG
         printf("######## in SecOC_Init \n");
     #endif
+
+    if (config == NULL)
+    {
+        /* [SWS_SecOC_00054] SECOC_MODULE_ID = 150, SECOC_SID_INIT = 0x01, SECOC_E_PARAM_POINTER = 0x01 */
+        (void)Det_ReportError(SECOC_MODULE_ID , 0U, SECOC_SID_INIT, SECOC_E_PARAM_POINTER);
+        return;
+    }
+
     /* [SWS_SecOC_00054] */
     SecOCGeneral = config->General;
     SecOCTxPduProcessing = config->SecOCTxPduProcessings;

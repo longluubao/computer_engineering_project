@@ -1,0 +1,178 @@
+
+╔════════════════════════════════════════════════════════════╗
+║    PHASE 3: COMPLETE ETHERNET GATEWAY INTEGRATION TEST    ║
+║           ML-KEM-768 + ML-DSA-65 Full Stack Testing       ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║                    INITIALIZATION                          ║
+╚════════════════════════════════════════════════════════════╝
+
+PQC Module initialized successfully
+  ML-KEM-768: Public Key=1184 bytes, Ciphertext=1088 bytes
+  ML-DSA-65: Public Key=1952 bytes, Signature=3309 bytes
+✅ PQC Module initialized
+PQC Key Exchange Manager initialized (8 peer slots)
+✅ ML-KEM Key Exchange Manager initialized
+PQC Key Derivation Module initialized (16 session slots)
+✅ HKDF Key Derivation Module initialized
+SoAd PQC Integration initialized successfully
+  ML-KEM-768: Enabled for key exchange
+  ML-DSA-65: Enabled for signatures
+  Max Peers: 8
+✅ SoAd PQC Integration initialized
+
+═══════════════════════════════════════════════════════════
+                    RUNNING TESTS
+═══════════════════════════════════════════════════════════
+
+╔════════════════════════════════════════════════════════════╗
+║        TEST 1: ML-KEM-768 KEY EXCHANGE OVER ETHERNET      ║
+╚════════════════════════════════════════════════════════════╝
+
+[STEP 1] Testing as INITIATOR (Alice)...
+KE: Initiated key exchange with peer 0 (sent 1184 byte public key)
+  ✅ PASSED: Public key generated (1184 bytes)
+  ⏱️  Time: 33269.70 µs
+
+[STEP 2] Testing ENCAPSULATION (Bob)...
+KE: Responded to peer 0 (sent 1088 byte ciphertext, established 32 byte shared secret)
+  ✅ PASSED: Ciphertext created (1088 bytes)
+  ⏱️  Time: 179.30 µs
+
+[STEP 3] Testing DECAPSULATION (Alice)...
+KE: Reset session with peer 0
+KE: Initiated key exchange with peer 0 (sent 1184 byte public key)
+KE: Responded to peer 1 (sent 1088 byte ciphertext, established 32 byte shared secret)
+KE: Completed key exchange with peer 0 (established 32 byte shared secret)
+  ✅ PASSED: Shared secret extracted
+  ⏱️  Time: 47.30 µs
+  ✅ PASSED: Shared secrets match (32 bytes)
+
+[SUMMARY] ML-KEM-768 Performance:
+  KeyGen:       33269.70 µs
+  Encapsulate:  179.30 µs
+  Decapsulate:  47.30 µs
+  Total:        33496.30 µs
+
+╔════════════════════════════════════════════════════════════╗
+║        TEST 2: SESSION KEY DERIVATION (HKDF)              ║
+╚════════════════════════════════════════════════════════════╝
+
+[STEP 1] Deriving session keys from shared secret...
+Deriving session keys for peer 0 from ML-KEM shared secret...
+Session keys derived successfully:
+  Encryption Key:     32 bytes
+  Authentication Key: 32 bytes
+  ✅ PASSED: Session keys derived successfully
+  ⏱️  Time: 15.60 µs
+  📊 Derived Keys:
+     - Encryption Key:     32 bytes (AES-256-GCM)
+     - Authentication Key: 32 bytes (HMAC-SHA256)
+
+[STEP 2] Testing key retrieval...
+  ✅ PASSED: Session keys stored and retrieved correctly
+
+╔════════════════════════════════════════════════════════════╗
+║        TEST 3: ML-DSA-65 SIGNATURE GENERATION/VERIFY      ║
+╚════════════════════════════════════════════════════════════╝
+
+[STEP 1] Generating ML-DSA-65 signature...
+ML-DSA keys loaded from mldsa_secoc.pub and mldsa_secoc.key
+CSM: ML-DSA-65 keys loaded from files
+######## in Csm_SignatureGenerate (ML-DSA-65)
+Data length: 256 bytes
+Signature generated: 3309 bytes
+First 16 bytes: 75 d4 09 3d 66 1f 60 0d 37 6e 80 53 bd 51 81 59 
+  ✅ PASSED: Signature generated (3309 bytes)
+  ⏱️  Time: 2047.60 µs
+
+[STEP 2] Verifying ML-DSA-65 signature...
+######## in Csm_SignatureVerify (ML-DSA-65)
+Data length: 256 bytes, Signature length: 3309 bytes
+Signature verification: PASSED
+  ✅ PASSED: Signature verified successfully
+  ⏱️  Time: 127.20 µs
+
+╔════════════════════════════════════════════════════════════╗
+║        TEST 4: COMBINED ML-KEM + ML-DSA PERFORMANCE       ║
+╚════════════════════════════════════════════════════════════╝
+
+[ANALYSIS] Performance Analysis:
+  Session Parameters:
+    Messages per session: 1000
+
+  ML-KEM-768 (once per session):
+    Overhead: 33496.30 µs
+    Amortized per message: 33.50 µs
+
+  ML-DSA-65 (per message):
+    Overhead: 2174.80 µs (sign + verify)
+
+  Combined Overhead:
+    Per message: 2208.30 µs
+    Throughput: 453 messages/second
+
+  Bandwidth (Ethernet 100 Mbps):
+    ML-KEM handshake: 2272 bytes (once)
+    ML-DSA signature: 3309 bytes (per message)
+    Secured PDU size: ~3316 bytes
+    Max throughput:   ~3,768 messages/second
+
+  ✅ CONCLUSION: Performance acceptable for Windows development
+     Note: Target platform (Raspberry Pi) will be significantly faster
+
+╔════════════════════════════════════════════════════════════╗
+║        TEST 5: SECURITY ATTACK SIMULATIONS                ║
+╚════════════════════════════════════════════════════════════╝
+
+[TEST 5.1] Message Tampering Detection...
+######## in Csm_SignatureGenerate (ML-DSA-65)
+Data length: 64 bytes
+Signature generated: 3309 bytes
+First 16 bytes: 0a 4b 56 1a 72 17 80 fe 0a 62 f1 4f b0 19 db 90 
+######## in Csm_SignatureVerify (ML-DSA-65)
+Data length: 64 bytes, Signature length: 3309 bytes
+Signature verification: FAILED
+  ✅ PASSED: Tampering detected successfully
+
+[TEST 5.2] Signature Tampering Detection...
+######## in Csm_SignatureGenerate (ML-DSA-65)
+Data length: 64 bytes
+Signature generated: 3309 bytes
+First 16 bytes: e3 4a 5b 8f 35 5f e3 db 2d f1 fc 8a 07 89 3f 67 
+######## in Csm_SignatureVerify (ML-DSA-65)
+Data length: 64 bytes, Signature length: 3309 bytes
+Signature verification: FAILED
+  ✅ PASSED: Signature tampering detected
+
+[TEST 5.3] Quantum Resistance Validation...
+  ✅ Using NIST FIPS 203 (ML-KEM-768)
+  ✅ Using NIST FIPS 204 (ML-DSA-65)
+  ✅ Both algorithms quantum-resistant
+  ✅ Security Level 3 (equivalent to AES-192)
+
+╔════════════════════════════════════════════════════════════╗
+║                      FINAL SUMMARY                         ║
+╚════════════════════════════════════════════════════════════╝
+
+Test Results: 5 / 5 passed (100.0%)
+
+Performance Summary:
+  ML-KEM-768 Total:     33496.30 µs
+  ML-DSA-65 Sign:       2047.60 µs
+  ML-DSA-65 Verify:     127.20 µs
+  Per-Message Overhead: 2208.30 µs
+
+Security Validation:
+  Tampering Attacks Detected:    2 / 2
+  Quantum Resistance:            VERIFIED
+
+╔════════════════════════════════════════════════════════════╗
+║                 ✅ ALL TESTS PASSED ✅                     ║
+║                                                            ║
+║  ML-KEM-768 + ML-DSA-65 Integration: COMPLETE             ║
+║  Full AUTOSAR Stack Validation:      SUCCESSFUL           ║
+║  Quantum-Resistant Security:          ACHIEVED             ║
+╚════════════════════════════════════════════════════════════╝
+

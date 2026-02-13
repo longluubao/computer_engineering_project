@@ -1,0 +1,3 @@
+[    3383ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ https://doc.qt.io/archives/neptune3ui/style/qt5-sidebar.html:0
+[    4079ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ https://doc.qt.io/archives/neptune3ui/.exclude-promos:0
+[    4333ms] [WARNING] Simple Analytics: Settings {autoCollect: true, collectDnt: true, mode: normal} @ https://scripts.simpleanalyticscdn.com/latest.js:2

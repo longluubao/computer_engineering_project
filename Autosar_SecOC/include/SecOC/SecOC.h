@@ -19,6 +19,11 @@
 
 #define SECOC_E_UNINIT 					0x02
 
+  /* [SWS_SecOC_00054] SECOC_MODULE_ID = 150, SECOC_SID_INIT = 0x01, SECOC_E_PARAM_POINTER = 0x01 */
+
+#define SECOC_MODULE_ID                 150
+#define SECOC_SID_INIT                  0x01
+#define SECOC_E_PARAM_POINTER           0x01
 
 /********************************************************************************************************/
 /*****************************************FunctionPrototype**********************************************/
@@ -278,4 +283,4 @@ uint32* SecOCFreshnessValueLength);
 
 
 
-#endif  /* INCLUDE_SECOC_H_*/
+#endif /* INCLUDE_SECOC_H_*/

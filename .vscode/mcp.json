@@ -1,13 +1,12 @@
 {
   "servers": {
-    "devmate-knowledge-autosar-r24-11": {
-      "url": "https://devmate.bosch.com/mcp",
+    "devmate-agent-atlassian-agent": {
+      "url": "http://localhost:9000/mcp",
       "type": "http",
       "headers": {
-        "Authorization": "Bearer TRYwNmqTJ_-dG653QxuxqfkXW363QGQz",
-        "X-Knowledge-Id": "67c6e1c32a089c8650212bdf"
-      },
-      "proxy": "http://your-proxy-server:port"
+        "Authorization": "Bearer c0GaWuzKSnI_oTJeZkvikvQaZj2N3qpW",
+        "X-Agent-Id": "6908689fda4a8fff1e023587"
+      }
     }
   }
 }

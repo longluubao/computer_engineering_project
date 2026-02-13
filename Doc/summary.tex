@@ -1,0 +1,14 @@
+\section{AUTOSAR SecOC R24-11 Compliance Analysis}
+\subsection{Overview}
+The implementation in SecOC.c was compared against the AUTOSAR R24-11 (Release 2024-11) specification.
+
+\subsection{Compliance Matrix}
+\begin{itemize}
+    \item \textbf{[SWS_SecOC_00037] PDU Construction:} COMPLIANT. The code correctly orders the Header, Authentic PDU, Freshness Value, and Authenticator.
+    \item \textbf{[SWS_SecOC_00034] Data to Authenticator:} COMPLIANT. Correct concatenation of DataID (16-bit), Authentic PDU, and Complete Freshness Value in Big Endian order.
+    \item \textbf{[SWS_SecOC_00031] Authentication Steps:} COMPLIANT. The 6-step authentication process is followed in the TX path.
+    \item \textbf{[SWS_SecOC_00040] Verification Steps:} COMPLIANT. The RX path correctly parses the PDU and verifies authenticity.
+\end{itemize}
+
+\subsection{Post-Quantum Extensions}
+The implementation extends the standard by including ML-DSA (PQC) support while maintaining the PDU structure defined in the specification.
