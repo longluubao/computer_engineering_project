@@ -111,6 +111,7 @@ static uint32 Os_LastTickMs = 0U;
 static uint8 Os_AllInterruptSuspendNesting = 0U;
 static uint8 Os_OsInterruptSuspendNesting = 0U;
 static boolean Os_GlobalInterruptDisabled = FALSE;
+static uint8 Os_TrustedCallNesting = 0U;
 
 static void Os_ReportProtectionViolation(void)
 {
@@ -118,6 +119,23 @@ static void Os_ReportProtectionViolation(void)
     {
         Os_ProtectionHook();
     }
+}
+
+static StatusType Os_CheckCurrentApplicationObjectAccess(Os_ObjectType_Type ObjectType, uint32 ObjectID)
+{
+    StatusType accessStatus;
+
+    if ((Os_CurrentTask == INVALID_TASK) && (Os_CurrentIsr == INVALID_ISR))
+    {
+        return E_OS_OK;
+    }
+
+    accessStatus = CheckObjectAccess(Os_CurrentApplication, ObjectType, ObjectID);
+    if (accessStatus != E_OS_OK)
+    {
+        Os_ReportProtectionViolation();
+    }
+    return accessStatus;
 }
 
 /********************************************************************************************************/
@@ -342,8 +360,10 @@ static void Os_DispatchTasks(void)
 
     if (bestTask != INVALID_TASK)
     {
+        ApplicationType prevApplication = Os_CurrentApplication;
         Os_Tasks[bestTask].State = OS_TASK_RUNNING;
         Os_CurrentTask = bestTask;
+        Os_CurrentApplication = Os_TaskOwnerApp[bestTask];
 
         if (Os_PreTaskHook != NULL)
         {
@@ -378,6 +398,7 @@ static void Os_DispatchTasks(void)
         }
 
         Os_CurrentTask = INVALID_TASK;
+        Os_CurrentApplication = prevApplication;
     }
 }
 
@@ -611,6 +632,10 @@ StatusType ActivateTask(TaskType TaskID)
     if (Os_Tasks[TaskID].ActivationCount >= OS_MAX_TASK_ACTIVATIONS)
     {
         return E_OS_LIMIT;
+    }
+    if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_TASK, (uint32)TaskID) != E_OS_OK)
+    {
+        return E_OS_ACCESS;
     }
 
     if (Os_Tasks[TaskID].State != OS_TASK_SUSPENDED)
@@ -1021,6 +1046,10 @@ StatusType GetResource(ResourceType ResID)
     {
         return E_OS_ACCESS;
     }
+    if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_RESOURCE, (uint32)ResID) != E_OS_OK)
+    {
+        return E_OS_ACCESS;
+    }
 
     Os_Resources[ResID].Occupied = TRUE;
     Os_Resources[ResID].OwnerTask = Os_CurrentTask;
@@ -1061,6 +1090,11 @@ StatusType ReleaseResource(ResourceType ResID)
     }
 #endif
 
+    if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_RESOURCE, (uint32)ResID) != E_OS_OK)
+    {
+        return E_OS_ACCESS;
+    }
+
     /* Release resource and recompute effective task priority. */
     if (Os_Tasks[Os_CurrentTask].ResourceCount > 0U)
     {
@@ -1100,6 +1134,10 @@ StatusType Os_SetEvent(TaskType TaskID, EventMaskType Mask)
     if (Os_Tasks[TaskID].State == OS_TASK_SUSPENDED)
     {
         return E_OS_STATE;
+    }
+    if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_TASK, (uint32)TaskID) != E_OS_OK)
+    {
+        return E_OS_ACCESS;
     }
 
     Os_Tasks[TaskID].EventsSet |= Mask;
@@ -1245,6 +1283,10 @@ StatusType StartScheduleTableRel(ScheduleTableType ScheduleTableID, TickType Off
     {
         return E_OS_VALUE;
     }
+    if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_SCHEDULETABLE, (uint32)ScheduleTableID) != E_OS_OK)
+    {
+        return E_OS_ACCESS;
+    }
 
     if (Os_SchedTables[ScheduleTableID].State == OS_SCHED_TABLE_RUNNING)
     {
@@ -1279,6 +1321,10 @@ StatusType StopScheduleTable(ScheduleTableType ScheduleTableID)
     if (Os_SchedTables[ScheduleTableID].State != OS_SCHED_TABLE_RUNNING)
     {
         return E_OS_NOFUNC;
+    }
+    if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_SCHEDULETABLE, (uint32)ScheduleTableID) != E_OS_OK)
+    {
+        return E_OS_ACCESS;
     }
 
     Os_SchedTables[ScheduleTableID].State = OS_SCHED_TABLE_STOPPED;
@@ -1320,6 +1366,10 @@ StatusType StartScheduleTableAbs(ScheduleTableType ScheduleTableID, TickType Sta
     if (Start > Os_Counters[ctr].MaxAllowedValue)
     {
         return E_OS_VALUE;
+    }
+    if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_SCHEDULETABLE, (uint32)ScheduleTableID) != E_OS_OK)
+    {
+        return E_OS_ACCESS;
     }
 
     if (Os_SchedTables[ScheduleTableID].State == OS_SCHED_TABLE_RUNNING)
@@ -1374,6 +1424,14 @@ StatusType NextScheduleTable(ScheduleTableType ScheduleTableID_From, ScheduleTab
         Os_SchedTables[ScheduleTableID_To].Config->CounterRef)
     {
         return E_OS_ID;
+    }
+    if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_SCHEDULETABLE, (uint32)ScheduleTableID_From) != E_OS_OK)
+    {
+        return E_OS_ACCESS;
+    }
+    if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_SCHEDULETABLE, (uint32)ScheduleTableID_To) != E_OS_OK)
+    {
+        return E_OS_ACCESS;
     }
 
     Os_SchedTables[ScheduleTableID_From].NextPending = TRUE;
@@ -1555,35 +1613,60 @@ StatusType CheckObjectAccess(ApplicationType ApplID, Os_ObjectType_Type ObjectTy
             {
                 return E_OS_ID;
             }
-            return (Os_TaskOwnerApp[ObjectID] == ApplID) ? E_OS_OK : E_OS_ACCESS;
+            if (Os_TaskOwnerApp[ObjectID] == ApplID)
+            {
+                return E_OS_OK;
+            }
+            Os_ReportProtectionViolation();
+            return E_OS_ACCESS;
 
         case OS_OBJECT_ALARM:
             if ((Os_ConfigPtr == NULL) || (ObjectID >= Os_ConfigPtr->NumAlarms))
             {
                 return E_OS_ID;
             }
-            return (Os_AlarmOwnerApp[ObjectID] == ApplID) ? E_OS_OK : E_OS_ACCESS;
+            if (Os_AlarmOwnerApp[ObjectID] == ApplID)
+            {
+                return E_OS_OK;
+            }
+            Os_ReportProtectionViolation();
+            return E_OS_ACCESS;
 
         case OS_OBJECT_COUNTER:
             if ((Os_ConfigPtr == NULL) || (ObjectID >= Os_ConfigPtr->NumCounters))
             {
                 return E_OS_ID;
             }
-            return (Os_CounterOwnerApp[ObjectID] == ApplID) ? E_OS_OK : E_OS_ACCESS;
+            if (Os_CounterOwnerApp[ObjectID] == ApplID)
+            {
+                return E_OS_OK;
+            }
+            Os_ReportProtectionViolation();
+            return E_OS_ACCESS;
 
         case OS_OBJECT_RESOURCE:
             if (ObjectID >= OS_MAX_RESOURCES)
             {
                 return E_OS_ID;
             }
-            return (Os_ResourceOwnerApp[ObjectID] == ApplID) ? E_OS_OK : E_OS_ACCESS;
+            if (Os_ResourceOwnerApp[ObjectID] == ApplID)
+            {
+                return E_OS_OK;
+            }
+            Os_ReportProtectionViolation();
+            return E_OS_ACCESS;
 
         case OS_OBJECT_SCHEDULETABLE:
             if ((Os_ConfigPtr == NULL) || (ObjectID >= Os_ConfigPtr->NumScheduleTables))
             {
                 return E_OS_ID;
             }
-            return (Os_SchedTableOwnerApp[ObjectID] == ApplID) ? E_OS_OK : E_OS_ACCESS;
+            if (Os_SchedTableOwnerApp[ObjectID] == ApplID)
+            {
+                return E_OS_OK;
+            }
+            Os_ReportProtectionViolation();
+            return E_OS_ACCESS;
 
         default:
             return E_OS_ID;
@@ -1627,6 +1710,8 @@ StatusType TerminateApplication(ApplicationType Application, RestartType Restart
 
 StatusType CallTrustedFunction(TrustedFunctionIndexType FunctionIndex, TrustedFunctionParameterRefType FunctionParams)
 {
+    ApplicationType callerApplication;
+
     if ((Os_Initialized == FALSE) || (Os_Started == FALSE))
     {
         Os_ReportDetError(OS_SID_CALL_TRUSTED_FUNCTION, OS_E_UNINIT);
@@ -1646,7 +1731,18 @@ StatusType CallTrustedFunction(TrustedFunctionIndexType FunctionIndex, TrustedFu
         return E_OS_NOFUNC;
     }
 
+    callerApplication = Os_CurrentApplication;
+    Os_CurrentApplication = (ApplicationType)0U;
+    if (Os_TrustedCallNesting < 255U)
+    {
+        Os_TrustedCallNesting++;
+    }
     Os_TrustedFunctions[FunctionIndex](FunctionParams);
+    if (Os_TrustedCallNesting > 0U)
+    {
+        Os_TrustedCallNesting--;
+    }
+    Os_CurrentApplication = callerApplication;
     return E_OS_OK;
 }
 
@@ -1659,4 +1755,103 @@ StatusType Os_RegisterTrustedFunction(TrustedFunctionIndexType FunctionIndex, Os
 
     Os_TrustedFunctions[FunctionIndex] = FunctionPtr;
     return E_OS_OK;
+}
+
+StatusType Os_EnterISR(ISRType IsrID, ApplicationType OwnerApplication)
+{
+    if ((Os_Initialized == FALSE) || (Os_Started == FALSE))
+    {
+        Os_ReportDetError(OS_SID_ENTER_ISR, OS_E_UNINIT);
+        return E_OS_ACCESS;
+    }
+    if ((Os_GlobalInterruptDisabled != FALSE) ||
+        (Os_AllInterruptSuspendNesting > 0U) ||
+        (Os_OsInterruptSuspendNesting > 0U))
+    {
+        return E_OS_STATE;
+    }
+    if ((OwnerApplication >= OS_MAX_APPLICATIONS) || (IsrID == INVALID_ISR))
+    {
+        Os_ReportDetError(OS_SID_ENTER_ISR, OS_E_PARAM_ID);
+        return E_OS_ID;
+    }
+    if (Os_CurrentIsr != INVALID_ISR)
+    {
+        return E_OS_STATE;
+    }
+
+    Os_CurrentIsr = IsrID;
+    Os_CurrentApplication = OwnerApplication;
+    return E_OS_OK;
+}
+
+void Os_ExitISR(void)
+{
+    if (Os_CurrentIsr != INVALID_ISR)
+    {
+        Os_CurrentIsr = INVALID_ISR;
+        if (Os_CurrentTask != INVALID_TASK)
+        {
+            Os_CurrentApplication = Os_TaskOwnerApp[Os_CurrentTask];
+        }
+        else
+        {
+            Os_CurrentApplication = (ApplicationType)0U;
+        }
+    }
+}
+
+StatusType Os_AssignObjectToApplication(Os_ObjectType_Type ObjectType, uint32 ObjectID, ApplicationType ApplID)
+{
+    if (ApplID >= OS_MAX_APPLICATIONS)
+    {
+        Os_ReportDetError(OS_SID_ASSIGN_OBJECT_APP, OS_E_PARAM_ID);
+        return E_OS_ID;
+    }
+
+    switch (ObjectType)
+    {
+        case OS_OBJECT_TASK:
+            if ((Os_ConfigPtr == NULL) || (ObjectID >= Os_ConfigPtr->NumTasks))
+            {
+                return E_OS_ID;
+            }
+            Os_TaskOwnerApp[ObjectID] = ApplID;
+            return E_OS_OK;
+
+        case OS_OBJECT_ALARM:
+            if ((Os_ConfigPtr == NULL) || (ObjectID >= Os_ConfigPtr->NumAlarms))
+            {
+                return E_OS_ID;
+            }
+            Os_AlarmOwnerApp[ObjectID] = ApplID;
+            return E_OS_OK;
+
+        case OS_OBJECT_COUNTER:
+            if ((Os_ConfigPtr == NULL) || (ObjectID >= Os_ConfigPtr->NumCounters))
+            {
+                return E_OS_ID;
+            }
+            Os_CounterOwnerApp[ObjectID] = ApplID;
+            return E_OS_OK;
+
+        case OS_OBJECT_RESOURCE:
+            if (ObjectID >= OS_MAX_RESOURCES)
+            {
+                return E_OS_ID;
+            }
+            Os_ResourceOwnerApp[ObjectID] = ApplID;
+            return E_OS_OK;
+
+        case OS_OBJECT_SCHEDULETABLE:
+            if ((Os_ConfigPtr == NULL) || (ObjectID >= Os_ConfigPtr->NumScheduleTables))
+            {
+                return E_OS_ID;
+            }
+            Os_SchedTableOwnerApp[ObjectID] = ApplID;
+            return E_OS_OK;
+
+        default:
+            return E_OS_ID;
+    }
 }

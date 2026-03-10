@@ -61,6 +61,9 @@
 #define OS_SID_CHECK_OBJECT_ACCESS   ((uint8)0x22U)
 #define OS_SID_TERMINATE_APPLICATION ((uint8)0x23U)
 #define OS_SID_CALL_TRUSTED_FUNCTION ((uint8)0x24U)
+#define OS_SID_ENTER_ISR             ((uint8)0x25U)
+#define OS_SID_EXIT_ISR              ((uint8)0x26U)
+#define OS_SID_ASSIGN_OBJECT_APP     ((uint8)0x27U)
 
 /* DET Error Codes */
 #define OS_E_UNINIT                 ((uint8)0x01U)
@@ -310,6 +313,9 @@ StatusType CheckObjectAccess(ApplicationType ApplID, Os_ObjectType_Type ObjectTy
 StatusType TerminateApplication(ApplicationType Application, RestartType RestartOption);
 StatusType CallTrustedFunction(TrustedFunctionIndexType FunctionIndex, TrustedFunctionParameterRefType FunctionParams);
 StatusType Os_RegisterTrustedFunction(TrustedFunctionIndexType FunctionIndex, Os_TrustedFunctionType FunctionPtr);
+StatusType Os_EnterISR(ISRType IsrID, ApplicationType OwnerApplication);
+void Os_ExitISR(void);
+StatusType Os_AssignObjectToApplication(Os_ObjectType_Type ObjectType, uint32 ObjectID, ApplicationType ApplID);
 
 /* Main Function (called from main loop) */
 void Os_MainFunction(void);
