@@ -20,12 +20,33 @@
 #define ECUM_SID_GET_STATE          ((uint8)0x07)
 #define ECUM_SID_SELECT_SHUTDOWN    ((uint8)0x06)
 #define ECUM_SID_SET_WAKEUP_EVENT   ((uint8)0x0C)
+#define ECUM_SID_VALIDATE_WAKEUP_EVENT ((uint8)0x0D)
+#define ECUM_SID_CLEAR_WAKEUP_EVENT ((uint8)0x0E)
+#define ECUM_SID_CHECK_WAKEUP       ((uint8)0x0F)
 #define ECUM_SID_MAIN_FUNCTION      ((uint8)0x18)
+#define ECUM_SID_GET_SHUTDOWN_TARGET ((uint8)0x09)
+#define ECUM_SID_GET_LAST_SHUTDOWN_TARGET ((uint8)0x0A)
+#define ECUM_SID_SELECT_BOOT_TARGET ((uint8)0x1A)
+#define ECUM_SID_GET_BOOT_TARGET    ((uint8)0x1B)
+#define ECUM_SID_SELECT_SLEEP_MODE  ((uint8)0x10)
+#define ECUM_SID_GO_HALT            ((uint8)0x11)
+#define ECUM_SID_GO_POLL            ((uint8)0x12)
+#define ECUM_SID_GO_DOWN            ((uint8)0x13)
+#define ECUM_SID_KILL_ALL_RUN_REQUESTS ((uint8)0x14)
+#define ECUM_SID_REQUEST_RUN        ((uint8)0x15)
+#define ECUM_SID_RELEASE_RUN        ((uint8)0x16)
+#define ECUM_SID_GET_WAKEUP_STATUS  ((uint8)0x17)
+#define ECUM_SID_GET_EXPIRED_WAKEUP_EVENTS ((uint8)0x19)
 
 #define ECUM_E_UNINIT               ((uint8)0x01)
 #define ECUM_E_INVALID_STATE        ((uint8)0x02)
 #define ECUM_E_PARAM_POINTER        ((uint8)0x03)
 #define ECUM_E_PARAM_INVALID        ((uint8)0x04)
+#define ECUM_E_UNKNOWN_WAKEUP_SOURCE ((uint8)0x05)
+#define ECUM_E_MULTIPLE_RUN_REQUESTS ((uint8)0x06)
+
+#define ECUM_MAX_RUN_USERS          ((uint8)8)
+#define ECUM_WAKEUP_VALIDATION_TIMEOUT_MAINCYCLES ((uint16)20)
 
 /********************************************************************************************************/
 /*******************************************StructAndEnums***********************************************/
@@ -51,12 +72,36 @@ typedef enum
 
 typedef uint32 EcuM_WakeupSourceType;
 
+typedef enum
+{
+    ECUM_SLEEP_MODE_HALT = 0,
+    ECUM_SLEEP_MODE_POLL
+} EcuM_SleepModeType;
+
+typedef enum
+{
+    ECUM_WAKEUP_NONE = 0,
+    ECUM_WAKEUP_PENDING,
+    ECUM_WAKEUP_VALIDATED,
+    ECUM_WAKEUP_EXPIRED
+} EcuM_WakeupStatusType;
+
+typedef enum
+{
+    ECUM_BOOT_TARGET_APP = 0,
+    ECUM_BOOT_TARGET_BOOTLOADER
+} EcuM_BootTargetType;
+
 #define ECUM_WKSOURCE_POWER         ((EcuM_WakeupSourceType)0x01U)
 #define ECUM_WKSOURCE_RESET         ((EcuM_WakeupSourceType)0x02U)
 #define ECUM_WKSOURCE_INTERNAL_RESET ((EcuM_WakeupSourceType)0x04U)
 #define ECUM_WKSOURCE_INTERNAL_WDG  ((EcuM_WakeupSourceType)0x08U)
 #define ECUM_WKSOURCE_EXTERNAL_WDG  ((EcuM_WakeupSourceType)0x10U)
 #define ECUM_WKSOURCE_CAN           ((EcuM_WakeupSourceType)0x20U)
+#define ECUM_WKSOURCE_ETH           ((EcuM_WakeupSourceType)0x40U)
+#define ECUM_WKSOURCE_ALL           (ECUM_WKSOURCE_POWER | ECUM_WKSOURCE_RESET | \
+                                     ECUM_WKSOURCE_INTERNAL_RESET | ECUM_WKSOURCE_INTERNAL_WDG | \
+                                     ECUM_WKSOURCE_EXTERNAL_WDG | ECUM_WKSOURCE_CAN | ECUM_WKSOURCE_ETH)
 
 typedef struct
 {
@@ -73,8 +118,24 @@ Std_ReturnType EcuM_Shutdown(void);
 EcuM_StateType EcuM_GetState(void);
 Std_ReturnType EcuM_SelectShutdownTarget(EcuM_ShutdownTargetType Target);
 EcuM_ShutdownTargetType EcuM_GetShutdownTarget(void);
+EcuM_ShutdownTargetType EcuM_GetLastShutdownTarget(void);
+Std_ReturnType EcuM_SelectBootTarget(EcuM_BootTargetType Target);
+EcuM_BootTargetType EcuM_GetBootTarget(void);
+Std_ReturnType EcuM_SelectSleepMode(EcuM_SleepModeType SleepMode);
+Std_ReturnType EcuM_GoHalt(void);
+Std_ReturnType EcuM_GoPoll(void);
+Std_ReturnType EcuM_GoDown(void);
+Std_ReturnType EcuM_RequestRUN(uint8 User);
+Std_ReturnType EcuM_ReleaseRUN(uint8 User);
+void EcuM_KillAllRUNRequests(void);
 void EcuM_SetWakeupEvent(EcuM_WakeupSourceType WakeupSource);
+void EcuM_ValidateWakeupEvent(EcuM_WakeupSourceType WakeupSource);
+void EcuM_ClearWakeupEvent(EcuM_WakeupSourceType WakeupSource);
+void EcuM_CheckWakeup(EcuM_WakeupSourceType WakeupSource);
 EcuM_WakeupSourceType EcuM_GetPendingWakeupEvents(void);
+EcuM_WakeupSourceType EcuM_GetValidatedWakeupEvents(void);
+EcuM_WakeupSourceType EcuM_GetExpiredWakeupEvents(void);
+EcuM_WakeupStatusType EcuM_GetWakeupStatus(EcuM_WakeupSourceType WakeupSource);
 void EcuM_MainFunction(void);
 
 #endif /* INCLUDE_ECUM_H_ */

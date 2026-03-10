@@ -10,14 +10,11 @@
 #include "CanNm.h"
 #include "BswM.h"
 #include "ComM.h"
+#include "EthIf.h"
+#include "TcpIp.h"
+#include "SoAd.h"
 #include "SecOC.h"
 #include "SecOC_Lcfg.h"
-
-#if defined(LINUX)
-#include "ethernet.h"
-#elif defined(WINDOWS)
-#include "ethernet_windows.h"
-#endif
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
@@ -26,11 +23,81 @@
 extern SecOC_ConfigType SecOC_Config;
 static EcuM_StateType EcuM_State = ECUM_STATE_UNINIT;
 static EcuM_ShutdownTargetType EcuM_ShutdownTarget = ECUM_SHUTDOWN_TARGET_OFF;
+static EcuM_ShutdownTargetType EcuM_LastShutdownTarget = ECUM_SHUTDOWN_TARGET_OFF;
+static EcuM_BootTargetType EcuM_BootTarget = ECUM_BOOT_TARGET_APP;
+static EcuM_SleepModeType EcuM_SleepMode = ECUM_SLEEP_MODE_HALT;
 static EcuM_WakeupSourceType EcuM_PendingWakeupEvents = 0U;
+static EcuM_WakeupSourceType EcuM_ValidatedWakeupEvents = 0U;
+static EcuM_WakeupSourceType EcuM_ExpiredWakeupEvents = 0U;
+static uint16 EcuM_WakeupValidationCounter = 0U;
+static uint8 EcuM_RunRequestCounter = 0U;
+static boolean EcuM_EthPathStarted = FALSE;
+
+static Std_ReturnType EcuM_InitEthCommunicationPath(void);
+static void EcuM_DeInitEthCommunicationPath(void);
+static void EcuM_MainFunctionEthCommunicationPath(void);
+static boolean EcuM_IsWakeupSourceValidFromHardware(EcuM_WakeupSourceType WakeupSource);
 
 /********************************************************************************************************/
 /********************************************Functions***************************************************/
 /********************************************************************************************************/
+
+static Std_ReturnType EcuM_InitEthCommunicationPath(void)
+{
+    EthIf_Init(NULL);
+
+    if (EthIf_SetControllerMode(0U, ETH_MODE_ACTIVE) != E_OK)
+    {
+        return E_NOT_OK;
+    }
+
+    TcpIp_Init(NULL);
+    SoAd_Init(NULL);
+    EcuM_EthPathStarted = TRUE;
+
+    return E_OK;
+}
+
+static void EcuM_DeInitEthCommunicationPath(void)
+{
+    if (EcuM_EthPathStarted == FALSE)
+    {
+        return;
+    }
+
+    /*
+     * Extension point:
+     * SoAd/EthIf currently expose no public de-init APIs in this codebase.
+     * Keep shutdown deterministic using available public API only.
+     */
+    TcpIp_Shutdown();
+    EcuM_EthPathStarted = FALSE;
+}
+
+static void EcuM_MainFunctionEthCommunicationPath(void)
+{
+    if (EcuM_EthPathStarted == FALSE)
+    {
+        return;
+    }
+
+    EthIf_MainFunctionRx();
+    EthIf_MainFunctionTx();
+    SoAd_MainFunctionTx();
+    SoAd_MainFunctionRx();
+}
+
+static boolean EcuM_IsWakeupSourceValidFromHardware(EcuM_WakeupSourceType WakeupSource)
+{
+    (void)WakeupSource;
+
+    /*
+     * Extension point:
+     * Integrate MCU/ECU wakeup reason registers and transceiver indications here.
+     * Current implementation keeps behavior unchanged and validates software events.
+     */
+    return TRUE;
+}
 
 void EcuM_Init(const EcuM_ConfigType *ConfigPtr)
 {
@@ -51,6 +118,15 @@ void EcuM_Init(const EcuM_ConfigType *ConfigPtr)
     ComM_Init();
 
     EcuM_State = ECUM_STATE_STARTUP_ONE;
+    EcuM_PendingWakeupEvents = 0U;
+    EcuM_ValidatedWakeupEvents = 0U;
+    EcuM_ExpiredWakeupEvents = 0U;
+    EcuM_WakeupValidationCounter = 0U;
+    EcuM_RunRequestCounter = 0U;
+    EcuM_EthPathStarted = FALSE;
+    EcuM_LastShutdownTarget = ECUM_SHUTDOWN_TARGET_OFF;
+    EcuM_BootTarget = ECUM_BOOT_TARGET_APP;
+    EcuM_SleepMode = ECUM_SLEEP_MODE_HALT;
 }
 
 Std_ReturnType EcuM_StartupTwo(void)
@@ -61,12 +137,22 @@ Std_ReturnType EcuM_StartupTwo(void)
         return E_NOT_OK;
     }
 
+    EcuM_State = ECUM_STATE_STARTUP_TWO;
+
 #if defined(LINUX) || defined(WINDOWS)
-    ethernet_init();
+    if (EcuM_InitEthCommunicationPath() != E_OK)
+    {
+        EcuM_State = ECUM_STATE_STARTUP_ONE;
+        return E_NOT_OK;
+    }
 #endif
 
     if (ComM_RequestComMode(0U, COMM_FULL_COMMUNICATION) != E_OK)
     {
+#if defined(LINUX) || defined(WINDOWS)
+        EcuM_DeInitEthCommunicationPath();
+#endif
+        EcuM_State = ECUM_STATE_STARTUP_ONE;
         return E_NOT_OK;
     }
 
@@ -85,18 +171,38 @@ Std_ReturnType EcuM_Shutdown(void)
     }
 
     EcuM_State = ECUM_STATE_SHUTDOWN;
+    EcuM_LastShutdownTarget = EcuM_ShutdownTarget;
 
     (void)ComM_RequestComMode(0U, COMM_NO_COMMUNICATION);
     SecOC_DeInit();
+    ComM_DeInit();
     BswM_Deinit();
+    CanNm_DeInit();
+    CanSM_DeInit();
     Can_DeInit();
+#if defined(LINUX) || defined(WINDOWS)
+    EcuM_DeInitEthCommunicationPath();
+#endif
 
     if (EcuM_ShutdownTarget == ECUM_SHUTDOWN_TARGET_SLEEP)
     {
         EcuM_State = ECUM_STATE_SLEEP;
+        EcuM_WakeupValidationCounter = 0U;
+    }
+    else if (EcuM_ShutdownTarget == ECUM_SHUTDOWN_TARGET_RESET)
+    {
+        /*
+         * Extension point:
+         * integrate MCU reset callout (Mcu_PerformReset or platform reset API).
+         */
+        EcuM_State = ECUM_STATE_OFF;
     }
     else
     {
+        /*
+         * Extension point:
+         * integrate target-specific power-off sequence.
+         */
         EcuM_State = ECUM_STATE_OFF;
     }
 
@@ -131,6 +237,151 @@ EcuM_ShutdownTargetType EcuM_GetShutdownTarget(void)
     return EcuM_ShutdownTarget;
 }
 
+EcuM_ShutdownTargetType EcuM_GetLastShutdownTarget(void)
+{
+    return EcuM_LastShutdownTarget;
+}
+
+Std_ReturnType EcuM_SelectBootTarget(EcuM_BootTargetType Target)
+{
+    if (EcuM_State == ECUM_STATE_UNINIT)
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_SELECT_BOOT_TARGET, ECUM_E_UNINIT);
+        return E_NOT_OK;
+    }
+
+    if (Target > ECUM_BOOT_TARGET_BOOTLOADER)
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_SELECT_BOOT_TARGET, ECUM_E_PARAM_INVALID);
+        return E_NOT_OK;
+    }
+
+    EcuM_BootTarget = Target;
+    return E_OK;
+}
+
+EcuM_BootTargetType EcuM_GetBootTarget(void)
+{
+    return EcuM_BootTarget;
+}
+
+Std_ReturnType EcuM_SelectSleepMode(EcuM_SleepModeType SleepMode)
+{
+    if (EcuM_State == ECUM_STATE_UNINIT)
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_SELECT_SLEEP_MODE, ECUM_E_UNINIT);
+        return E_NOT_OK;
+    }
+
+    if (SleepMode > ECUM_SLEEP_MODE_POLL)
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_SELECT_SLEEP_MODE, ECUM_E_PARAM_INVALID);
+        return E_NOT_OK;
+    }
+
+    EcuM_SleepMode = SleepMode;
+    return E_OK;
+}
+
+Std_ReturnType EcuM_GoHalt(void)
+{
+    if (EcuM_SelectShutdownTarget(ECUM_SHUTDOWN_TARGET_SLEEP) != E_OK)
+    {
+        return E_NOT_OK;
+    }
+
+    if (EcuM_SelectSleepMode(ECUM_SLEEP_MODE_HALT) != E_OK)
+    {
+        return E_NOT_OK;
+    }
+
+    return EcuM_Shutdown();
+}
+
+Std_ReturnType EcuM_GoPoll(void)
+{
+    if (EcuM_SelectShutdownTarget(ECUM_SHUTDOWN_TARGET_SLEEP) != E_OK)
+    {
+        return E_NOT_OK;
+    }
+
+    if (EcuM_SelectSleepMode(ECUM_SLEEP_MODE_POLL) != E_OK)
+    {
+        return E_NOT_OK;
+    }
+
+    return EcuM_Shutdown();
+}
+
+Std_ReturnType EcuM_GoDown(void)
+{
+    if ((EcuM_State != ECUM_STATE_RUN) && (EcuM_State != ECUM_STATE_STARTUP_TWO))
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_GO_DOWN, ECUM_E_INVALID_STATE);
+        return E_NOT_OK;
+    }
+
+    EcuM_KillAllRUNRequests();
+    return EcuM_Shutdown();
+}
+
+Std_ReturnType EcuM_RequestRUN(uint8 User)
+{
+    if (EcuM_State == ECUM_STATE_UNINIT)
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_REQUEST_RUN, ECUM_E_UNINIT);
+        return E_NOT_OK;
+    }
+
+    if (User >= ECUM_MAX_RUN_USERS)
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_REQUEST_RUN, ECUM_E_PARAM_INVALID);
+        return E_NOT_OK;
+    }
+
+    if (EcuM_RunRequestCounter < 255U)
+    {
+        EcuM_RunRequestCounter++;
+    }
+
+    return ComM_RequestComMode(0U, COMM_FULL_COMMUNICATION);
+}
+
+Std_ReturnType EcuM_ReleaseRUN(uint8 User)
+{
+    if (EcuM_State == ECUM_STATE_UNINIT)
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_RELEASE_RUN, ECUM_E_UNINIT);
+        return E_NOT_OK;
+    }
+
+    if (User >= ECUM_MAX_RUN_USERS)
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_RELEASE_RUN, ECUM_E_PARAM_INVALID);
+        return E_NOT_OK;
+    }
+
+    if (EcuM_RunRequestCounter == 0U)
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_RELEASE_RUN, ECUM_E_MULTIPLE_RUN_REQUESTS);
+        return E_NOT_OK;
+    }
+
+    EcuM_RunRequestCounter--;
+    if (EcuM_RunRequestCounter == 0U)
+    {
+        return ComM_RequestComMode(0U, COMM_NO_COMMUNICATION);
+    }
+
+    return E_OK;
+}
+
+void EcuM_KillAllRUNRequests(void)
+{
+    EcuM_RunRequestCounter = 0U;
+    (void)ComM_RequestComMode(0U, COMM_NO_COMMUNICATION);
+}
+
 void EcuM_SetWakeupEvent(EcuM_WakeupSourceType WakeupSource)
 {
     if (EcuM_State == ECUM_STATE_UNINIT)
@@ -139,12 +390,123 @@ void EcuM_SetWakeupEvent(EcuM_WakeupSourceType WakeupSource)
         return;
     }
 
+    if ((WakeupSource == 0U) || ((WakeupSource & (~ECUM_WKSOURCE_ALL)) != 0U))
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_SET_WAKEUP_EVENT, ECUM_E_PARAM_INVALID);
+        return;
+    }
+
     EcuM_PendingWakeupEvents |= WakeupSource;
+    EcuM_ExpiredWakeupEvents &= (~WakeupSource);
+}
+
+void EcuM_ValidateWakeupEvent(EcuM_WakeupSourceType WakeupSource)
+{
+    EcuM_WakeupSourceType ValidWakeupSources = 0U;
+
+    if (EcuM_State == ECUM_STATE_UNINIT)
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_VALIDATE_WAKEUP_EVENT, ECUM_E_UNINIT);
+        return;
+    }
+
+    if ((WakeupSource == 0U) || ((WakeupSource & (~ECUM_WKSOURCE_ALL)) != 0U))
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_VALIDATE_WAKEUP_EVENT, ECUM_E_PARAM_INVALID);
+        return;
+    }
+
+    ValidWakeupSources = WakeupSource & EcuM_PendingWakeupEvents;
+
+    if (ValidWakeupSources != 0U)
+    {
+        EcuM_ValidatedWakeupEvents |= ValidWakeupSources;
+        EcuM_PendingWakeupEvents &= (~ValidWakeupSources);
+    }
+}
+
+void EcuM_ClearWakeupEvent(EcuM_WakeupSourceType WakeupSource)
+{
+    if (EcuM_State == ECUM_STATE_UNINIT)
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_CLEAR_WAKEUP_EVENT, ECUM_E_UNINIT);
+        return;
+    }
+
+    if ((WakeupSource == 0U) || ((WakeupSource & (~ECUM_WKSOURCE_ALL)) != 0U))
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_CLEAR_WAKEUP_EVENT, ECUM_E_PARAM_INVALID);
+        return;
+    }
+
+    EcuM_PendingWakeupEvents &= (~WakeupSource);
+    EcuM_ValidatedWakeupEvents &= (~WakeupSource);
+}
+
+void EcuM_CheckWakeup(EcuM_WakeupSourceType WakeupSource)
+{
+    if (EcuM_State == ECUM_STATE_UNINIT)
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_CHECK_WAKEUP, ECUM_E_UNINIT);
+        return;
+    }
+
+    if ((WakeupSource == 0U) || ((WakeupSource & (~ECUM_WKSOURCE_ALL)) != 0U))
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_CHECK_WAKEUP, ECUM_E_PARAM_INVALID);
+        return;
+    }
+
+    if (EcuM_IsWakeupSourceValidFromHardware(WakeupSource) == TRUE)
+    {
+        EcuM_ValidateWakeupEvent(WakeupSource);
+    }
+    else
+    {
+        EcuM_PendingWakeupEvents &= (~WakeupSource);
+        EcuM_ExpiredWakeupEvents |= WakeupSource;
+    }
 }
 
 EcuM_WakeupSourceType EcuM_GetPendingWakeupEvents(void)
 {
     return EcuM_PendingWakeupEvents;
+}
+
+EcuM_WakeupSourceType EcuM_GetValidatedWakeupEvents(void)
+{
+    return EcuM_ValidatedWakeupEvents;
+}
+
+EcuM_WakeupSourceType EcuM_GetExpiredWakeupEvents(void)
+{
+    return EcuM_ExpiredWakeupEvents;
+}
+
+EcuM_WakeupStatusType EcuM_GetWakeupStatus(EcuM_WakeupSourceType WakeupSource)
+{
+    if ((WakeupSource == 0U) || ((WakeupSource & (~ECUM_WKSOURCE_ALL)) != 0U))
+    {
+        (void)Det_ReportError(ECUM_MODULE_ID, ECUM_INSTANCE_ID, ECUM_SID_GET_WAKEUP_STATUS, ECUM_E_UNKNOWN_WAKEUP_SOURCE);
+        return ECUM_WAKEUP_NONE;
+    }
+
+    if ((EcuM_ValidatedWakeupEvents & WakeupSource) != 0U)
+    {
+        return ECUM_WAKEUP_VALIDATED;
+    }
+
+    if ((EcuM_PendingWakeupEvents & WakeupSource) != 0U)
+    {
+        return ECUM_WAKEUP_PENDING;
+    }
+
+    if ((EcuM_ExpiredWakeupEvents & WakeupSource) != 0U)
+    {
+        return ECUM_WAKEUP_EXPIRED;
+    }
+
+    return ECUM_WAKEUP_NONE;
 }
 
 void EcuM_MainFunction(void)
@@ -157,6 +519,47 @@ void EcuM_MainFunction(void)
     /* In RUN state, delegate to BswM for periodic mode arbitration */
     if (EcuM_State == ECUM_STATE_RUN)
     {
+        ComM_MainFunction();
+        CanSM_MainFunction();
+        CanNm_MainFunction();
+#if defined(LINUX) || defined(WINDOWS)
+        EcuM_MainFunctionEthCommunicationPath();
+#endif
         BswM_MainFunction();
+    }
+    else if (EcuM_State == ECUM_STATE_SLEEP)
+    {
+        if (EcuM_SleepMode == ECUM_SLEEP_MODE_POLL)
+        {
+            Can_MainFunction_Read();
+#if defined(LINUX) || defined(WINDOWS)
+            EthIf_MainFunctionRx();
+#endif
+        }
+
+        if (EcuM_PendingWakeupEvents != 0U)
+        {
+            EcuM_CheckWakeup(EcuM_PendingWakeupEvents);
+            if (EcuM_WakeupValidationCounter < 65535U)
+            {
+                EcuM_WakeupValidationCounter++;
+            }
+            if (EcuM_WakeupValidationCounter >= ECUM_WAKEUP_VALIDATION_TIMEOUT_MAINCYCLES)
+            {
+                EcuM_ExpiredWakeupEvents |= EcuM_PendingWakeupEvents;
+                EcuM_PendingWakeupEvents = 0U;
+                EcuM_WakeupValidationCounter = 0U;
+            }
+        }
+
+        if (EcuM_ValidatedWakeupEvents != 0U)
+        {
+            if (ComM_RequestComMode(0U, COMM_FULL_COMMUNICATION) == E_OK)
+            {
+                EcuM_ClearWakeupEvent(EcuM_ValidatedWakeupEvents);
+                EcuM_WakeupValidationCounter = 0U;
+                EcuM_State = ECUM_STATE_RUN;
+            }
+        }
     }
 }

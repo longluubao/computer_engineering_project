@@ -17,3 +17,5 @@ Guidelines:
 - Do not replace this with `rebuild_pqc.sh` unless the user explicitly asks.
 - Keep the `& "C:\msys64\usr\bin\bash.exe"` call operator form.
 - Use forward-slash MSYS path inside bash (`/c/Users/...`).
+
+##DO NOT RUN CTEST UNTIL USER ASK
