@@ -1,5 +1,5 @@
 /********************************************************************************************************/
-/************************************************INCULDES************************************************/
+/************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
 #ifdef WINDOWS
@@ -10,6 +10,7 @@
 #include "SecOC_Debug.h"
 #include "SecOC_Lcfg.h"
 #include "CanTP.h"
+#include "CanIF.h"
 #include "PduR_CanIf.h"
 #include "SoAd.h"
 
@@ -304,7 +305,7 @@ void ethernet_RecieveMainFunction(void)
         #ifdef ETHERNET_DEBUG
             printf("here in Direct \n");
         #endif
-        PduR_CanIfRxIndication(id, &PduInfoPtr);
+        CanIf_RxIndication(id, &PduInfoPtr);
         break;
     case SECOC_SECURED_PDU_CANTP:
         #ifdef ETHERNET_DEBUG
@@ -329,13 +330,13 @@ void ethernet_RecieveMainFunction(void)
         #ifdef ETHERNET_DEBUG
             printf("here in Direct - pdu collection - auth\n");
         #endif
-        PduR_CanIfRxIndication(id, &PduInfoPtr);
+        CanIf_RxIndication(id, &PduInfoPtr);
         break;
     case SECOC_CRYPTO_COLLECTON_PDU:
         #ifdef ETHERNET_DEBUG
             printf("here in Direct- pdu collection - crypto \n");
         #endif
-        PduR_CanIfRxIndication(id, &PduInfoPtr);
+        CanIf_RxIndication(id, &PduInfoPtr);
         break;
     default:
         #ifdef ETHERNET_DEBUG

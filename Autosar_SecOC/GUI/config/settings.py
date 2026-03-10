@@ -14,7 +14,7 @@ class Settings:
     """Immutable application settings."""
 
     # ── Application metadata ─────────────────────────────────────────
-    APP_NAME    = "SecOC PQC — Zonal Gateway Lab"
+    APP_NAME    = "AUTOSAR Ethernet Gateway Configurator"
     APP_VERSION = "2.0.0"
     WINDOW_MIN_W = 1280
     WINDOW_MIN_H = 800

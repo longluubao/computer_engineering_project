@@ -12,6 +12,7 @@ from .common import (
 from .gauges import RadialGauge, LinearGauge
 from .hex_viewer import HexViewer
 from .log_console import LogConsole
+from .hw_dialogs import CANConfigDialog, IPConfigDialog
 
 __all__ = [
     "StyledCard",
@@ -25,5 +26,7 @@ __all__ = [
     "LinearGauge",
     "HexViewer",
     "LogConsole",
+    "CANConfigDialog",
+    "IPConfigDialog",
 ]
 

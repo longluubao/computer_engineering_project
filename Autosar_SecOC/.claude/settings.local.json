@@ -1,15 +1,15 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(mingw32-make:*)",
-      "Bash(source/Ethernet/ip_address.txt)"
-    ],
-    
-    "deny": [],
-    "ask": []
-  },
   "env": {
     "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "50000",
     "OTEL_METRICS_EXPORTER": "otlp"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(mingw32-make:*)",
+      "Bash(source/Ethernet/ip_address.txt)",
+      "Bash(ls \"C:\\\\Users\\\\LLU2HC\\\\.claude\\\\teams\\\\autosar-review\"\" 2>/dev/null && cat \"C:UsersLLU2HC.claudeteamsautosar-reviewconfig.json\" 2>/dev/null || echo \"Team not found \")"
+    ],
+    "deny": [],
+    "ask": []
   }
 }

@@ -54,4 +54,17 @@ typedef uint8 Std_ReturnType;
 #define E_BUSY          ((Std_ReturnType)0x02)
 #define QUEUE_FULL      ((Std_ReturnType)0x03)
 
+/* Standard Version Info Type */
+typedef struct
+{
+	uint16 vendorID;
+	uint16 moduleID;
+	uint8 sw_major_version;
+	uint8 sw_minor_version;
+	uint8 sw_patch_version;
+}Std_VersionInfoType;
+
+#define STD_ON 0x01u
+#define STD_OFF 0x00u
+
 #endif /* INCLUDE_STD_TYPES_H_ */

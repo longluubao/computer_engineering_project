@@ -1,11 +1,11 @@
 """
 MainWindow — the application shell.
 
-Light, integrated sidebar with automotive-context navigation:
-  ARCHITECTURE  → Topology (Dashboard)
-  SECURITY      → SecOC Engine, Key Management
-  SIMULATION    → Gateway Lab, Attack Lab
-  ANALYSIS      → Benchmarks
+AUTOSAR Ethernet Gateway Configurator navigation:
+  ARCHITECTURE  → Zones (Zonal E/E topology)
+  COMMUNICATION → Routing (PDU/Signal gateway)
+  SECURITY      → SecOC (Secure onboard communication)
+  DIAGNOSTICS   → Monitor (Network health & status)
 
 Enhanced gateway card showing Raspberry Pi 4 hardware details.
 """
@@ -33,29 +33,27 @@ from core.signal_hub import hub
 from core.app_state import state
 
 from pages.dashboard import DashboardPage
-from pages.secoc_auth import SecOCAuthPage
-from pages.key_exchange import KeyExchangePage
-from pages.gateway_sim import GatewaySimPage
-from pages.performance import PerformancePage
-from pages.attack_sim import AttackSimPage
+from pages.routing import RoutingPage
+from pages.secoc_config import SecOCConfigPage
+from pages.diagnostics import DiagnosticsPage
+from pages.hardware_config import HardwareConfigPage
 
 
-# ── Sidebar navigation — automotive context ───────────────────────────
+# ── Sidebar navigation — AUTOSAR Gateway structure ──────────────────────
 
 _SECTIONS: list[tuple[str, list[tuple[str, int]]]] = [
     ("ARCHITECTURE", [
-        ("Topology", 0),
+        ("Zones", 0),
+        ("Hardware", 4),
+    ]),
+    ("COMMUNICATION", [
+        ("Routing", 1),
     ]),
     ("SECURITY", [
-        ("SecOC Engine", 1),
-        ("Key Management", 2),
+        ("SecOC", 2),
     ]),
-    ("SIMULATION", [
-        ("Gateway Lab", 3),
-        ("Attack Lab", 4),
-    ]),
-    ("ANALYSIS", [
-        ("Benchmarks", 5),
+    ("DIAGNOSTICS", [
+        ("Monitor", 3),
     ]),
 ]
 
@@ -94,12 +92,11 @@ class MainWindow(QMainWindow):
 
         # Page order must match indices in _SECTIONS
         self._pages = [
-            DashboardPage(),                 # 0
-            SecOCAuthPage(self._bridge),     # 1
-            KeyExchangePage(),               # 2
-            GatewaySimPage(self._bridge),    # 3
-            AttackSimPage(self._bridge),     # 4
-            PerformancePage(self._bridge),   # 5
+            DashboardPage(),                # 0 - Architecture > Zones
+            RoutingPage(self._bridge),      # 1 - Communication > Routing
+            SecOCConfigPage(self._bridge),  # 2 - Security > SecOC
+            DiagnosticsPage(self._bridge),  # 3 - Diagnostics > Monitor
+            HardwareConfigPage(self._bridge),  # 4 - Architecture > Hardware
         ]
         for page in self._pages:
             self._stack.addWidget(page)
@@ -220,7 +217,7 @@ class MainWindow(QMainWindow):
         lay.setContentsMargins(18, 14, 18, 10)
         lay.setSpacing(1)
 
-        title = QLabel("SecOC PQC")
+        title = QLabel("AUTOSAR Gateway")
         title.setStyleSheet(f"""
             color: {Theme.color.CYAN_DARK};
             font-size: {Theme.font.SIZE_H2}px;
@@ -229,7 +226,7 @@ class MainWindow(QMainWindow):
             background: transparent;
         """)
 
-        subtitle = QLabel("Zonal Gateway Lab")
+        subtitle = QLabel("Ethernet Gateway Configurator")
         subtitle.setStyleSheet(f"""
             color: {Theme.color.TEXT_SECONDARY};
             font-size: {Theme.font.SIZE_SMALL}px;
@@ -329,7 +326,7 @@ class MainWindow(QMainWindow):
         hw_row.addStretch()
 
         role_label = QLabel("HPCU")
-        role_label.setToolTip("High Performance Compute Unit — Central Zone Gateway")
+        role_label.setToolTip("High Performance Compute Unit - Central Zone Gateway")
         role_label.setStyleSheet(f"""
             color: {Theme.color.CYAN_DARK};
             font-size: {Theme.font.SIZE_TINY - 1}px;
@@ -382,7 +379,7 @@ class MainWindow(QMainWindow):
 
     @staticmethod
     def _nav_style(active: bool) -> str:
-        """Pill-style nav button — light background, clean typography."""
+        """Pill-style nav button - light background, clean typography."""
         C = Theme.color
         if active:
             return f"""

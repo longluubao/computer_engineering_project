@@ -1,7 +1,7 @@
 /* "Copyright [2022/2023] <Tanta University>" */
 
 /********************************************************************************************************/
-/************************************************INCULDES************************************************/
+/************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
 #include "SecOC_Lcfg.h"
@@ -24,6 +24,10 @@
 #include "CanTP.h"
 #include "SecOC_Debug.h"
 #include "Det.h"
+
+#if (SECOC_USE_PQC_MODE == TRUE)
+#include "PQC.h"
+#endif
 
 #include <string.h>
 
@@ -520,7 +524,11 @@ void SecOC_MainFunctionTx(void)
                 printf("\n");
             #endif
             /* [SWS_SecOC_00060], [SWS_SecOC_00061] */
+#if (SECOC_USE_PQC_MODE == TRUE)
+            result = authenticate_PQC(idx , authPdu , securedPdu);
+#else
             result = authenticate(idx , authPdu , securedPdu);
+#endif
 
             if(result == E_OK )
             {
@@ -1539,14 +1547,23 @@ void SecOC_MainFunctionRx(void)
         PduInfoType *securedPdu = &(SecOCRxPduProcessing[idx].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCRxSecuredLayerPduRef);
         
         uint8 AuthHeadlen = SecOCRxPduProcessing[idx].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCAuthPduHeaderLength;
+#if (SECOC_USE_PQC_MODE == TRUE)
+        /* PQC Mode: minimum = header + authPdu + freshness + ML-DSA-65 signature (3309 bytes) */
+        PduLengthType securePduLength = AuthHeadlen + authRecieveLength[idx] + BIT_TO_BYTES(SecOCRxPduProcessing[idx].SecOCFreshnessValueTruncLength) + PQC_MLDSA_SIGNATURE_BYTES;
+#else
         PduLengthType securePduLength = AuthHeadlen + authRecieveLength[idx] + BIT_TO_BYTES(SecOCRxPduProcessing[idx].SecOCFreshnessValueTruncLength) + BIT_TO_BYTES(SecOCRxPduProcessing[idx].SecOCAuthInfoTruncLength);
-        
+#endif
+
         /* Check if there is data */
         /* [SWS_SecOC_00174] */
         if ( securedPdu->SduLength >= securePduLength ) 
         {       
             /* [SWS_SecOC_00079] */
+#if (SECOC_USE_PQC_MODE == TRUE)
+            result = verify_PQC(idx, securedPdu, &result_ver);
+#else
             result = verify(idx, securedPdu, &result_ver);
+#endif
             if(result == E_OK)
             {
                 #ifdef SECOC_DEBUG
@@ -1604,6 +1621,117 @@ void SecOC_MainFunctionRx(void)
 
 }
 
+
+
+/********************************************************************************************************/
+/******************************************Additional SWS APIs******************************************/
+/********************************************************************************************************/
+
+/* [SWS_SecOC_00113] */
+Std_ReturnType SecOC_TpTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr)
+{
+    #ifdef SECOC_DEBUG
+        printf("######## in SecOC_TpTransmit \n");
+    #endif
+
+    if(SecOCState != SECOC_INIT)
+    {
+        (void)Det_ReportError(SECOC_MODULE_ID, 0U, SECOC_SID_TP_TRANSMIT, SECOC_E_UNINIT);
+        return E_NOT_OK;
+    }
+
+    if(PduInfoPtr == NULL)
+    {
+        (void)Det_ReportError(SECOC_MODULE_ID, 0U, SECOC_SID_TP_TRANSMIT, SECOC_E_PARAM_POINTER);
+        return E_NOT_OK;
+    }
+
+    /* [SWS_SecOC_00252] Copy the Authentic I-PDU to internal memory */
+    PduInfoType *authpdu = &(SecOCTxPduProcessing[TxPduId].SecOCTxAuthenticPduLayer->SecOCTxAuthenticLayerPduRef);
+
+    (void)memcpy(authpdu->SduDataPtr, PduInfoPtr->SduDataPtr, PduInfoPtr->SduLength);
+    authpdu->MetaDataPtr = PduInfoPtr->MetaDataPtr;
+    authpdu->SduLength = PduInfoPtr->SduLength;
+
+    SecOC_TxCounters[TxPduId].AuthenticationCounter = 0;
+
+    return E_OK;
+}
+
+
+/* [SWS_SecOC_00119] */
+Std_ReturnType SecOC_TpCancelTransmit(PduIdType TxPduId)
+{
+    #ifdef SECOC_DEBUG
+        printf("######## in SecOC_TpCancelTransmit \n");
+    #endif
+
+    if(SecOCState != SECOC_INIT)
+    {
+        return E_NOT_OK;
+    }
+
+    PduInfoType *authpdu = &(SecOCTxPduProcessing[TxPduId].SecOCTxAuthenticPduLayer->SecOCTxAuthenticLayerPduRef);
+    PduInfoType *securedPdu = &(SecOCTxPduProcessing[TxPduId].SecOCTxSecuredPduLayer->SecOCTxSecuredPdu->SecOCTxSecuredLayerPduRef);
+
+    authpdu->SduLength = 0;
+    securedPdu->SduLength = 0;
+    bufferRemainIndex[TxPduId] = 0;
+
+    return E_OK;
+}
+
+
+/* [SWS_SecOC_00107] */
+#if (SECOC_VERSION_INFO_API == STD_ON)
+void SecOC_GetVersionInfo(Std_VersionInfoType* versioninfo)
+{
+    if(versioninfo == NULL)
+    {
+        (void)Det_ReportError(SECOC_MODULE_ID, 0U, SECOC_SID_GET_VERSION_INFO, SECOC_E_PARAM_POINTER);
+        return;
+    }
+
+    versioninfo->vendorID = SECOC_VENDOR_ID;
+    versioninfo->moduleID = SECOC_MODULE_ID;
+    versioninfo->sw_major_version = SECOC_SW_MAJOR_VERSION;
+    versioninfo->sw_minor_version = SECOC_SW_MINOR_VERSION;
+    versioninfo->sw_patch_version = SECOC_SW_PATCH_VERSION;
+}
+#endif
+
+
+/* [SWS_SecOC_91008] Override verification status */
+Std_ReturnType SecOC_VerifyStatusOverride(
+    uint16 SecOCFreshnessValueID,
+    uint8 overrideStatus,
+    uint8 numberOfMessagesToOverride)
+{
+    #ifdef SECOC_DEBUG
+        printf("######## in SecOC_VerifyStatusOverride \n");
+    #endif
+
+    if(SecOCState != SECOC_INIT)
+    {
+        (void)Det_ReportError(SECOC_MODULE_ID, 0U, SECOC_SID_VERIFY_STATUS_OVERRIDE, SECOC_E_UNINIT);
+        return E_NOT_OK;
+    }
+
+    /* [SWS_SecOC_91009] Override status values:
+     * 0 = Cancel override (resume normal verification)
+     * 1 = Pass override without performing verification (overrideStatus == SECOC_OVERRIDE_PASS)
+     * 2 = Pass override and skip message authentication (overrideStatus == SECOC_OVERRIDE_SKIP)
+     * 40/64 = Fail override (overrideStatus == SECOC_OVERRIDE_FAIL)
+     */
+
+    /* Store override in configuration - for now just return OK
+     * Full implementation requires per-PDU override state tracking */
+    (void)SecOCFreshnessValueID;
+    (void)overrideStatus;
+    (void)numberOfMessagesToOverride;
+
+    return E_OK;
+}
 
 
 /********************************************************************************************************/

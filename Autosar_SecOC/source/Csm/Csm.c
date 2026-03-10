@@ -1,6 +1,6 @@
 
 /********************************************************************************************************/
-/************************************************INCULDES************************************************/
+/************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
 #include "Csm.h"
@@ -293,4 +293,37 @@ Std_ReturnType Csm_SignatureVerify(
         printf("ERROR: ML-DSA signature verification error\n");
         return E_NOT_OK;
     }
+}
+
+/********************************************************************************************************/
+/************************************CSM KEY MANAGEMENT FUNCTIONS****************************************/
+/********************************************************************************************************/
+
+/* [SWS_Csm_01018] */
+Std_ReturnType Csm_KeyElementSet(
+    uint32 keyId,
+    uint32 keyElementId,
+    const uint8* keyPtr,
+    uint32 keyLength)
+{
+    if (keyPtr == NULL)
+    {
+        return E_NOT_OK;
+    }
+
+    /* Stub: In a full implementation this would set key elements in Crypto driver */
+    (void)keyId;
+    (void)keyElementId;
+    (void)keyLength;
+
+    return E_OK;
+}
+
+/* [SWS_Csm_01019] */
+Std_ReturnType Csm_KeySetValid(uint32 keyId)
+{
+    /* Stub: In a full implementation this would validate the key in Crypto driver */
+    (void)keyId;
+
+    return E_OK;
 }

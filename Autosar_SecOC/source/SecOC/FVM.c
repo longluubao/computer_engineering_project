@@ -20,7 +20,7 @@ static uint32 Freshness_Counter_length_bits[SecOC_FreshnessValue_ID_MAX];
 /********************************************************************************************************/
 
 /* [SWS_SecOC_91005] Equivalent utility to increment counter */
-Std_ReturnType SecOC_IncreaseCounter(uint16 SecOCFreshnessValueID) {
+Std_ReturnType FVM_IncreaseCounter(uint16 SecOCFreshnessValueID) {
     if (SecOCFreshnessValueID >= SecOC_FreshnessValue_ID_MAX) {
         return E_NOT_OK;
     }
@@ -37,7 +37,7 @@ Std_ReturnType SecOC_IncreaseCounter(uint16 SecOCFreshnessValueID) {
 }
 
 /* [SWS_SecOC_91006] Get Freshness for Transmission */
-Std_ReturnType SecOC_GetTxFreshness(uint16 SecOCFreshnessValueID, uint8* SecOCFreshnessValue, uint32* SecOCFreshnessValueLength) {
+Std_ReturnType FVM_GetTxFreshness(uint16 SecOCFreshnessValueID, uint8* SecOCFreshnessValue, uint32* SecOCFreshnessValueLength) {
     if (SecOCFreshnessValueID >= SecOC_FreshnessValue_ID_MAX) {
         return E_NOT_OK;
     }
@@ -55,7 +55,7 @@ Std_ReturnType SecOC_GetTxFreshness(uint16 SecOCFreshnessValueID, uint8* SecOCFr
 }
 
 /* [SWS_SecOC_91007] Get Freshness for Reception (Reconstruction Logic) */
-Std_ReturnType SecOC_GetRxFreshness(
+Std_ReturnType FVM_GetRxFreshness(
     uint16 SecOCFreshnessValueID, 
     const uint8* SecOCTruncatedFreshnessValue, 
     uint32 SecOCTruncatedFreshnessValueLength, 
@@ -112,14 +112,14 @@ Std_ReturnType SecOC_GetRxFreshness(
 }
 
 /* [SWS_SecOC_91003] Get Tx Freshness and Truncated Data */
-Std_ReturnType SecOC_GetTxFreshnessTruncData(
+Std_ReturnType FVM_GetTxFreshnessTruncData(
     uint16 SecOCFreshnessValueID, 
     uint8* SecOCFreshnessValue, 
     uint32* SecOCFreshnessValueLength, 
     uint8* SecOCTruncatedFreshnessValue, 
     uint32* SecOCTruncatedFreshnessValueLength
 ) {
-    Std_ReturnType ret = SecOC_GetTxFreshness(SecOCFreshnessValueID, SecOCFreshnessValue, SecOCFreshnessValueLength);
+    Std_ReturnType ret = FVM_GetTxFreshness(SecOCFreshnessValueID, SecOCFreshnessValue, SecOCFreshnessValueLength);
     
     if (ret == E_OK && SecOCTruncatedFreshnessValue != (void*)0) {
         uint32 truncBits = *SecOCTruncatedFreshnessValueLength;
@@ -133,7 +133,7 @@ Std_ReturnType SecOC_GetTxFreshnessTruncData(
 }
 
 /* Internal utility to update the local counter notion */
-Std_ReturnType SecOC_UpdateCounter(uint16 SecOCFreshnessValueID, uint8* SecOCFreshnessValue, uint32 SecOCFreshnessValueLength) {
+Std_ReturnType FVM_UpdateCounter(uint16 SecOCFreshnessValueID, uint8* SecOCFreshnessValue, uint32 SecOCFreshnessValueLength) {
     if (SecOCFreshnessValueID >= SecOC_FreshnessValue_ID_MAX) {
         return E_NOT_OK;
     }

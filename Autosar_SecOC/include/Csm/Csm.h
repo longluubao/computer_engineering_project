@@ -2,7 +2,7 @@
 #define INCLUDE_CSM_H_
 
 /********************************************************************************************************/
-/************************************************INCULDES************************************************/
+/************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
 #include "Std_Types.h"
@@ -97,6 +97,33 @@ Std_ReturnType Csm_SignatureVerify(
     const uint8* signaturePtr,
     uint32 signatureLength,
     Crypto_VerifyResultType* verifyPtr
+);
+
+/*******************************************************
+ *          * Function Info *                           *
+ *                                                      *
+ * Function_Name        : Csm_KeyElementSet             *
+ * Function_Index       : [SWS_Csm_01018]               *
+ * Function_Descripton  : Sets a key element to the     *
+ * key identified by keyId.                             *
+ *******************************************************/
+Std_ReturnType Csm_KeyElementSet(
+    uint32 keyId,
+    uint32 keyElementId,
+    const uint8* keyPtr,
+    uint32 keyLength
+);
+
+/*******************************************************
+ *          * Function Info *                           *
+ *                                                      *
+ * Function_Name        : Csm_KeySetValid               *
+ * Function_Index       : [SWS_Csm_01019]               *
+ * Function_Descripton  : Sets the key state of the     *
+ * key identified by keyId to valid.                    *
+ *******************************************************/
+Std_ReturnType Csm_KeySetValid(
+    uint32 keyId
 );
 
 #endif

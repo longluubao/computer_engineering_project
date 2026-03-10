@@ -1,5 +1,12 @@
+/**
+ * @file SoAd.c
+ * @brief AUTOSAR Socket Adapter Module Implementation
+ * @details Routes PDU transmissions through TcpIp module instead of raw ethernet.
+ *          Manages socket connections and routing groups per AUTOSAR SWS_SoAd.
+ */
+
 /********************************************************************************************************/
-/************************************************INCULDES************************************************/
+/************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
 #include "SoAd.h"
@@ -8,47 +15,198 @@
 #include "Std_Types.h"
 #include "SecOC_Debug.h"
 #include "SecOC_Cfg.h"
+#include "TcpIp.h"
+#include "Det.h"
 
 #ifdef SCHEDULER_ON
     #include <pthread.h>
-#endif 
-
-#ifdef LINUX
-#include "ethernet.h"
-#elif defined(WINDOWS)
-#include "ethernet_windows.h"
 #endif
+
+#include <string.h>
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
 /********************************************************************************************************/
 
+static boolean SoAd_Initialized = FALSE;
+
+/* TP buffers (preserved from original) */
 static PduInfoType SoAdTp_Buffer[SOAD_BUFFERLENGTH];
 static PduInfoType SoAdTp_Buffer_Rx[SECOC_NUM_OF_RX_PDU_PROCESSING];
 static uint8 SoAdTp_Recieve_Counter[SECOC_NUM_OF_RX_PDU_PROCESSING] = {0};
 static PduLengthType SoAdTp_secureLength_Recieve[SECOC_NUM_OF_RX_PDU_PROCESSING] = {0};
 
+/* Socket connection table */
+static SoAd_SoConStateType SoAd_SoConStates[SOAD_MAX_SOCKET_CONNECTIONS];
+
+/* Routing group table */
+static SoAd_RoutingGroupStateType SoAd_RoutingGroupStates[SOAD_MAX_ROUTING_GROUPS];
 
 extern const SecOC_RxPduProcessingType     *SecOCRxPduProcessing;
-
 extern SecOC_PduCollection PdusCollections[];
+
 #ifdef SCHEDULER_ON
     extern pthread_mutex_t lock;
-#endif 
+#endif
+
+/********************************************************************************************************/
+/**************************************Static Helper Functions*******************************************/
+/********************************************************************************************************/
+
+/**
+ * @brief Find socket connection for a given TxPduId.
+ * @details Searches the connection table for a connection mapped to TxPduId.
+ *          If none exists and there is a free slot, allocates a default UDP connection.
+ */
+static SoAd_SoConIdType SoAd_FindOrCreateSoCon(PduIdType TxPduId)
+{
+    SoAd_SoConIdType idx;
+
+    /* Search for existing mapping */
+    for (idx = 0U; idx < SOAD_MAX_SOCKET_CONNECTIONS; idx++)
+    {
+        if ((SoAd_SoConStates[idx].IsAllocated == TRUE) &&
+            (SoAd_SoConStates[idx].TxPduId == TxPduId))
+        {
+            return idx;
+        }
+    }
+
+    /* Auto-allocate a connection for this PDU (default UDP, port = 50000 + TxPduId) */
+    for (idx = 0U; idx < SOAD_MAX_SOCKET_CONNECTIONS; idx++)
+    {
+        if (SoAd_SoConStates[idx].IsAllocated == FALSE)
+        {
+            TcpIp_SocketIdType sockId = TCPIP_SOCKET_ID_INVALID;
+            Std_ReturnType res;
+
+            res = TcpIp_GetSocketId(TCPIP_AF_INET, TCPIP_IPPROTO_UDP, &sockId);
+            if (res != E_OK)
+            {
+                return SOAD_MAX_SOCKET_CONNECTIONS; /* invalid sentinel */
+            }
+
+            SoAd_SoConStates[idx].SocketId    = sockId;
+            SoAd_SoConStates[idx].Protocol     = TCPIP_IPPROTO_UDP;
+            SoAd_SoConStates[idx].LocalAddrId  = 0U;
+            SoAd_SoConStates[idx].LocalPort    = (uint16)(50000U + TxPduId);
+            SoAd_SoConStates[idx].Mode         = SOAD_SOCON_ONLINE;
+            SoAd_SoConStates[idx].IsAllocated  = TRUE;
+            SoAd_SoConStates[idx].TxPduId      = TxPduId;
+
+            /* Set default remote: 127.0.0.1 with port based on PDU */
+            SoAd_SoConStates[idx].RemoteAddr.domain  = TCPIP_AF_INET;
+            SoAd_SoConStates[idx].RemoteAddr.addr[0] = 127U;
+            SoAd_SoConStates[idx].RemoteAddr.addr[1] = 0U;
+            SoAd_SoConStates[idx].RemoteAddr.addr[2] = 0U;
+            SoAd_SoConStates[idx].RemoteAddr.addr[3] = 1U;
+            SoAd_SoConStates[idx].RemoteAddr.port    = (uint16)(50000U + TxPduId);
+
+            /* Bind the socket */
+            {
+                uint16 port = SoAd_SoConStates[idx].LocalPort;
+                (void)TcpIp_Bind(sockId, SoAd_SoConStates[idx].LocalAddrId, &port);
+                SoAd_SoConStates[idx].LocalPort = port;
+            }
+
+            return idx;
+        }
+    }
+
+    return SOAD_MAX_SOCKET_CONNECTIONS; /* no free slot */
+}
+
+/**
+ * @brief Transmit data via TcpIp using the socket connection for TxPduId.
+ */
+static Std_ReturnType SoAd_TcpIpTransmit(PduIdType TxPduId, const uint8* DataPtr, uint16 Length)
+{
+    SoAd_SoConIdType soConId;
+    Std_ReturnType result;
+
+    soConId = SoAd_FindOrCreateSoCon(TxPduId);
+    if (soConId >= SOAD_MAX_SOCKET_CONNECTIONS)
+    {
+        return E_NOT_OK;
+    }
+
+    if (SoAd_SoConStates[soConId].Mode != SOAD_SOCON_ONLINE)
+    {
+        return E_NOT_OK;
+    }
+
+    if (SoAd_SoConStates[soConId].Protocol == TCPIP_IPPROTO_UDP)
+    {
+        result = TcpIp_UdpTransmit(
+            SoAd_SoConStates[soConId].SocketId,
+            DataPtr,
+            &SoAd_SoConStates[soConId].RemoteAddr,
+            Length
+        );
+    }
+    else
+    {
+        result = TcpIp_TcpTransmit(
+            SoAd_SoConStates[soConId].SocketId,
+            DataPtr,
+            (uint32)Length,
+            TRUE
+        );
+    }
+
+    return result;
+}
+
 /********************************************************************************************************/
 /********************************************Functions***************************************************/
 /********************************************************************************************************/
+
+void SoAd_Init(const SoAd_ConfigType* ConfigPtr)
+{
+    uint16 idx;
+
+    (void)ConfigPtr;
+
+    /* Initialize socket connection table */
+    for (idx = 0U; idx < SOAD_MAX_SOCKET_CONNECTIONS; idx++)
+    {
+        SoAd_SoConStates[idx].SocketId    = TCPIP_SOCKET_ID_INVALID;
+        SoAd_SoConStates[idx].Protocol    = TCPIP_IPPROTO_UDP;
+        SoAd_SoConStates[idx].LocalAddrId = 0U;
+        SoAd_SoConStates[idx].LocalPort   = 0U;
+        SoAd_SoConStates[idx].Mode        = SOAD_SOCON_OFFLINE;
+        SoAd_SoConStates[idx].IsAllocated = FALSE;
+        SoAd_SoConStates[idx].TxPduId     = 0U;
+        (void)memset(&SoAd_SoConStates[idx].RemoteAddr, 0, sizeof(TcpIp_SockAddrType));
+    }
+
+    /* Initialize routing groups (all enabled by default) */
+    for (idx = 0U; idx < SOAD_MAX_ROUTING_GROUPS; idx++)
+    {
+        SoAd_RoutingGroupStates[idx].Enabled = TRUE;
+    }
+
+    /* Initialize TP buffers */
+    (void)memset(SoAdTp_Buffer, 0, sizeof(SoAdTp_Buffer));
+    (void)memset(SoAdTp_Buffer_Rx, 0, sizeof(SoAdTp_Buffer_Rx));
+    (void)memset(SoAdTp_Recieve_Counter, 0, sizeof(SoAdTp_Recieve_Counter));
+    (void)memset(SoAdTp_secureLength_Recieve, 0, sizeof(SoAdTp_secureLength_Recieve));
+
+    SoAd_Initialized = TRUE;
+
+    #ifdef SOAD_DEBUG
+        printf("######## SoAd_Init completed\n");
+    #endif
+}
 
 /****************************************************
  *          * Function Info *                       *
  *                                                  *
  * Function_Name        : SoAd_IfTransmit           *
- * Function_Index       :                           *
- * Function_File        : SWS of SoAd Interface     *
  * Function_Descripton  : Requests transmission     *
- *              of a PDU                            *
+ *              of an IF PDU via TcpIp              *
  ***************************************************/
-Std_ReturnType SoAd_IfTransmit(PduIdType TxPduId,const PduInfoType* PduInfoPtr)
+Std_ReturnType SoAd_IfTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr)
 {
     #ifdef SOAD_DEBUG
         printf("######## in SoAd_IfTransmit \n");
@@ -56,70 +214,415 @@ Std_ReturnType SoAd_IfTransmit(PduIdType TxPduId,const PduInfoType* PduInfoPtr)
 
     Std_ReturnType result = E_OK;
 
+#if (SOAD_DEV_ERROR_DETECT == STD_ON)
+    if (SoAd_Initialized == FALSE)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_IF_TRANSMIT, SOAD_E_NOTINIT);
+        return E_NOT_OK;
+    }
+    if (PduInfoPtr == NULL)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_IF_TRANSMIT, SOAD_E_PARAM_POINTER);
+        return E_NOT_OK;
+    }
+#else
+    if (PduInfoPtr == NULL)
+    {
+        return E_NOT_OK;
+    }
+#endif
+
+    if ((PduInfoPtr->SduLength > 0U) && (PduInfoPtr->SduDataPtr == NULL))
+    {
+        return E_NOT_OK;
+    }
+
     #ifdef SOAD_DEBUG
         printf("Secure PDU -->\n");
-            for(int i = 0; i < PduInfoPtr->SduLength; i++)
+        {
+            PduLengthType i;
+            for (i = 0U; i < PduInfoPtr->SduLength; i++)
+            {
                 printf("%d ", PduInfoPtr->SduDataPtr[i]);
-        printf("\n");
+            }
+            printf("\n");
+        }
     #endif
 
-    #if defined(__linux__) || defined(WINDOWS)
-    result = ethernet_send(TxPduId, PduInfoPtr->SduDataPtr , PduInfoPtr->SduLength);
-    #endif
-    int delay = 50000000;
-    while (delay--);
+    /* Transmit via TcpIp layer */
+    result = SoAd_TcpIpTransmit(TxPduId, PduInfoPtr->SduDataPtr, (uint16)PduInfoPtr->SduLength);
 
-    if (PdusCollections[TxPduId].Type== SECOC_SECURED_PDU_SOADTP)
+    /* Confirmation callbacks (preserved from original) */
+    if (PdusCollections[TxPduId].Type == SECOC_SECURED_PDU_SOADTP)
     {
         SoAdTp_TxConfirmation(TxPduId, result);
     }
     else if (PdusCollections[TxPduId].Type == SECOC_SECURED_PDU_SOADIF)
     {
-        PduR_SoAdIfTxConfirmation(TxPduId , result);
+        PduR_SoAdIfTxConfirmation(TxPduId, result);
     }
-
+    else
+    {
+        /* No action for other types */
+    }
 
     return result;
 }
-
-
-
-
-
-
 
 Std_ReturnType SoAd_TpTransmit(PduIdType SoAdTxSduId, const PduInfoType* SoAdTxInfoPtr)
 {
     #ifdef SOAD_DEBUG
         printf("######## in SoAd_TpTransmit\n");
     #endif
+
+#if (SOAD_DEV_ERROR_DETECT == STD_ON)
+    if (SoAd_Initialized == FALSE)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_TP_TRANSMIT, SOAD_E_NOTINIT);
+        return E_NOT_OK;
+    }
+    if (SoAdTxInfoPtr == NULL)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_TP_TRANSMIT, SOAD_E_PARAM_POINTER);
+        return E_NOT_OK;
+    }
+    if (SoAdTxSduId >= SECOC_NUM_OF_TX_PDU_PROCESSING)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_TP_TRANSMIT, SOAD_E_INV_PDUID);
+        return E_NOT_OK;
+    }
+#else
+    if ((SoAdTxInfoPtr == NULL) || (SoAdTxSduId >= SECOC_NUM_OF_TX_PDU_PROCESSING))
+    {
+        return E_NOT_OK;
+    }
+#endif
+
     SoAdTp_Buffer[SoAdTxSduId] = *SoAdTxInfoPtr;
+    return E_OK;
 }
 
-void SoAdTp_RxIndication (PduIdType RxPduId, const PduInfoType* PduInfoPtr)
+Std_ReturnType SoAd_GetSoConId(PduIdType TxPduId, SoAd_SoConIdType* SoConIdPtr)
+{
+    SoAd_SoConIdType idx;
+
+#if (SOAD_DEV_ERROR_DETECT == STD_ON)
+    if (SoAd_Initialized == FALSE)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_GET_SOCON_ID, SOAD_E_NOTINIT);
+        return E_NOT_OK;
+    }
+    if (SoConIdPtr == NULL)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_GET_SOCON_ID, SOAD_E_PARAM_POINTER);
+        return E_NOT_OK;
+    }
+#else
+    if (SoConIdPtr == NULL)
+    {
+        return E_NOT_OK;
+    }
+#endif
+
+    for (idx = 0U; idx < SOAD_MAX_SOCKET_CONNECTIONS; idx++)
+    {
+        if ((SoAd_SoConStates[idx].IsAllocated == TRUE) &&
+            (SoAd_SoConStates[idx].TxPduId == TxPduId))
+        {
+            *SoConIdPtr = idx;
+            return E_OK;
+        }
+    }
+
+    return E_NOT_OK;
+}
+
+Std_ReturnType SoAd_OpenSoCon(SoAd_SoConIdType SoConId)
+{
+#if (SOAD_DEV_ERROR_DETECT == STD_ON)
+    if (SoAd_Initialized == FALSE)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_OPEN_SOCON, SOAD_E_NOTINIT);
+        return E_NOT_OK;
+    }
+    if (SoConId >= SOAD_MAX_SOCKET_CONNECTIONS)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_OPEN_SOCON, SOAD_E_INV_SOCON_ID);
+        return E_NOT_OK;
+    }
+#else
+    if (SoConId >= SOAD_MAX_SOCKET_CONNECTIONS)
+    {
+        return E_NOT_OK;
+    }
+#endif
+
+    if (SoAd_SoConStates[SoConId].IsAllocated == FALSE)
+    {
+        return E_NOT_OK;
+    }
+
+    SoAd_SoConStates[SoConId].Mode = SOAD_SOCON_ONLINE;
+
+    #ifdef SOAD_DEBUG
+        printf("######## SoAd_OpenSoCon: SoConId=%u now ONLINE\n", SoConId);
+    #endif
+
+    return E_OK;
+}
+
+Std_ReturnType SoAd_CloseSoCon(SoAd_SoConIdType SoConId, boolean Abort)
+{
+#if (SOAD_DEV_ERROR_DETECT == STD_ON)
+    if (SoAd_Initialized == FALSE)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_CLOSE_SOCON, SOAD_E_NOTINIT);
+        return E_NOT_OK;
+    }
+    if (SoConId >= SOAD_MAX_SOCKET_CONNECTIONS)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_CLOSE_SOCON, SOAD_E_INV_SOCON_ID);
+        return E_NOT_OK;
+    }
+#else
+    if (SoConId >= SOAD_MAX_SOCKET_CONNECTIONS)
+    {
+        return E_NOT_OK;
+    }
+#endif
+
+    if (SoAd_SoConStates[SoConId].IsAllocated == FALSE)
+    {
+        return E_NOT_OK;
+    }
+
+    /* Close the underlying TcpIp socket */
+    if (SoAd_SoConStates[SoConId].SocketId != TCPIP_SOCKET_ID_INVALID)
+    {
+        (void)TcpIp_Close(SoAd_SoConStates[SoConId].SocketId, Abort);
+        SoAd_SoConStates[SoConId].SocketId = TCPIP_SOCKET_ID_INVALID;
+    }
+
+    SoAd_SoConStates[SoConId].Mode = SOAD_SOCON_OFFLINE;
+
+    #ifdef SOAD_DEBUG
+        printf("######## SoAd_CloseSoCon: SoConId=%u now OFFLINE\n", SoConId);
+    #endif
+
+    return E_OK;
+}
+
+Std_ReturnType SoAd_GetLocalAddr(
+    SoAd_SoConIdType SoConId,
+    TcpIp_SockAddrType* LocalAddrPtr,
+    uint8* NetmaskPtr,
+    TcpIp_SockAddrType* DefaultRouterPtr)
+{
+#if (SOAD_DEV_ERROR_DETECT == STD_ON)
+    if (SoAd_Initialized == FALSE)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_GET_LOCAL_ADDR, SOAD_E_NOTINIT);
+        return E_NOT_OK;
+    }
+    if ((LocalAddrPtr == NULL) || (NetmaskPtr == NULL) || (DefaultRouterPtr == NULL))
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_GET_LOCAL_ADDR, SOAD_E_PARAM_POINTER);
+        return E_NOT_OK;
+    }
+    if (SoConId >= SOAD_MAX_SOCKET_CONNECTIONS)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_GET_LOCAL_ADDR, SOAD_E_INV_SOCON_ID);
+        return E_NOT_OK;
+    }
+#else
+    if ((SoConId >= SOAD_MAX_SOCKET_CONNECTIONS) ||
+        (LocalAddrPtr == NULL) || (NetmaskPtr == NULL) || (DefaultRouterPtr == NULL))
+    {
+        return E_NOT_OK;
+    }
+#endif
+
+    if (SoAd_SoConStates[SoConId].IsAllocated == FALSE)
+    {
+        return E_NOT_OK;
+    }
+
+    return TcpIp_GetIpAddr(
+        SoAd_SoConStates[SoConId].LocalAddrId,
+        LocalAddrPtr,
+        NetmaskPtr,
+        DefaultRouterPtr
+    );
+}
+
+Std_ReturnType SoAd_GetRemoteAddr(SoAd_SoConIdType SoConId, TcpIp_SockAddrType* IpAddrPtr)
+{
+#if (SOAD_DEV_ERROR_DETECT == STD_ON)
+    if (SoAd_Initialized == FALSE)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_GET_REMOTE_ADDR, SOAD_E_NOTINIT);
+        return E_NOT_OK;
+    }
+    if (IpAddrPtr == NULL)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_GET_REMOTE_ADDR, SOAD_E_PARAM_POINTER);
+        return E_NOT_OK;
+    }
+    if (SoConId >= SOAD_MAX_SOCKET_CONNECTIONS)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_GET_REMOTE_ADDR, SOAD_E_INV_SOCON_ID);
+        return E_NOT_OK;
+    }
+#else
+    if ((SoConId >= SOAD_MAX_SOCKET_CONNECTIONS) || (IpAddrPtr == NULL))
+    {
+        return E_NOT_OK;
+    }
+#endif
+
+    if (SoAd_SoConStates[SoConId].IsAllocated == FALSE)
+    {
+        return E_NOT_OK;
+    }
+
+    *IpAddrPtr = SoAd_SoConStates[SoConId].RemoteAddr;
+    return E_OK;
+}
+
+Std_ReturnType SoAd_SetRemoteAddr(SoAd_SoConIdType SoConId, const TcpIp_SockAddrType* RemoteAddrPtr)
+{
+#if (SOAD_DEV_ERROR_DETECT == STD_ON)
+    if (SoAd_Initialized == FALSE)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_SET_REMOTE_ADDR, SOAD_E_NOTINIT);
+        return E_NOT_OK;
+    }
+    if (RemoteAddrPtr == NULL)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_SET_REMOTE_ADDR, SOAD_E_PARAM_POINTER);
+        return E_NOT_OK;
+    }
+    if (SoConId >= SOAD_MAX_SOCKET_CONNECTIONS)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_SET_REMOTE_ADDR, SOAD_E_INV_SOCON_ID);
+        return E_NOT_OK;
+    }
+#else
+    if ((SoConId >= SOAD_MAX_SOCKET_CONNECTIONS) || (RemoteAddrPtr == NULL))
+    {
+        return E_NOT_OK;
+    }
+#endif
+
+    if (SoAd_SoConStates[SoConId].IsAllocated == FALSE)
+    {
+        return E_NOT_OK;
+    }
+
+    SoAd_SoConStates[SoConId].RemoteAddr = *RemoteAddrPtr;
+    return E_OK;
+}
+
+Std_ReturnType SoAd_EnableRouting(SoAd_RoutingGroupIdType RoutingGroupId)
+{
+#if (SOAD_DEV_ERROR_DETECT == STD_ON)
+    if (SoAd_Initialized == FALSE)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_ENABLE_ROUTING, SOAD_E_NOTINIT);
+        return E_NOT_OK;
+    }
+    if (RoutingGroupId >= SOAD_MAX_ROUTING_GROUPS)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_ENABLE_ROUTING, SOAD_E_INV_ROUTING_GROUP_ID);
+        return E_NOT_OK;
+    }
+#else
+    if (RoutingGroupId >= SOAD_MAX_ROUTING_GROUPS)
+    {
+        return E_NOT_OK;
+    }
+#endif
+
+    SoAd_RoutingGroupStates[RoutingGroupId].Enabled = TRUE;
+    return E_OK;
+}
+
+Std_ReturnType SoAd_DisableRouting(SoAd_RoutingGroupIdType RoutingGroupId)
+{
+#if (SOAD_DEV_ERROR_DETECT == STD_ON)
+    if (SoAd_Initialized == FALSE)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_DISABLE_ROUTING, SOAD_E_NOTINIT);
+        return E_NOT_OK;
+    }
+    if (RoutingGroupId >= SOAD_MAX_ROUTING_GROUPS)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_DISABLE_ROUTING, SOAD_E_INV_ROUTING_GROUP_ID);
+        return E_NOT_OK;
+    }
+#else
+    if (RoutingGroupId >= SOAD_MAX_ROUTING_GROUPS)
+    {
+        return E_NOT_OK;
+    }
+#endif
+
+    SoAd_RoutingGroupStates[RoutingGroupId].Enabled = FALSE;
+    return E_OK;
+}
+
+void SoAd_GetVersionInfo(Std_VersionInfoType* VersionInfoPtr)
+{
+#if (SOAD_DEV_ERROR_DETECT == STD_ON)
+    if (VersionInfoPtr == NULL)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_GET_VERSION_INFO, SOAD_E_PARAM_POINTER);
+        return;
+    }
+#else
+    if (VersionInfoPtr == NULL)
+    {
+        return;
+    }
+#endif
+
+    VersionInfoPtr->vendorID         = SOAD_VENDOR_ID;
+    VersionInfoPtr->moduleID         = SOAD_MODULE_ID;
+    VersionInfoPtr->sw_major_version = SOAD_SW_MAJOR_VERSION;
+    VersionInfoPtr->sw_minor_version = SOAD_SW_MINOR_VERSION;
+    VersionInfoPtr->sw_patch_version = SOAD_SW_PATCH_VERSION;
+}
+
+void SoAdTp_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
 {
     #ifdef SOAD_DEBUG
         printf("######## in SoAdTp_RxIndication\n");
     #endif
-    /* copy to SoAdTp buffer */
+
+    if ((PduInfoPtr == NULL) || (RxPduId >= SECOC_NUM_OF_RX_PDU_PROCESSING))
+    {
+        return;
+    }
+
+    /* Copy to SoAdTp buffer */
     SoAdTp_Buffer_Rx[RxPduId] = *PduInfoPtr;
-    
-    /* Check if it first frame :
-        Check if there are a header of no 
-            if there are a header 
-                get the auth length from the frame
-            else 
-                get the config length of data
-        then add the Freshness , Mac and Header length 
-        to the the whole Secure Frame Length to recieve
-    */
-    if(SoAdTp_Recieve_Counter[RxPduId] == 0)
+
+    /*
+     * Check if first frame:
+     *   If there is a header -> get auth length from the frame
+     *   Else -> get the config length of data
+     * Then add Freshness, Mac and Header length for the whole Secure Frame Length
+     */
+    if (SoAdTp_Recieve_Counter[RxPduId] == 0U)
     {
         uint8 AuthHeadlen = SecOCRxPduProcessing[RxPduId].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCAuthPduHeaderLength;
-        PduLengthType SecureDataframe = AuthHeadlen + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueTruncLength) + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCAuthInfoTruncLength);
-        if(AuthHeadlen > 0)
+        PduLengthType SecureDataframe = (PduLengthType)AuthHeadlen
+            + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueTruncLength)
+            + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCAuthInfoTruncLength);
+
+        if (AuthHeadlen > 0U)
         {
-            (void)memcpy((uint8*)&SoAdTp_secureLength_Recieve[RxPduId], PduInfoPtr->SduDataPtr, AuthHeadlen );
+            (void)memcpy((uint8*)&SoAdTp_secureLength_Recieve[RxPduId], PduInfoPtr->SduDataPtr, AuthHeadlen);
         }
         else
         {
@@ -127,7 +630,7 @@ void SoAdTp_RxIndication (PduIdType RxPduId, const PduInfoType* PduInfoPtr)
         }
         SoAdTp_secureLength_Recieve[RxPduId] += SecureDataframe;
     }
-    SoAdTp_Recieve_Counter[RxPduId] ++;
+    SoAdTp_Recieve_Counter[RxPduId]++;
 }
 
 void SoAd_MainFunctionTx(void)
@@ -135,89 +638,93 @@ void SoAd_MainFunctionTx(void)
     #ifdef SOAD_DEBUG
         printf("######## in SoAd_MainFunctionTx\n");
     #endif
+
     uint8 sdata[BUS_LENGTH] = {0};
     uint8 mdata[BUS_LENGTH] = {0};
     PduLengthType length = BUS_LENGTH;
-    PduInfoType info = {sdata,mdata,length};
+    PduInfoType info = {sdata, mdata, length};
 
     TpDataStateType retrystate = TP_DATACONF;
     PduLengthType retrycout = BUS_LENGTH;
-    RetryInfoType retry = {retrystate,retrycout};
+    RetryInfoType retry = {retrystate, retrycout};
 
-    PduLengthType availableDataPtr = 0;
-    for(PduIdType TxPduId = 0 ; TxPduId < SECOC_NUM_OF_TX_PDU_PROCESSING ; TxPduId++)
+    PduLengthType availableDataPtr = 0U;
+    PduIdType TxPduId;
+
+    for (TxPduId = 0U; TxPduId < SECOC_NUM_OF_TX_PDU_PROCESSING; TxPduId++)
     {
-        /*
-        if there is a data to send
-            loop to send all frames
-                copy data from upper layer
-                send it to SoAdIF
-                if result = E_OK
-                    continue sending 
-                else if NOT_E_OK
-                    make retrystate = TP_DATARETRY
-            send confirmationc
-            clear the buffer
-        else
-            do nothing
-        */
-        
-        if( SoAdTp_Buffer[TxPduId].SduLength > 0)
+        if (SoAdTp_Buffer[TxPduId].SduLength > 0U)
         {
-            uint8 lastFrameIndex = (SoAdTp_Buffer[TxPduId].SduLength % BUS_LENGTH == 0)  ? (SoAdTp_Buffer[TxPduId].SduLength / BUS_LENGTH) : ((SoAdTp_Buffer[TxPduId].SduLength / BUS_LENGTH) + 1);
+            uint8 lastFrameIndex = (uint8)((SoAdTp_Buffer[TxPduId].SduLength % BUS_LENGTH == 0U)
+                ? (SoAdTp_Buffer[TxPduId].SduLength / BUS_LENGTH)
+                : ((SoAdTp_Buffer[TxPduId].SduLength / BUS_LENGTH) + 1U));
+
             #ifdef SOAD_DEBUG
-                printf("Start sending id = %d\n" , TxPduId);
-                printf("PDU length = %ld\n" , SoAdTp_Buffer[TxPduId].SduLength);       
+                printf("Start sending id = %d\n", TxPduId);
+                printf("PDU length = %ld\n", SoAdTp_Buffer[TxPduId].SduLength);
                 printf("All Data to be Sent: \n");
-                for(int i = 0 ; i < SoAdTp_Buffer[TxPduId].SduLength; i++)
                 {
-                    printf("%d  " , SoAdTp_Buffer[TxPduId].SduDataPtr[i]);
-                }
-                printf("\n\n\n");
-            #endif
-            for(int frameIndex = 0; frameIndex < lastFrameIndex ; frameIndex++)
-            {
-                if(frameIndex == lastFrameIndex - 1)
-                {
-                    info.SduLength = (SoAdTp_Buffer[TxPduId].SduLength % BUS_LENGTH == 0)  ? (BUS_LENGTH) : (SoAdTp_Buffer[TxPduId].SduLength % BUS_LENGTH);
-                    #ifdef SOAD_DEBUG
-                    printf("last frame PDU length = %ld\n" , SoAdTp_Buffer[TxPduId].SduLength);       
-                    printf("All Data to be Sent: \n");
-                    for(int i = 0 ; i < info.SduLength; i++)
+                    PduLengthType i;
+                    for (i = 0U; i < SoAdTp_Buffer[TxPduId].SduLength; i++)
                     {
-                        printf("%d  " , info.SduDataPtr[i]);
+                        printf("%d  ", SoAdTp_Buffer[TxPduId].SduDataPtr[i]);
                     }
-                    printf("\n");
+                    printf("\n\n\n");
+                }
+            #endif
+
+            int frameIndex;
+            for (frameIndex = 0; frameIndex < lastFrameIndex; frameIndex++)
+            {
+                if (frameIndex == (lastFrameIndex - 1))
+                {
+                    info.SduLength = (SoAdTp_Buffer[TxPduId].SduLength % BUS_LENGTH == 0U)
+                        ? BUS_LENGTH
+                        : (SoAdTp_Buffer[TxPduId].SduLength % BUS_LENGTH);
+
+                    #ifdef SOAD_DEBUG
+                        printf("last frame PDU length = %ld\n", SoAdTp_Buffer[TxPduId].SduLength);
+                        printf("All Data to be Sent: \n");
+                        {
+                            PduLengthType i;
+                            for (i = 0U; i < info.SduLength; i++)
+                            {
+                                printf("%d  ", info.SduDataPtr[i]);
+                            }
+                            printf("\n");
+                        }
                     #endif
                 }
+
                 BufReq_ReturnType resultCopy = PduR_SoAdTpCopyTxData(TxPduId, &info, &retry, &availableDataPtr);
-                Std_ReturnType resultTrasmit = SoAd_IfTransmit(TxPduId , &info);
-                if(resultTrasmit != E_OK || resultCopy!= BUFREQ_OK)
+                Std_ReturnType resultTransmit = SoAd_IfTransmit(TxPduId, &info);
+
+                if ((resultTransmit != E_OK) || (resultCopy != BUFREQ_OK))
                 {
                     retry.TpDataState = TP_DATARETRY;
                     frameIndex--;
                 }
-                else if(resultTrasmit == E_OK)
+                else
                 {
                     retry.TpDataState = TP_DATACONF;
                 }
 
                 #ifdef SOAD_DEBUG
-                    printf("Transmit Result = %d\n" , resultTrasmit);
+                    printf("Transmit Result = %d\n", resultTransmit);
                 #endif
-            }    
+            }
 
-            PduR_SoAdTpTxConfirmation(TxPduId , E_OK);
-            
-            SoAdTp_Buffer[TxPduId].SduLength = 0;
+            PduR_SoAdTpTxConfirmation(TxPduId, E_OK);
+            SoAdTp_Buffer[TxPduId].SduLength = 0U;
         }
     }
 }
 
-
-
 void SoAdTp_TxConfirmation(PduIdType TxPduId, Std_ReturnType result)
 {
+    (void)TxPduId;
+    (void)result;
+
     #ifdef SOAD_DEBUG
         printf("######## in SoAd_TxConfirmation \n");
     #endif
@@ -228,57 +735,63 @@ void SoAd_MainFunctionRx(void)
     #ifdef SOAD_DEBUG
         printf("######## in SoAd_MainFunctionRx\n");
     #endif
-    // SECOC_SECPDU_MAX_LENGTH;
-    
-    for(PduIdType RxPduId = 0 ; RxPduId < SECOC_NUM_OF_RX_PDU_PROCESSING ; RxPduId++)
+
+    /* Poll TcpIp for incoming data */
+    TcpIp_MainFunction();
+
+    PduIdType RxPduId;
+    for (RxPduId = 0U; RxPduId < SECOC_NUM_OF_RX_PDU_PROCESSING; RxPduId++)
     {
-        /*
-        Check there are a recieved frame for every RxPdu
-        if it recieved and there are a data in the buffer
-            before the first frame -> Send Start Of reception and wait for thre result
-            after the last frame -> send the Rx indication 
-            all frames must be send to copyRx
-        else
-            do nothing
-        */
         BufReq_ReturnType result = BUFREQ_OK;
-        if((SoAdTp_Recieve_Counter[RxPduId] > 0) && (SoAdTp_Buffer_Rx[RxPduId].SduLength > 0))
+        if ((SoAdTp_Recieve_Counter[RxPduId] > 0U) && (SoAdTp_Buffer_Rx[RxPduId].SduLength > 0U))
         {
-            uint8 lastFrameIndex = (SoAdTp_secureLength_Recieve[RxPduId] % BUS_LENGTH == 0)  ? (SoAdTp_secureLength_Recieve[RxPduId] / BUS_LENGTH) : ((SoAdTp_secureLength_Recieve[RxPduId] / BUS_LENGTH) + 1);
+            uint8 lastFrameIndex = (uint8)((SoAdTp_secureLength_Recieve[RxPduId] % BUS_LENGTH == 0U)
+                ? (SoAdTp_secureLength_Recieve[RxPduId] / BUS_LENGTH)
+                : ((SoAdTp_secureLength_Recieve[RxPduId] / BUS_LENGTH) + 1U));
+
             PduLengthType bufferSizePtr;
+
             #ifdef SOAD_DEBUG
                 printf("######## in main Soad Rx  in id : %d\n", RxPduId);
-                printf("for id %d :",RxPduId);
-                for(int l = 0; l < SoAdTp_Buffer_Rx[RxPduId].SduLength; l++)
+                printf("for id %d :", RxPduId);
                 {
-                    printf("%d ", SoAdTp_Buffer_Rx[RxPduId].SduDataPtr[l]);
+                    PduLengthType l;
+                    for (l = 0U; l < SoAdTp_Buffer_Rx[RxPduId].SduLength; l++)
+                    {
+                        printf("%d ", SoAdTp_Buffer_Rx[RxPduId].SduDataPtr[l]);
+                    }
+                    printf("\n");
                 }
-                printf("\n");
             #endif
-            if(SoAdTp_Recieve_Counter[RxPduId] == 1)
+
+            if (SoAdTp_Recieve_Counter[RxPduId] == 1U)
             {
-                result = PduR_SoAdStartOfReception(RxPduId, &SoAdTp_Buffer_Rx[RxPduId], SoAdTp_secureLength_Recieve[RxPduId], &bufferSizePtr);
+                result = PduR_SoAdStartOfReception(RxPduId, &SoAdTp_Buffer_Rx[RxPduId],
+                    SoAdTp_secureLength_Recieve[RxPduId], &bufferSizePtr);
                 if (result == BUFREQ_OK)
                 {
                     result = PduR_SoAdTpCopyRxData(RxPduId, &SoAdTp_Buffer_Rx[RxPduId], &bufferSizePtr);
                 }
                 else
                 {
-                    SoAdTp_Recieve_Counter[RxPduId] = 0;
+                    SoAdTp_Recieve_Counter[RxPduId] = 0U;
                 }
-                SoAdTp_Buffer_Rx[RxPduId].SduLength = 0;
+                SoAdTp_Buffer_Rx[RxPduId].SduLength = 0U;
             }
             else if (SoAdTp_Recieve_Counter[RxPduId] == lastFrameIndex)
             {
-                SoAdTp_Buffer_Rx[RxPduId].SduLength = (SoAdTp_secureLength_Recieve[RxPduId] % BUS_LENGTH == 0) ? (BUS_LENGTH) : (SoAdTp_secureLength_Recieve[RxPduId] % BUS_LENGTH);
+                SoAdTp_Buffer_Rx[RxPduId].SduLength = (SoAdTp_secureLength_Recieve[RxPduId] % BUS_LENGTH == 0U)
+                    ? BUS_LENGTH
+                    : (SoAdTp_secureLength_Recieve[RxPduId] % BUS_LENGTH);
                 result = PduR_SoAdTpCopyRxData(RxPduId, &SoAdTp_Buffer_Rx[RxPduId], &bufferSizePtr);
                 PduR_SoAdTpRxIndication(RxPduId, result);
-                SoAdTp_Recieve_Counter[RxPduId] = 0;
+                SoAdTp_Recieve_Counter[RxPduId] = 0U;
             }
             else
             {
                 result = PduR_SoAdTpCopyRxData(RxPduId, &SoAdTp_Buffer_Rx[RxPduId], &bufferSizePtr);
             }
+
             #ifdef SCHEDULER_ON
                 pthread_mutex_unlock(&lock);
             #endif

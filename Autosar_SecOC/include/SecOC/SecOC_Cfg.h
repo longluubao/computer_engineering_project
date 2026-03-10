@@ -2,6 +2,23 @@
 #define INCLUDE_SECOC_CFG_H_
 
 
+/* [SWS_SecOC_00107] SecOC version information */
+#define SECOC_VENDOR_ID                                                 ((uint16)0x00U)
+#define SECOC_SW_MAJOR_VERSION                                          ((uint8)2U)
+#define SECOC_SW_MINOR_VERSION                                          ((uint8)0U)
+#define SECOC_SW_PATCH_VERSION                                          ((uint8)0U)
+
+/* Service IDs for DET reporting */
+#define SECOC_SID_DEINIT                                                ((uint8)0x05U)
+#define SECOC_SID_IF_TRANSMIT                                           ((uint8)0x49U)
+#define SECOC_SID_TP_TRANSMIT                                           ((uint8)0x4AU)
+#define SECOC_SID_GET_VERSION_INFO                                      ((uint8)0x02U)
+#define SECOC_SID_VERIFY_STATUS_OVERRIDE                                ((uint8)0x0BU)
+#define SECOC_SID_MAIN_FUNCTION_TX                                      ((uint8)0x06U)
+#define SECOC_SID_MAIN_FUNCTION_RX                                      ((uint8)0x07U)
+#define SECOC_SID_RX_INDICATION                                         ((uint8)0x42U)
+#define SECOC_SID_TP_RX_INDICATION                                      ((uint8)0x45U)
+#define SECOC_SID_TX_CONFIRMATION                                       ((uint8)0x40U)
 
 /*
 * Start of General
@@ -123,7 +140,7 @@
 /* 
 * Configration parameter for SecOCVersionInfoApi 
 */ 
-#define SECOC_VERSION_INFO_API                                          ((boolean)FALSE)
+#define SECOC_VERSION_INFO_API                                          STD_ON
 
 
 

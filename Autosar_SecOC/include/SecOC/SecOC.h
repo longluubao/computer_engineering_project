@@ -2,7 +2,7 @@
 #define INCLUDE_SECOC_H_
 
 /********************************************************************************************************/
-/************************************************INCULDES************************************************/
+/************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
 #include "SecOC_Cfg.h"
@@ -281,6 +281,71 @@ Std_ReturnType SecOC_GetRxFreshness(uint16 SecOCFreshnessValueID, const uint8* S
 uint32 SecOCTruncatedFreshnessValueLength, uint16 SecOCAuthVerifyAttempts, uint8* SecOCFreshnessValue,
 uint32* SecOCFreshnessValueLength);
 
+
+/********************************************************
+ *          * Function Info *                           *
+ *                                                      *
+ * Function_Name        : SecOC_TpTransmit              *
+ * Function_Index       : 8.3.5 [SWS_SecOC_00113]       *
+ * Function_File        : SWS of SecOC                  *
+ * Function_Descripton  : Requests transmission of a    *
+ * PDU via Transport Protocol.                          *
+ *******************************************************/
+
+Std_ReturnType SecOC_TpTransmit(
+    PduIdType                  TxPduId,
+    const PduInfoType*         PduInfoPtr
+);
+
+
+/********************************************************
+ *          * Function Info *                           *
+ *                                                      *
+ * Function_Name        : SecOC_TpCancelTransmit        *
+ * Function_Index       : 8.3.7 [SWS_SecOC_00119]       *
+ * Function_File        : SWS of SecOC                  *
+ * Function_Descripton  : Requests cancellation of an   *
+ * ongoing TP transmission of a PDU.                    *
+ *******************************************************/
+
+Std_ReturnType SecOC_TpCancelTransmit(
+    PduIdType                  TxPduId
+);
+
+
+/********************************************************
+ *          * Function Info *                           *
+ *                                                      *
+ * Function_Name        : SecOC_GetVersionInfo          *
+ * Function_Index       : 8.3.3 [SWS_SecOC_00107]       *
+ * Function_File        : SWS of SecOC                  *
+ * Function_Descripton  : Returns the version           *
+ * information of the SecOC module.                     *
+ *******************************************************/
+
+#if (SECOC_VERSION_INFO_API == STD_ON)
+void SecOC_GetVersionInfo(
+    Std_VersionInfoType*       versioninfo
+);
+#endif
+
+
+/********************************************************
+ *          * Function Info *                           *
+ *                                                      *
+ * Function_Name        : SecOC_VerifyStatusOverride    *
+ * Function_Index       : 8.3.8 [SWS_SecOC_91008]       *
+ * Function_File        : SWS of SecOC                  *
+ * Function_Descripton  : This interface is used by     *
+ * the upper layer to override the verification status  *
+ * for a specific Freshness Value ID.                   *
+ *******************************************************/
+
+Std_ReturnType SecOC_VerifyStatusOverride(
+    uint16                     SecOCFreshnessValueID,
+    uint8                      overrideStatus,
+    uint8                      numberOfMessagesToOverride
+);
 
 
 #endif /* INCLUDE_SECOC_H_*/

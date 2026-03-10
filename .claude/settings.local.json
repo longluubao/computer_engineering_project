@@ -14,7 +14,8 @@
       "WebFetch(domain:autosartutorials.com)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:charliehdzmx.github.io)",
-      "WebFetch(domain:www.renesas.com)"
+      "WebFetch(domain:www.renesas.com)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

@@ -188,7 +188,7 @@ class DashboardPage(QWidget):
         toolbar = QHBoxLayout()
         toolbar.setSpacing(8)
 
-        toolbar.addWidget(SectionHeader("Zonal Gateway Architecture"))
+        toolbar.addWidget(SectionHeader("Zonal E/E Architecture"))
         toolbar.addStretch()
 
         # Topology summary chip
@@ -210,6 +210,14 @@ class DashboardPage(QWidget):
         btn_add.setStyleSheet(_BTN_STYLE)
         btn_add.clicked.connect(self._on_add_zone)
         toolbar.addWidget(btn_add)
+
+        # Load 1-Zone Demo button
+        btn_1zone = QPushButton("1-Zone Demo")
+        btn_1zone.setCursor(Qt.PointingHandCursor)
+        btn_1zone.setStyleSheet(_BTN_STYLE)
+        btn_1zone.setToolTip("Load single demo zone for thesis demonstration")
+        btn_1zone.clicked.connect(self._on_load_1zone)
+        toolbar.addWidget(btn_1zone)
 
         # Load 6-Zone Preset button
         btn_preset = QPushButton("6-Zone Preset")
@@ -344,12 +352,11 @@ class DashboardPage(QWidget):
 
     def _metrics_row(self) -> MetricsBar:
         self._mbar = MetricsBar([
-            ("Auth Mode",       "PQC",  Theme.color.PQC_PURPLE),
-            ("Messages TX",     "0",    Theme.color.CYAN),
-            ("Messages RX",     "0",    Theme.color.CYAN_DARK),
-            ("Verify OK",       "0",    Theme.color.GREEN),
-            ("Verify Fail",     "0",    Theme.color.RED),
-            ("Attacks Blocked", "0/0",  Theme.color.ORANGE),
+            ("Zones",           "0",    Theme.color.CYAN),
+            ("ECUs",            "0",    Theme.color.CYAN_DARK),
+            ("PQC Secured",     "0",    Theme.color.PQC_PURPLE),
+            ("Domains",         "0",    Theme.color.GREEN),
+            ("Backbone",        "Offline", Theme.color.TEXT_MUTED),
         ])
         return self._mbar
 
@@ -362,6 +369,11 @@ class DashboardPage(QWidget):
         """Load the standard 6-zone automotive layout."""
         self._arch.reset_all()
         topology.load_6zone_preset()
+
+    def _on_load_1zone(self):
+        """Load the 1-zone demo layout for thesis demonstration."""
+        self._arch.reset_all()
+        topology.load_1zone_demo()
 
     def _on_reset_topology(self):
         """Clear to 0 zones — empty canvas."""
@@ -386,7 +398,6 @@ class DashboardPage(QWidget):
     def _connect_signals(self):
         state.changed.connect(self._refresh)
         state.init_changed.connect(self._on_backend)
-        state.mode_changed.connect(self._on_mode)
         hub.auth_completed.connect(self._on_auth)
         hub.verify_completed.connect(self._on_verify)
         topology.changed.connect(self._update_topo_label)
@@ -398,9 +409,6 @@ class DashboardPage(QWidget):
             self._light_secoc.set_preset("ok", "SecOC")
             self._light_pqc.set_preset("pqc", "PQC Engine")
         self._arch.set_node_state("gateway", 3 if ready else 0)
-
-    def _on_mode(self, name: str):
-        self._mbar.set_value(0, name)
 
     def _on_auth(self, msg: str, elapsed: float):
         self._arch.set_node_state("gateway", 1)
@@ -424,12 +432,18 @@ class DashboardPage(QWidget):
     # ── Periodic refresh ──────────────────────────────────────────────
 
     def _refresh(self):
-        c = state.counters
-        self._mbar.set_value(1, f"{c.tx_total:,}")
-        self._mbar.set_value(2, f"{c.rx_total:,}")
-        self._mbar.set_value(3, f"{c.verify_ok:,}")
-        self._mbar.set_value(4, f"{c.verify_fail:,}")
-        self._mbar.set_value(5, f"{c.attacks_detected}/{c.attacks_total}")
+        # Update topology-based metrics
+        self._mbar.set_value(0, str(topology.zone_count))
+        self._mbar.set_value(1, str(topology.total_ecus))
+        self._mbar.set_value(2, str(topology.pqc_secured_ecus))
+        self._mbar.set_value(3, str(len(topology.active_domains)))
 
+        backbone = topology.backbone_status
+        color = Theme.color.GREEN if backbone == "Online" else (
+            Theme.color.CYAN if backbone == "Simulated" else Theme.color.TEXT_MUTED
+        )
+        self._mbar.set_value(4, backbone)
+
+        # Update gauges with security stats
         self._g_success.set_value(state.success_rate)
         self._g_latency.set_value(state.avg_latency_us)

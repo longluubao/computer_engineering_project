@@ -1,5 +1,5 @@
 /********************************************************************************************************/
-/************************************************INCULDES************************************************/
+/************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 #include <stdio.h>
 #include "SecOC.h"
@@ -10,6 +10,7 @@
 #include "PduR_CanIf.h"
 #include "CanTP.h"
 #include "SoAd.h"
+#include "EcuM.h"
 
 #ifdef LINUX
 #include "ethernet.h"
@@ -68,10 +69,8 @@ static char* errorString(Std_ReturnType error)
 
 DLL_EXPORT void GUIInterface_init()
 {
-#if defined(LINUX) || defined(WINDOWS)
-    ethernet_init();
-#endif
-    SecOC_Init(&SecOC_Config);
+    EcuM_Init(NULL);
+    (void)EcuM_StartupTwo();
 }
 
 DLL_EXPORT char* GUIInterface_authenticate(uint8_t configId, uint8_t *data, uint8_t len)

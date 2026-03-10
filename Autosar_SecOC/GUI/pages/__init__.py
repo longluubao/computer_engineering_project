@@ -1,18 +1,15 @@
-"""Application pages – each is a standalone QWidget panel."""
+"""Application pages - each is a standalone QWidget panel."""
 
 from .dashboard import DashboardPage
-from .secoc_auth import SecOCAuthPage
-from .key_exchange import KeyExchangePage
-from .gateway_sim import GatewaySimPage
-from .performance import PerformancePage
-from .attack_sim import AttackSimPage
+from .routing import RoutingPage
+from .secoc_config import SecOCConfigPage
+from .diagnostics import DiagnosticsPage
+from .hardware_config import HardwareConfigPage
 
 __all__ = [
     "DashboardPage",
-    "SecOCAuthPage",
-    "KeyExchangePage",
-    "GatewaySimPage",
-    "PerformancePage",
-    "AttackSimPage",
+    "RoutingPage",
+    "SecOCConfigPage",
+    "DiagnosticsPage",
+    "HardwareConfigPage",
 ]
-

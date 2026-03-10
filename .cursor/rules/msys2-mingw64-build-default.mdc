@@ -1,0 +1,19 @@
+---
+description: Default build flow uses MSYS2 MinGW64 bash command
+alwaysApply: true
+---
+
+# MSYS2 MinGW64 Build Default
+
+When a build/compile request is made for this repository, use PowerShell with MSYS2 MinGW64 by default.
+
+Use this exact command:
+
+```powershell
+$env:MSYSTEM="MINGW64"; & "C:\msys64\usr\bin\bash.exe" -lc "cd '/c/Users/LLU2HC/Documents/Long-Stuff/HCMUT/computer_engineering_project/Autosar_SecOC' && mkdir -p build && cd build && cmake -G 'MinGW Makefiles' .. && mingw32-make -j4"
+```
+
+Guidelines:
+- Do not replace this with `rebuild_pqc.sh` unless the user explicitly asks.
+- Keep the `& "C:\msys64\usr\bin\bash.exe"` call operator form.
+- Use forward-slash MSYS path inside bash (`/c/Users/...`).

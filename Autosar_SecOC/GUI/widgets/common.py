@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QLayout,
     QPushButton,
     QVBoxLayout,
     QWidget,
@@ -79,6 +80,17 @@ class StyledCard(QFrame):
     @property
     def card_layout(self) -> QVBoxLayout:
         return self._layout
+
+    def setContentLayout(self, layout: QLayout) -> None:
+        """Transfer all items from the given layout into the card's internal layout."""
+        while layout.count():
+            item = layout.takeAt(0)
+            if item.widget():
+                self._layout.addWidget(item.widget())
+            elif item.layout():
+                self._layout.addLayout(item.layout())
+            elif item.spacerItem():
+                self._layout.addItem(item.spacerItem())
 
 
 # ── SectionHeader ────────────────────────────────────────────────────
