@@ -13,9 +13,19 @@
 /************************************************Defines*************************************************/
 /********************************************************************************************************/
 
-#define SUCCESS     (1u)
-#define FAILED      (0u)
-#define TP_TRANSMISSION_STATUS SUCCESS
+#define CANTP_SUCCESS     (1u)
+#define CANTP_FAILED      (0u)
+#define CANTP_TP_TRANSMISSION_STATUS CANTP_SUCCESS
+/* Backward-compatible aliases */
+#ifndef SUCCESS
+#define SUCCESS           CANTP_SUCCESS
+#endif
+#ifndef FAILED
+#define FAILED            CANTP_FAILED
+#endif
+#ifndef TP_TRANSMISSION_STATUS
+#define TP_TRANSMISSION_STATUS CANTP_TP_TRANSMISSION_STATUS
+#endif
 
 #define CANTP_BUFFER_SIZE       255
 #define BUS_LENGTH              8

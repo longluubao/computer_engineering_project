@@ -28,6 +28,10 @@ void PduR_SoAdIfTxConfirmation(PduIdType TxPduId, Std_ReturnType result)
 
 void PduR_SoAdIfRxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
 {
+    if (PduInfoPtr == NULL)
+    {
+        return;
+    }
     #ifdef SCHEDULER_ON
         pthread_mutex_unlock(&lock);
     #endif 

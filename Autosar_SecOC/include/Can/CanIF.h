@@ -12,8 +12,15 @@
 /********************************************************************************************************/
 /************************************************Defines*************************************************/
 /********************************************************************************************************/
-#define SUCCESS     (1u)
-#define FAILED      (0u)
+#define CANIF_SUCCESS     (1u)
+#define CANIF_FAILED      (0u)
+/* Backward-compatible aliases */
+#ifndef SUCCESS
+#define SUCCESS           CANIF_SUCCESS
+#endif
+#ifndef FAILED
+#define FAILED            CANIF_FAILED
+#endif
 
 #define CANIF_BUFFERLENGTH  ((uint32)100)
 

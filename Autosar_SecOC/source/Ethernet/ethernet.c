@@ -5,6 +5,7 @@
 #include "ethernet.h"
 #include "SecOC_Debug.h"
 #include "SecOC_Lcfg.h"
+#include "SecOC_Cfg.h"
 #include "CanTP.h"
 #include "CanIF.h"
 #include "PduR_CanIf.h"
@@ -240,6 +241,15 @@ void ethernet_RecieveMainFunction(void)
     {
         return;
     }
+
+    if (id >= (uint16)SECOC_NUM_OF_RX_PDU_PROCESSING)
+    {
+        #ifdef SCHEDULER_ON
+            pthread_mutex_unlock(&lock);
+        #endif
+        return;
+    }
+
     PduInfoType PduInfoPtr = {
         .SduDataPtr = dataRecieve,
         .MetaDataPtr = &PdusCollections[id],

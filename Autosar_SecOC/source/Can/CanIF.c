@@ -22,6 +22,11 @@ static CanIf_PduModeType CanIf_PduModes[CAN_MAX_CONTROLLERS];
 
 static void CanIf_InternalTxConfirmation(PduIdType TxPduId, Std_ReturnType result)
 {
+    if (TxPduId >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING)
+    {
+        return;
+    }
+
     switch (PdusCollections[TxPduId].Type)
     {
     case SECOC_SECURED_PDU_CANIF:
@@ -81,6 +86,7 @@ void CanIf_Init(void)
     }
 
     Can_RegisterTxConfirmation(CanIf_InternalTxConfirmation);
+    Can_RegisterRxIndication(CanIf_RxIndication);
     CanIf_Initialized = TRUE;
 }
 

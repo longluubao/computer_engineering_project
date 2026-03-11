@@ -148,6 +148,11 @@ void CanTp_RxIndication (PduIdType RxPduId, const PduInfoType* PduInfoPtr)
         (void)Det_ReportError(CANTP_MODULE_ID, CANTP_INSTANCE_ID, CANTP_SID_RX_INDICATION, CANTP_E_PARAM_POINTER);
         return;
     }
+    if ((PduInfoPtr->SduLength > 0U) && (PduInfoPtr->SduDataPtr == NULL))
+    {
+        (void)Det_ReportError(CANTP_MODULE_ID, CANTP_INSTANCE_ID, CANTP_SID_RX_INDICATION, CANTP_E_PARAM_POINTER);
+        return;
+    }
 
     if (RxPduId >= SECOC_NUM_OF_RX_PDU_PROCESSING)
     {
@@ -172,6 +177,13 @@ void CanTp_RxIndication (PduIdType RxPduId, const PduInfoType* PduInfoPtr)
     {
         uint8 AuthHeadlen = SecOCRxPduProcessing[RxPduId].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCAuthPduHeaderLength;
         PduLengthType SecureDataframe = AuthHeadlen + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueTruncLength) + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCAuthInfoTruncLength);
+        if ((AuthHeadlen > 0U) &&
+            ((AuthHeadlen > PduInfoPtr->SduLength) || (AuthHeadlen > (uint8)sizeof(PduLengthType))))
+        {
+            CanTp_Recieve_Counter[RxPduId] = 0U;
+            CanTp_RxState[RxPduId] = CANTP_STATE_IDLE;
+            return;
+        }
         if(AuthHeadlen > 0)
         {
             (void)memcpy((uint8*)&CanTp_secureLength_Recieve[RxPduId], PduInfoPtr->SduDataPtr, AuthHeadlen );

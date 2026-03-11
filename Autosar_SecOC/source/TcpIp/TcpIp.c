@@ -10,6 +10,7 @@
 /********************************************************************************************************/
 
 #include "TcpIp.h"
+#include "SoAd.h"
 #include "Det.h"
 #include <string.h>
 
@@ -677,15 +678,7 @@ void TcpIp_RxIndication(
     }
 #endif
 
-    /*
-     * This is a callback from lower layer (EthIf).
-     * In a full AUTOSAR stack, this would forward data to SoAd via SoAd_RxIndication.
-     * Currently a placeholder for upper-layer integration.
-     */
-    (void)SocketId;
-    (void)RemoteAddrPtr;
-    (void)BufPtr;
-    (void)Length;
+    SoAd_RxIndication(SocketId, RemoteAddrPtr, BufPtr, Length);
 }
 
 void TcpIp_MainFunction(void)

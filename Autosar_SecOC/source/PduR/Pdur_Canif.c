@@ -35,6 +35,10 @@ void PduR_CanIfRxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
 	#ifdef PDUR_DEBUG
         printf("######## in PduR_CanIfRxIndication\n");
     #endif
+    if (PduInfoPtr == NULL)
+    {
+        return;
+    }
     #ifdef SCHEDULER_ON
         pthread_mutex_unlock(&lock);
     #endif 

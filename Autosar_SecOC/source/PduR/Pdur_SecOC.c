@@ -40,6 +40,16 @@ Std_ReturnType PduR_SecOCTransmit(PduIdType TxPduId, const PduInfoType* PduInfoP
         printf("######## in PduR_SecOCTransmit for id %d \n", TxPduId);
     #endif
 
+   if (PduInfoPtr == NULL)
+   {
+       return E_NOT_OK;
+   }
+
+   if (TxPduId >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING)
+   {
+       return E_NOT_OK;
+   }
+
 
    switch (PdusCollections[TxPduId].Type)
     {
@@ -106,6 +116,10 @@ void PduR_SecOCIfRxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
    #ifdef PDUR_DEBUG
         printf("######## in PduR_SecOCIfRxIndication \n");
     #endif
+   if (PduInfoPtr == NULL)
+   {
+       return;
+   }
    Com_RxIndication(RxPduId, PduInfoPtr);
 }
 

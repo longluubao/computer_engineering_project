@@ -157,6 +157,35 @@ static Std_ReturnType SoAd_TcpIpTransmit(PduIdType TxPduId, const uint8* DataPtr
     return result;
 }
 
+/**
+ * @brief Find mapped Rx PDU ID for an incoming socket.
+ */
+static Std_ReturnType SoAd_FindRxPduIdBySocket(
+    TcpIp_SocketIdType SocketId,
+    PduIdType* RxPduIdPtr,
+    SoAd_SoConIdType* SoConIdPtr
+)
+{
+    SoAd_SoConIdType idx;
+    for (idx = 0U; idx < SOAD_MAX_SOCKET_CONNECTIONS; idx++)
+    {
+        if ((SoAd_SoConStates[idx].IsAllocated == TRUE) &&
+            (SoAd_SoConStates[idx].SocketId == SocketId))
+        {
+            if (RxPduIdPtr != NULL)
+            {
+                *RxPduIdPtr = SoAd_SoConStates[idx].TxPduId;
+            }
+            if (SoConIdPtr != NULL)
+            {
+                *SoConIdPtr = idx;
+            }
+            return E_OK;
+        }
+    }
+    return E_NOT_OK;
+}
+
 /********************************************************************************************************/
 /********************************************Functions***************************************************/
 /********************************************************************************************************/
@@ -225,8 +254,13 @@ Std_ReturnType SoAd_IfTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr)
         (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_IF_TRANSMIT, SOAD_E_PARAM_POINTER);
         return E_NOT_OK;
     }
+    if (TxPduId >= SECOC_NUM_OF_TX_PDU_PROCESSING)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_IF_TRANSMIT, SOAD_E_INV_PDUID);
+        return E_NOT_OK;
+    }
 #else
-    if (PduInfoPtr == NULL)
+    if ((PduInfoPtr == NULL) || (TxPduId >= SECOC_NUM_OF_TX_PDU_PROCESSING))
     {
         return E_NOT_OK;
     }
@@ -593,6 +627,71 @@ void SoAd_GetVersionInfo(Std_VersionInfoType* VersionInfoPtr)
     VersionInfoPtr->sw_patch_version = SOAD_SW_PATCH_VERSION;
 }
 
+void SoAd_RxIndication(
+    TcpIp_SocketIdType SocketId,
+    const TcpIp_SockAddrType* RemoteAddrPtr,
+    const uint8* BufPtr,
+    uint16 Length
+)
+{
+    PduIdType rxPduId = 0U;
+    SoAd_SoConIdType soConId = 0U;
+    PduInfoType pduInfo;
+
+#if (SOAD_DEV_ERROR_DETECT == STD_ON)
+    if (SoAd_Initialized == FALSE)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_RX_INDICATION, SOAD_E_NOTINIT);
+        return;
+    }
+    if ((RemoteAddrPtr == NULL) || (BufPtr == NULL))
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_RX_INDICATION, SOAD_E_PARAM_POINTER);
+        return;
+    }
+#else
+    if ((RemoteAddrPtr == NULL) || (BufPtr == NULL))
+    {
+        return;
+    }
+#endif
+
+    if ((Length == 0U) || (Length > (uint16)SECOC_SECPDU_MAX_LENGTH))
+    {
+        return;
+    }
+
+    if (SoAd_FindRxPduIdBySocket(SocketId, &rxPduId, &soConId) != E_OK)
+    {
+        return;
+    }
+
+    if (rxPduId >= SECOC_NUM_OF_RX_PDU_PROCESSING)
+    {
+        return;
+    }
+
+    /* Keep latest remote peer associated with the socket connection. */
+    SoAd_SoConStates[soConId].RemoteAddr = *RemoteAddrPtr;
+
+    pduInfo.SduDataPtr = (uint8*)BufPtr;
+    pduInfo.MetaDataPtr = NULL;
+    pduInfo.SduLength = (PduLengthType)Length;
+
+    if (PdusCollections[rxPduId].Type == SECOC_SECURED_PDU_SOADTP)
+    {
+        SoAdTp_RxIndication(rxPduId, &pduInfo);
+    }
+    else if (PdusCollections[rxPduId].Type == SECOC_SECURED_PDU_SOADIF)
+    {
+        PduR_SoAdIfRxIndication(rxPduId, &pduInfo);
+    }
+    else
+    {
+        /* Ignore non-SoAd routed types. */
+    }
+}
+
 void SoAdTp_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
 {
     #ifdef SOAD_DEBUG
@@ -600,6 +699,10 @@ void SoAdTp_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
     #endif
 
     if ((PduInfoPtr == NULL) || (RxPduId >= SECOC_NUM_OF_RX_PDU_PROCESSING))
+    {
+        return;
+    }
+    if ((PduInfoPtr->SduLength > 0U) && (PduInfoPtr->SduDataPtr == NULL))
     {
         return;
     }
@@ -619,6 +722,12 @@ void SoAdTp_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
         PduLengthType SecureDataframe = (PduLengthType)AuthHeadlen
             + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueTruncLength)
             + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCAuthInfoTruncLength);
+        if ((AuthHeadlen > 0U) &&
+            ((AuthHeadlen > PduInfoPtr->SduLength) || (AuthHeadlen > (uint8)sizeof(PduLengthType))))
+        {
+            SoAdTp_Recieve_Counter[RxPduId] = 0U;
+            return;
+        }
 
         if (AuthHeadlen > 0U)
         {

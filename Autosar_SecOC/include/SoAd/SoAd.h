@@ -252,6 +252,20 @@ void SoAd_MainFunctionTx(void);
  */
 void SoAd_MainFunctionRx(void);
 
+/**
+ * @brief Indicate received socket data from TcpIp into SoAd routing.
+ * @param[in] SocketId      Socket that received the payload.
+ * @param[in] RemoteAddrPtr Remote peer address.
+ * @param[in] BufPtr        Payload buffer.
+ * @param[in] Length        Payload length.
+ */
+void SoAd_RxIndication(
+    TcpIp_SocketIdType SocketId,
+    const TcpIp_SockAddrType* RemoteAddrPtr,
+    const uint8* BufPtr,
+    uint16 Length
+);
+
 /* Internal callbacks used by SoAd TP processing */
 void SoAdTp_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr);
 void SoAdTp_TxConfirmation(PduIdType TxPduId, Std_ReturnType result);

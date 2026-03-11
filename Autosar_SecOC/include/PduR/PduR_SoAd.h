@@ -27,4 +27,19 @@ BufReq_ReturnType PduR_SoAdTpCopyTxData(
 
 void PduR_SoAdTpTxConfirmation(PduIdType TxPduId, Std_ReturnType result);
 
-#endif  // INCLUDE_SOAD_H_
+BufReq_ReturnType PduR_SoAdTpCopyRxData(
+    PduIdType id,
+    const PduInfoType* info,
+    PduLengthType* bufferSizePtr
+);
+
+BufReq_ReturnType PduR_SoAdStartOfReception(
+    PduIdType id,
+    const PduInfoType* info,
+    PduLengthType TpSduLength,
+    PduLengthType* bufferSizePtr
+);
+
+void PduR_SoAdTpRxIndication(PduIdType id, Std_ReturnType result);
+
+#endif /* INCLUDE_PDUR_SOAD_H_ */

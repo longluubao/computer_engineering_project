@@ -37,6 +37,8 @@
 #define ECUM_SID_RELEASE_RUN        ((uint8)0x16)
 #define ECUM_SID_GET_WAKEUP_STATUS  ((uint8)0x17)
 #define ECUM_SID_GET_EXPIRED_WAKEUP_EVENTS ((uint8)0x19)
+#define ECUM_SID_REQUEST_POST_RUN   ((uint8)0x20)
+#define ECUM_SID_RELEASE_POST_RUN   ((uint8)0x21)
 
 #define ECUM_E_UNINIT               ((uint8)0x01)
 #define ECUM_E_INVALID_STATE        ((uint8)0x02)
@@ -44,6 +46,7 @@
 #define ECUM_E_PARAM_INVALID        ((uint8)0x04)
 #define ECUM_E_UNKNOWN_WAKEUP_SOURCE ((uint8)0x05)
 #define ECUM_E_MULTIPLE_RUN_REQUESTS ((uint8)0x06)
+#define ECUM_E_MULTIPLE_POST_RUN_REQUESTS ((uint8)0x07)
 
 #define ECUM_MAX_RUN_USERS          ((uint8)8)
 #define ECUM_WAKEUP_VALIDATION_TIMEOUT_MAINCYCLES ((uint16)20)
@@ -71,6 +74,10 @@ typedef enum
 } EcuM_ShutdownTargetType;
 
 typedef uint32 EcuM_WakeupSourceType;
+/* Optional callouts: when unset, EcuM keeps default behavior. */
+typedef Std_ReturnType (*EcuM_ResetCalloutType)(void);
+typedef Std_ReturnType (*EcuM_OffCalloutType)(void);
+typedef boolean (*EcuM_WakeupValidationCalloutType)(EcuM_WakeupSourceType WakeupSource);
 
 typedef enum
 {
@@ -105,7 +112,10 @@ typedef enum
 
 typedef struct
 {
-    uint8 Dummy;
+    /* Optional reset/off hooks and HW wakeup validation callback. */
+    EcuM_ResetCalloutType EcuMResetCallout;
+    EcuM_OffCalloutType EcuMOffCallout;
+    EcuM_WakeupValidationCalloutType EcuMWakeupValidationCallout;
 } EcuM_ConfigType;
 
 /********************************************************************************************************/
@@ -113,6 +123,9 @@ typedef struct
 /********************************************************************************************************/
 
 void EcuM_Init(const EcuM_ConfigType *ConfigPtr);
+void EcuM_SetResetCallout(EcuM_ResetCalloutType ResetCallout);
+void EcuM_SetOffCallout(EcuM_OffCalloutType OffCallout);
+void EcuM_SetWakeupValidationCallout(EcuM_WakeupValidationCalloutType WakeupValidationCallout);
 Std_ReturnType EcuM_StartupTwo(void);
 Std_ReturnType EcuM_Shutdown(void);
 EcuM_StateType EcuM_GetState(void);
@@ -127,6 +140,8 @@ Std_ReturnType EcuM_GoPoll(void);
 Std_ReturnType EcuM_GoDown(void);
 Std_ReturnType EcuM_RequestRUN(uint8 User);
 Std_ReturnType EcuM_ReleaseRUN(uint8 User);
+Std_ReturnType EcuM_RequestPOST_RUN(uint8 User);
+Std_ReturnType EcuM_ReleasePOST_RUN(uint8 User);
 void EcuM_KillAllRUNRequests(void);
 void EcuM_SetWakeupEvent(EcuM_WakeupSourceType WakeupSource);
 void EcuM_ValidateWakeupEvent(EcuM_WakeupSourceType WakeupSource);
