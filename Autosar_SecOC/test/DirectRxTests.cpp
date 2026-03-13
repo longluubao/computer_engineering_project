@@ -14,7 +14,7 @@ extern "C" {
 #include "Rte_SecOC_Type.h"
 #include "PduR_Com.h"
 #include "PduR_SecOC.h"
-#include "Pdur_CanTP.h"
+#include "PduR_CanTp.h"
 #include "PduR_CanIf.h"
 #include "PduR_SoAd.h"
 #include "SecOC_PQC_Cfg.h"

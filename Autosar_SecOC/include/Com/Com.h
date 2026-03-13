@@ -7,6 +7,7 @@
 
 #include "Std_Types.h"
 #include "ComStack_Types.h"
+#include "Com_Lcfg.h"
 
 /********************************************************************************************************/
 /************************************************Defines*************************************************/
@@ -29,6 +30,11 @@
 #define COM_SID_SEND_DYN_SIGNAL               ((uint8)0x21U)
 #define COM_SID_RECEIVE_DYN_SIGNAL            ((uint8)0x22U)
 #define COM_SID_INVALIDATE_SIGNAL             ((uint8)0x1FU)
+#define COM_SID_UPDATE_SHADOW_SIGNAL          ((uint8)0x0EU)
+#define COM_SID_RECEIVE_SHADOW_SIGNAL         ((uint8)0x0FU)
+#define COM_SID_INVALIDATE_SIGNAL_GROUP       ((uint8)0x10U)
+#define COM_SID_SEND_SIGNAL_GROUP_ARRAY       ((uint8)0x23U)
+#define COM_SID_RECEIVE_SIGNAL_GROUP_ARRAY    ((uint8)0x24U)
 #define COM_SID_START_OF_RECEPTION            ((uint8)0x40U)
 #define COM_SID_COPY_RX_DATA                  ((uint8)0x41U)
 #define COM_SID_TP_RX_INDICATION              ((uint8)0x42U)
@@ -56,6 +62,8 @@ typedef uint16 Com_SignalGroupIdType;
 
 void Com_Init(void);
 
+void Com_InitWithConfig(const Com_ConfigType* ConfigPtr);
+
 void Com_DeInit(void);
 
 Std_ReturnType Com_SendSignal(Com_SignalIdType SignalId, const uint8* SignalDataPtr);
@@ -71,6 +79,20 @@ Std_ReturnType Com_InvalidateSignal(Com_SignalIdType SignalId);
 Std_ReturnType Com_SendSignalGroup(Com_SignalGroupIdType SignalGroupId);
 
 Std_ReturnType Com_ReceiveSignalGroup(Com_SignalGroupIdType SignalGroupId);
+
+Std_ReturnType Com_UpdateShadowSignal(Com_SignalIdType SignalId, const uint8* SignalDataPtr);
+
+Std_ReturnType Com_ReceiveShadowSignal(Com_SignalIdType SignalId, uint8* SignalDataPtr);
+
+Std_ReturnType Com_InvalidateSignalGroup(Com_SignalGroupIdType SignalGroupId);
+
+Std_ReturnType Com_SendSignalGroupArray(Com_SignalGroupIdType SignalGroupId,
+                                        const uint8* SignalGroupArrayPtr,
+                                        uint16 Length);
+
+Std_ReturnType Com_ReceiveSignalGroupArray(Com_SignalGroupIdType SignalGroupId,
+                                           uint8* SignalGroupArrayPtr,
+                                           uint16* LengthPtr);
 
 void Com_IpduGroupStart(Com_IpduGroupIdType IpduGroupId, boolean Initialize);
 

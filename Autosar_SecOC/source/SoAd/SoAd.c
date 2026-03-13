@@ -17,12 +17,20 @@
 #include "SecOC_Cfg.h"
 #include "TcpIp.h"
 #include "Det.h"
+#if (SOAD_TCPIP_PAYLOAD_BACKEND == SOAD_TCPIP_PAYLOAD_BACKEND_ETHIF)
+    #include "EthIf.h"
+#endif
 
 #ifdef SCHEDULER_ON
     #include <pthread.h>
 #endif
 
 #include <string.h>
+
+#if (SOAD_TCPIP_PAYLOAD_BACKEND == SOAD_TCPIP_PAYLOAD_BACKEND_ETHIF)
+#define SOAD_ETHIF_CTRL_IDX                  ((uint8)0U)
+#define SOAD_ETHIF_FRAME_TYPE_BASE           ((Eth_FrameType)0x9000U)
+#endif
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
@@ -157,6 +165,82 @@ static Std_ReturnType SoAd_TcpIpTransmit(PduIdType TxPduId, const uint8* DataPtr
     return result;
 }
 
+#if (SOAD_TCPIP_PAYLOAD_BACKEND == SOAD_TCPIP_PAYLOAD_BACKEND_ETHIF)
+static Std_ReturnType SoAd_EthIfTransmit(PduIdType TxPduId, const uint8* DataPtr, uint16 Length)
+{
+    Eth_BufIdxType BufIdx = 0U;
+    uint8* BufPtr = NULL;
+    uint16 RequestedLength = Length;
+    Eth_FrameType FrameType;
+
+    if ((Length == 0U) || (Length > ETHIF_TX_BUF_SIZE))
+    {
+        return E_NOT_OK;
+    }
+
+    FrameType = (Eth_FrameType)(SOAD_ETHIF_FRAME_TYPE_BASE + (Eth_FrameType)TxPduId);
+    if (EthIf_ProvideTxBuffer(SOAD_ETHIF_CTRL_IDX,
+                              FrameType,
+                              0U,
+                              &BufIdx,
+                              &BufPtr,
+                              &RequestedLength) != BUFREQ_OK)
+    {
+        return E_NOT_OK;
+    }
+
+    if ((BufPtr == NULL) || (RequestedLength < Length))
+    {
+        return E_NOT_OK;
+    }
+
+    (void)memcpy(BufPtr, DataPtr, Length);
+    return EthIf_Transmit(SOAD_ETHIF_CTRL_IDX, BufIdx, FrameType, TRUE, Length, NULL);
+}
+
+static void SoAd_EthIfRxIndicationCbk(uint8 CtrlIdx,
+                                      Eth_FrameType FrameType,
+                                      boolean IsBroadcast,
+                                      const uint8* PhysAddrPtr,
+                                      const uint8* DataPtr,
+                                      uint16 LenByte)
+{
+    PduIdType RxPduId;
+    PduInfoType pduInfo;
+    (void)CtrlIdx;
+    (void)IsBroadcast;
+    (void)PhysAddrPtr;
+
+    if ((DataPtr == NULL) || (LenByte == 0U))
+    {
+        return;
+    }
+    if ((FrameType < SOAD_ETHIF_FRAME_TYPE_BASE) ||
+        (FrameType >= (Eth_FrameType)(SOAD_ETHIF_FRAME_TYPE_BASE + SECOC_NUM_OF_RX_PDU_PROCESSING)))
+    {
+        return;
+    }
+
+    RxPduId = (PduIdType)(FrameType - SOAD_ETHIF_FRAME_TYPE_BASE);
+    pduInfo.SduDataPtr = (uint8*)DataPtr;
+    pduInfo.MetaDataPtr = NULL;
+    pduInfo.SduLength = (PduLengthType)LenByte;
+
+    if (PdusCollections[RxPduId].Type == SECOC_SECURED_PDU_SOADTP)
+    {
+        SoAdTp_RxIndication(RxPduId, &pduInfo);
+    }
+    else if (PdusCollections[RxPduId].Type == SECOC_SECURED_PDU_SOADIF)
+    {
+        PduR_SoAdIfRxIndication(RxPduId, &pduInfo);
+    }
+    else
+    {
+        /* Ignore non-SoAd routed types. */
+    }
+}
+#endif
+
 /**
  * @brief Find mapped Rx PDU ID for an incoming socket.
  */
@@ -221,6 +305,10 @@ void SoAd_Init(const SoAd_ConfigType* ConfigPtr)
     (void)memset(SoAdTp_Recieve_Counter, 0, sizeof(SoAdTp_Recieve_Counter));
     (void)memset(SoAdTp_secureLength_Recieve, 0, sizeof(SoAdTp_secureLength_Recieve));
 
+#if (SOAD_TCPIP_PAYLOAD_BACKEND == SOAD_TCPIP_PAYLOAD_BACKEND_ETHIF)
+    EthIf_SetRxIndicationCallback(SoAd_EthIfRxIndicationCbk);
+#endif
+
     SoAd_Initialized = TRUE;
 
     #ifdef SOAD_DEBUG
@@ -283,8 +371,12 @@ Std_ReturnType SoAd_IfTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr)
         }
     #endif
 
-    /* Transmit via TcpIp layer */
+    /* Transmit through the selected payload backend. */
+#if (SOAD_TCPIP_PAYLOAD_BACKEND == SOAD_TCPIP_PAYLOAD_BACKEND_ETHIF)
+    result = SoAd_EthIfTransmit(TxPduId, PduInfoPtr->SduDataPtr, (uint16)PduInfoPtr->SduLength);
+#else
     result = SoAd_TcpIpTransmit(TxPduId, PduInfoPtr->SduDataPtr, (uint16)PduInfoPtr->SduLength);
+#endif
 
     /* Confirmation callbacks (preserved from original) */
     if (PdusCollections[TxPduId].Type == SECOC_SECURED_PDU_SOADTP)
@@ -331,6 +423,14 @@ Std_ReturnType SoAd_TpTransmit(PduIdType SoAdTxSduId, const PduInfoType* SoAdTxI
         return E_NOT_OK;
     }
 #endif
+
+    if ((SoAdTxInfoPtr->SduLength > 0U) && (SoAdTxInfoPtr->SduDataPtr == NULL))
+    {
+#if (SOAD_DEV_ERROR_DETECT == STD_ON)
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_TP_TRANSMIT, SOAD_E_PARAM_POINTER);
+#endif
+        return E_NOT_OK;
+    }
 
     SoAdTp_Buffer[SoAdTxSduId] = *SoAdTxInfoPtr;
     return E_OK;
@@ -845,8 +945,12 @@ void SoAd_MainFunctionRx(void)
         printf("######## in SoAd_MainFunctionRx\n");
     #endif
 
-    /* Poll TcpIp for incoming data */
+    /* Poll backend for incoming data. */
+#if (SOAD_TCPIP_PAYLOAD_BACKEND == SOAD_TCPIP_PAYLOAD_BACKEND_ETHIF)
+    /* EthIf polling is handled by EcuM main path; keep SoAd side callback-driven. */
+#else
     TcpIp_MainFunction();
+#endif
 
     PduIdType RxPduId;
     for (RxPduId = 0U; RxPduId < SECOC_NUM_OF_RX_PDU_PROCESSING; RxPduId++)

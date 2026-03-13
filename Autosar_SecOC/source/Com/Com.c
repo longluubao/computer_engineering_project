@@ -17,45 +17,10 @@
 #define COM_NUM_OF_RX_IPDU                    ((PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING)
 #define COM_NUM_OF_SIGNALS                    ((Com_SignalIdType)SECOC_NUM_OF_TX_PDU_PROCESSING)
 #define COM_SIGNAL_MAX_LENGTH                 ((uint16)SECOC_AUTHPDU_MAX_LENGTH)
-#define COM_DEFAULT_TX_TIMEOUT_TICKS          ((uint16)20U)
-#define COM_DEFAULT_RX_TIMEOUT_TICKS          ((uint16)20U)
-#define COM_SIGNAL_FILTER_MASK                ((uint8)0xFFU)
-#define COM_DEFAULT_INVALID_VALUE             ((uint8)0xFFU)
 
 /********************************************************************************************************/
 /*******************************************TypeDefinitions**********************************************/
 /********************************************************************************************************/
-
-typedef struct
-{
-    PduIdType ComTxPduId;
-    PduIdType ComRxPduId;
-    uint16 ComSignalPosition;
-    uint16 ComSignalLength;
-    uint16 ComSignalMaxLength;
-    Com_IpduGroupIdType ComIpduGroupId;
-    uint8 ComInvalidValue;
-    uint8 ComSignalFilterMask;
-} Com_SignalConfigType;
-
-typedef struct
-{
-    Com_SignalIdType ComFirstSignalId;
-    uint16 ComSignalCount;
-    Com_IpduGroupIdType ComIpduGroupId;
-} Com_SignalGroupConfigType;
-
-typedef struct
-{
-    Com_IpduGroupIdType ComIpduGroupId;
-    uint16 ComTxDeadlineLimit;
-} Com_TxIpduConfigType;
-
-typedef struct
-{
-    Com_IpduGroupIdType ComIpduGroupId;
-    uint16 ComRxDeadlineLimit;
-} Com_RxIpduConfigType;
 
 typedef struct
 {
@@ -93,20 +58,25 @@ typedef struct
     boolean ComIpduGroupStarted;
 } Com_IpduGroupRuntimeType;
 
+typedef struct
+{
+    boolean ComShadowUpdated;
+    uint16 ComShadowLength;
+    uint8 ComShadowData[COM_SIGNAL_MAX_LENGTH];
+} Com_SignalGroupRuntimeType;
+
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
 /********************************************************************************************************/
 
 static boolean Com_Initialized = FALSE;
-static Com_SignalConfigType Com_SignalConfig[COM_NUM_OF_SIGNALS];
-static Com_SignalGroupConfigType Com_SignalGroupConfig[COM_NUM_OF_SIGNAL_GROUPS];
-static Com_TxIpduConfigType Com_TxIpduConfig[COM_NUM_OF_TX_IPDU];
-static Com_RxIpduConfigType Com_RxIpduConfig[COM_NUM_OF_RX_IPDU];
+static const Com_ConfigType* Com_ConfigPtr = NULL;
 
 static Com_SignalRuntimeType Com_SignalRuntime[COM_NUM_OF_SIGNALS];
 static Com_TxIpduRuntimeType Com_TxIpduRuntime[COM_NUM_OF_TX_IPDU];
 static Com_RxIpduRuntimeType Com_RxIpduRuntime[COM_NUM_OF_RX_IPDU];
 static Com_IpduGroupRuntimeType Com_IpduGroupRuntime[COM_NUM_OF_IPDU_GROUPS];
+static Com_SignalGroupRuntimeType Com_SignalGroupRuntime[COM_NUM_OF_SIGNAL_GROUPS];
 
 /********************************************************************************************************/
 /**************************************Static Helper Functions*******************************************/
@@ -128,100 +98,264 @@ static uint16 Com_MinLength(uint16 Left, uint16 Right)
 
 static boolean Com_IsValidSignalId(Com_SignalIdType SignalId)
 {
-    return (boolean)(SignalId < COM_NUM_OF_SIGNALS);
+    if (Com_ConfigPtr == NULL)
+    {
+        return FALSE;
+    }
+    return (boolean)(SignalId < Com_ConfigPtr->ComNumOfSignals);
+}
+
+static boolean Com_IsValidSignalGroupId(Com_SignalGroupIdType SignalGroupId)
+{
+    if (Com_ConfigPtr == NULL)
+    {
+        return FALSE;
+    }
+    return (boolean)(SignalGroupId < Com_ConfigPtr->ComNumOfSignalGroups);
 }
 
 static boolean Com_IsValidTxPduId(PduIdType TxPduId)
 {
-    return (boolean)(TxPduId < COM_NUM_OF_TX_IPDU);
+    if (Com_ConfigPtr == NULL)
+    {
+        return FALSE;
+    }
+    return (boolean)(TxPduId < Com_ConfigPtr->ComNumOfTxIpdu);
 }
 
 static boolean Com_IsValidRxPduId(PduIdType RxPduId)
 {
-    return (boolean)(RxPduId < COM_NUM_OF_RX_IPDU);
+    if (Com_ConfigPtr == NULL)
+    {
+        return FALSE;
+    }
+    return (boolean)(RxPduId < Com_ConfigPtr->ComNumOfRxIpdu);
 }
 
-static void Com_LoadDefaultConfiguration(void)
+static boolean Com_IsSignalGroupActive(Com_SignalGroupIdType SignalGroupId)
 {
-    PduIdType pduId;
-    Com_SignalIdType signalId;
-
-    for (pduId = 0U; pduId < COM_NUM_OF_TX_IPDU; pduId++)
+    Com_IpduGroupIdType GroupId;
+    if (Com_IsValidSignalGroupId(SignalGroupId) == FALSE)
     {
-        Com_TxIpduConfig[pduId].ComIpduGroupId = (Com_IpduGroupIdType)(pduId % COM_NUM_OF_IPDU_GROUPS);
-        Com_TxIpduConfig[pduId].ComTxDeadlineLimit =
-            (uint16)(COM_DEFAULT_TX_TIMEOUT_TICKS + (uint16)(pduId % 3U));
+        return FALSE;
+    }
+    GroupId = (Com_IpduGroupIdType)Com_ConfigPtr->ComSignalGroupConfigPtr[SignalGroupId].ComIpduGroupId;
+    if (GroupId >= COM_NUM_OF_IPDU_GROUPS)
+    {
+        return FALSE;
+    }
+    return Com_IpduGroupRuntime[GroupId].ComIpduGroupStarted;
+}
+
+static boolean Com_FindSignalGroupForSignal(Com_SignalIdType SignalId,
+                                            Com_SignalGroupIdType* SignalGroupIdPtr,
+                                            uint16* OffsetPtr)
+{
+    Com_SignalGroupIdType SignalGroupId;
+    Com_SignalIdType FirstId;
+    uint16 Count;
+
+    if ((SignalGroupIdPtr == NULL) || (OffsetPtr == NULL))
+    {
+        return FALSE;
+    }
+    if (Com_IsValidSignalId(SignalId) == FALSE)
+    {
+        return FALSE;
     }
 
-    for (pduId = 0U; pduId < COM_NUM_OF_RX_IPDU; pduId++)
+    for (SignalGroupId = 0U; SignalGroupId < Com_ConfigPtr->ComNumOfSignalGroups; SignalGroupId++)
     {
-        Com_RxIpduConfig[pduId].ComIpduGroupId = (Com_IpduGroupIdType)(pduId % COM_NUM_OF_IPDU_GROUPS);
-        Com_RxIpduConfig[pduId].ComRxDeadlineLimit =
-            (uint16)(COM_DEFAULT_RX_TIMEOUT_TICKS + (uint16)(pduId % 3U));
+        FirstId = (Com_SignalIdType)Com_ConfigPtr->ComSignalGroupConfigPtr[SignalGroupId].ComFirstSignalId;
+        Count = Com_ConfigPtr->ComSignalGroupConfigPtr[SignalGroupId].ComSignalCount;
+        if ((SignalId >= FirstId) && (SignalId < (Com_SignalIdType)(FirstId + Count)))
+        {
+            *SignalGroupIdPtr = SignalGroupId;
+            *OffsetPtr = (uint16)(SignalId - FirstId);
+            return TRUE;
+        }
     }
 
-    for (signalId = 0U; signalId < COM_NUM_OF_SIGNALS; signalId++)
+    return FALSE;
+}
+
+static uint16 Com_GetSignalGroupArrayCapacity(Com_SignalGroupIdType SignalGroupId)
+{
+    return Com_MinLength(Com_ConfigPtr->ComSignalGroupConfigPtr[SignalGroupId].ComSignalGroupArrayLength,
+                         COM_SIGNAL_MAX_LENGTH);
+}
+
+static boolean Com_GetSignalGroupSignalLayout(Com_SignalGroupIdType SignalGroupId,
+                                              Com_SignalIdType SignalId,
+                                              uint16* RelativePositionPtr,
+                                              uint16* SignalLengthPtr)
+{
+    Com_SignalIdType FirstId;
+    uint16 Count;
+    uint16 GroupArrayLength;
+    uint16 GroupMinPosition = 0xFFFFU;
+    Com_SignalIdType MemberId;
+    uint16 SignalPosition;
+    uint16 SignalLength;
+
+    if ((RelativePositionPtr == NULL) || (SignalLengthPtr == NULL))
     {
-        Com_SignalConfig[signalId].ComTxPduId = (PduIdType)(signalId % COM_NUM_OF_TX_IPDU);
-        Com_SignalConfig[signalId].ComRxPduId = (PduIdType)(signalId % COM_NUM_OF_RX_IPDU);
-        Com_SignalConfig[signalId].ComSignalPosition = 0U;
-        Com_SignalConfig[signalId].ComSignalLength = 1U;
-        Com_SignalConfig[signalId].ComSignalMaxLength = COM_SIGNAL_MAX_LENGTH;
-        Com_SignalConfig[signalId].ComIpduGroupId =
-            Com_TxIpduConfig[Com_SignalConfig[signalId].ComTxPduId].ComIpduGroupId;
-        Com_SignalConfig[signalId].ComInvalidValue = COM_DEFAULT_INVALID_VALUE;
-        Com_SignalConfig[signalId].ComSignalFilterMask = COM_SIGNAL_FILTER_MASK;
+        return FALSE;
+    }
+    if ((Com_IsValidSignalGroupId(SignalGroupId) == FALSE) || (Com_IsValidSignalId(SignalId) == FALSE))
+    {
+        return FALSE;
     }
 
-    Com_SignalGroupConfig[0U].ComFirstSignalId = 0U;
-    Com_SignalGroupConfig[0U].ComSignalCount = (uint16)(COM_NUM_OF_SIGNALS / 2U);
-    Com_SignalGroupConfig[0U].ComIpduGroupId = 0U;
+    FirstId = (Com_SignalIdType)Com_ConfigPtr->ComSignalGroupConfigPtr[SignalGroupId].ComFirstSignalId;
+    Count = Com_ConfigPtr->ComSignalGroupConfigPtr[SignalGroupId].ComSignalCount;
+    if ((SignalId < FirstId) || (SignalId >= (Com_SignalIdType)(FirstId + Count)))
+    {
+        return FALSE;
+    }
 
-    Com_SignalGroupConfig[1U].ComFirstSignalId = (Com_SignalIdType)(COM_NUM_OF_SIGNALS / 2U);
-    Com_SignalGroupConfig[1U].ComSignalCount =
-        (uint16)(COM_NUM_OF_SIGNALS - (Com_SignalIdType)(COM_NUM_OF_SIGNALS / 2U));
-    Com_SignalGroupConfig[1U].ComIpduGroupId = (Com_IpduGroupIdType)((COM_NUM_OF_IPDU_GROUPS > 1U) ? 1U : 0U);
+    GroupArrayLength = Com_GetSignalGroupArrayCapacity(SignalGroupId);
+    if (GroupArrayLength == 0U)
+    {
+        return FALSE;
+    }
+
+    for (MemberId = FirstId; MemberId < (Com_SignalIdType)(FirstId + Count); MemberId++)
+    {
+        if (Com_IsValidSignalId(MemberId) == FALSE)
+        {
+            continue;
+        }
+        if (Com_ConfigPtr->ComSignalConfigPtr[MemberId].ComSignalPosition < GroupMinPosition)
+        {
+            GroupMinPosition = Com_ConfigPtr->ComSignalConfigPtr[MemberId].ComSignalPosition;
+        }
+    }
+    if (GroupMinPosition == 0xFFFFU)
+    {
+        return FALSE;
+    }
+
+    SignalPosition = Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComSignalPosition;
+    SignalLength = Com_MinLength(Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComSignalLength,
+                                 Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComSignalMaxLength);
+    if ((SignalLength == 0U) || (SignalPosition < GroupMinPosition))
+    {
+        return FALSE;
+    }
+
+    *RelativePositionPtr = (uint16)(SignalPosition - GroupMinPosition);
+    if ((uint32)(*RelativePositionPtr) + (uint32)SignalLength > (uint32)GroupArrayLength)
+    {
+        return FALSE;
+    }
+    *SignalLengthPtr = SignalLength;
+    return TRUE;
+}
+
+static uint16 Com_GetSignalGroupUsedLength(Com_SignalGroupIdType SignalGroupId)
+{
+    Com_SignalIdType FirstId;
+    uint16 Count;
+    Com_SignalIdType SignalId;
+    uint16 RelativePosition;
+    uint16 SignalLength;
+    uint16 UsedLength = 0U;
+
+    if (Com_IsValidSignalGroupId(SignalGroupId) == FALSE)
+    {
+        return 0U;
+    }
+
+    FirstId = (Com_SignalIdType)Com_ConfigPtr->ComSignalGroupConfigPtr[SignalGroupId].ComFirstSignalId;
+    Count = Com_ConfigPtr->ComSignalGroupConfigPtr[SignalGroupId].ComSignalCount;
+
+    for (SignalId = FirstId; SignalId < (Com_SignalIdType)(FirstId + Count); SignalId++)
+    {
+        if (Com_GetSignalGroupSignalLayout(SignalGroupId, SignalId, &RelativePosition, &SignalLength) == TRUE)
+        {
+            uint16 EndPosition = (uint16)(RelativePosition + SignalLength);
+            if (UsedLength < EndPosition)
+            {
+                UsedLength = EndPosition;
+            }
+        }
+    }
+
+    return UsedLength;
+}
+
+static boolean Com_IsConfigValid(const Com_ConfigType* ConfigPtr)
+{
+    if (ConfigPtr == NULL)
+    {
+        return FALSE;
+    }
+    if ((ConfigPtr->ComSignalConfigPtr == NULL) ||
+        (ConfigPtr->ComSignalGroupConfigPtr == NULL) ||
+        (ConfigPtr->ComTxIpduConfigPtr == NULL) ||
+        (ConfigPtr->ComRxIpduConfigPtr == NULL))
+    {
+        return FALSE;
+    }
+    if ((ConfigPtr->ComNumOfSignals > COM_NUM_OF_SIGNALS) ||
+        (ConfigPtr->ComNumOfSignalGroups > COM_NUM_OF_SIGNAL_GROUPS) ||
+        (ConfigPtr->ComNumOfTxIpdu > COM_NUM_OF_TX_IPDU) ||
+        (ConfigPtr->ComNumOfRxIpdu > COM_NUM_OF_RX_IPDU))
+    {
+        return FALSE;
+    }
+    return TRUE;
 }
 
 static void Com_ResetRuntime(boolean IsInit)
 {
     PduIdType pduId;
     Com_SignalIdType signalId;
+    Com_SignalGroupIdType signalGroupId;
+    (void)IsInit;
 
-    for (signalId = 0U; signalId < COM_NUM_OF_SIGNALS; signalId++)
+    for (signalId = 0U; signalId < Com_ConfigPtr->ComNumOfSignals; signalId++)
     {
         Com_SignalRuntime[signalId].ComSignalUpdated = FALSE;
         Com_SignalRuntime[signalId].ComSignalInvalid = FALSE;
-        Com_SignalRuntime[signalId].ComSignalLength = Com_SignalConfig[signalId].ComSignalLength;
+        Com_SignalRuntime[signalId].ComSignalLength = Com_ConfigPtr->ComSignalConfigPtr[signalId].ComSignalLength;
         Com_SignalRuntime[signalId].ComSignalLastDeliveredValue = 0U;
         (void)memset(Com_SignalRuntime[signalId].ComSignalValue, 0, COM_SIGNAL_MAX_LENGTH);
     }
 
-    for (pduId = 0U; pduId < COM_NUM_OF_TX_IPDU; pduId++)
+    for (pduId = 0U; pduId < Com_ConfigPtr->ComNumOfTxIpdu; pduId++)
     {
         Com_TxIpduRuntime[pduId].ComTxPending = FALSE;
         Com_TxIpduRuntime[pduId].ComTxConfirmed = TRUE;
         Com_TxIpduRuntime[pduId].ComTxDeadlineTimeout = FALSE;
         Com_TxIpduRuntime[pduId].ComTxDeadlineCounter = 0U;
-        Com_TxIpduRuntime[pduId].ComTxDeadlineLimit = Com_TxIpduConfig[pduId].ComTxDeadlineLimit;
+        Com_TxIpduRuntime[pduId].ComTxDeadlineLimit = Com_ConfigPtr->ComTxIpduConfigPtr[pduId].ComTxDeadlineLimit;
         Com_TxIpduRuntime[pduId].ComTxLength = 0U;
         (void)memset(Com_TxIpduRuntime[pduId].ComTxBuffer, 0, COM_SIGNAL_MAX_LENGTH);
     }
 
-    for (pduId = 0U; pduId < COM_NUM_OF_RX_IPDU; pduId++)
+    for (pduId = 0U; pduId < Com_ConfigPtr->ComNumOfRxIpdu; pduId++)
     {
         Com_RxIpduRuntime[pduId].ComRxAvailable = FALSE;
         Com_RxIpduRuntime[pduId].ComRxTpInProgress = FALSE;
         Com_RxIpduRuntime[pduId].ComRxDeadlineTimeout = FALSE;
         Com_RxIpduRuntime[pduId].ComRxDeadlineCounter = 0U;
-        Com_RxIpduRuntime[pduId].ComRxDeadlineLimit = Com_RxIpduConfig[pduId].ComRxDeadlineLimit;
+        Com_RxIpduRuntime[pduId].ComRxDeadlineLimit = Com_ConfigPtr->ComRxIpduConfigPtr[pduId].ComRxDeadlineLimit;
         Com_RxIpduRuntime[pduId].ComRxLength = 0U;
         (void)memset(Com_RxIpduRuntime[pduId].ComRxBuffer, 0, COM_SIGNAL_MAX_LENGTH);
     }
 
     for (pduId = 0U; pduId < COM_NUM_OF_IPDU_GROUPS; pduId++)
     {
-        Com_IpduGroupRuntime[pduId].ComIpduGroupStarted = (boolean)(IsInit == TRUE);
+        Com_IpduGroupRuntime[pduId].ComIpduGroupStarted = FALSE;
+    }
+
+    for (signalGroupId = 0U; signalGroupId < Com_ConfigPtr->ComNumOfSignalGroups; signalGroupId++)
+    {
+        Com_SignalGroupRuntime[signalGroupId].ComShadowUpdated = FALSE;
+        Com_SignalGroupRuntime[signalGroupId].ComShadowLength = 0U;
+        (void)memset(Com_SignalGroupRuntime[signalGroupId].ComShadowData, 0, COM_SIGNAL_MAX_LENGTH);
     }
 }
 
@@ -232,7 +366,7 @@ static boolean Com_IsIpduGroupActiveForTxPdu(PduIdType TxPduId)
     {
         return FALSE;
     }
-    GroupId = Com_TxIpduConfig[TxPduId].ComIpduGroupId;
+    GroupId = (Com_IpduGroupIdType)Com_ConfigPtr->ComTxIpduConfigPtr[TxPduId].ComIpduGroupId;
     if (GroupId >= COM_NUM_OF_IPDU_GROUPS)
     {
         return FALSE;
@@ -247,7 +381,7 @@ static boolean Com_IsIpduGroupActiveForRxPdu(PduIdType RxPduId)
     {
         return FALSE;
     }
-    GroupId = Com_RxIpduConfig[RxPduId].ComIpduGroupId;
+    GroupId = (Com_IpduGroupIdType)Com_ConfigPtr->ComRxIpduConfigPtr[RxPduId].ComIpduGroupId;
     if (GroupId >= COM_NUM_OF_IPDU_GROUPS)
     {
         return FALSE;
@@ -267,19 +401,19 @@ static Std_ReturnType Com_CopySignalToIpdu(Com_SignalIdType SignalId, uint16 Sig
         return E_NOT_OK;
     }
 
-    TxPduId = Com_SignalConfig[SignalId].ComTxPduId;
+    TxPduId = Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComTxPduId;
     if (Com_IsValidTxPduId(TxPduId) == FALSE)
     {
         return E_NOT_OK;
     }
 
-    SignalPosition = Com_SignalConfig[SignalId].ComSignalPosition;
+    SignalPosition = Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComSignalPosition;
     if (SignalPosition >= COM_SIGNAL_MAX_LENGTH)
     {
         return E_NOT_OK;
     }
 
-    CopyLength = Com_MinLength(SignalLength, Com_SignalConfig[SignalId].ComSignalMaxLength);
+    CopyLength = Com_MinLength(SignalLength, Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComSignalMaxLength);
     if ((uint32)SignalPosition + (uint32)CopyLength > (uint32)COM_SIGNAL_MAX_LENGTH)
     {
         return E_NOT_OK;
@@ -312,18 +446,18 @@ static void Com_UpdateMappedRxSignals(PduIdType RxPduId)
 
     for (SignalId = 0U; SignalId < COM_NUM_OF_SIGNALS; SignalId++)
     {
-        if (Com_SignalConfig[SignalId].ComRxPduId != RxPduId)
+        if (Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComRxPduId != RxPduId)
         {
             continue;
         }
 
-        SignalPosition = Com_SignalConfig[SignalId].ComSignalPosition;
+        SignalPosition = Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComSignalPosition;
         if (SignalPosition >= Com_RxIpduRuntime[RxPduId].ComRxLength)
         {
             continue;
         }
 
-        CopyLength = Com_MinLength(Com_SignalConfig[SignalId].ComSignalLength,
+        CopyLength = Com_MinLength(Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComSignalLength,
                                    (uint16)(Com_RxIpduRuntime[RxPduId].ComRxLength - SignalPosition));
         if (CopyLength == 0U)
         {
@@ -331,9 +465,9 @@ static void Com_UpdateMappedRxSignals(PduIdType RxPduId)
         }
 
         RxFilteredValue = (uint8)(Com_RxIpduRuntime[RxPduId].ComRxBuffer[SignalPosition] &
-                                  Com_SignalConfig[SignalId].ComSignalFilterMask);
+                                  Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComSignalFilterMask);
         if (RxFilteredValue != (uint8)(Com_SignalRuntime[SignalId].ComSignalLastDeliveredValue &
-                                       Com_SignalConfig[SignalId].ComSignalFilterMask))
+                                       Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComSignalFilterMask))
         {
             (void)memcpy(Com_SignalRuntime[SignalId].ComSignalValue,
                          &Com_RxIpduRuntime[RxPduId].ComRxBuffer[SignalPosition],
@@ -353,7 +487,32 @@ static void Com_UpdateMappedRxSignals(PduIdType RxPduId)
 
 void Com_Init(void)
 {
-    Com_LoadDefaultConfiguration();
+    if (Com_IsConfigValid(&Com_Config) == FALSE)
+    {
+        Com_ConfigPtr = NULL;
+        Com_Initialized = FALSE;
+        return;
+    }
+
+    Com_ConfigPtr = &Com_Config;
+    Com_ResetRuntime(TRUE);
+    Com_Initialized = TRUE;
+}
+
+void Com_InitWithConfig(const Com_ConfigType* ConfigPtr)
+{
+    if (ConfigPtr == NULL)
+    {
+        Com_Init();
+        return;
+    }
+    if (Com_IsConfigValid(ConfigPtr) == FALSE)
+    {
+        Com_ConfigPtr = NULL;
+        Com_Initialized = FALSE;
+        return;
+    }
+    Com_ConfigPtr = ConfigPtr;
     Com_ResetRuntime(TRUE);
     Com_Initialized = TRUE;
 }
@@ -373,7 +532,7 @@ Std_ReturnType Com_SendSignal(Com_SignalIdType SignalId, const uint8* SignalData
 {
     return Com_SendDynSignal(SignalId, SignalDataPtr,
                              (Com_IsValidSignalId(SignalId) == TRUE) ?
-                             Com_SignalConfig[SignalId].ComSignalLength : 0U);
+                             Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComSignalLength : 0U);
 }
 
 Std_ReturnType Com_ReceiveSignal(Com_SignalIdType SignalId, uint8* SignalDataPtr)
@@ -399,12 +558,12 @@ Std_ReturnType Com_SendDynSignal(Com_SignalIdType SignalId, const uint8* SignalD
     {
         return E_NOT_OK;
     }
-    if ((Length == 0U) || (Length > Com_SignalConfig[SignalId].ComSignalMaxLength))
+    if ((Length == 0U) || (Length > Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComSignalMaxLength))
     {
         return E_NOT_OK;
     }
 
-    CopyLength = Com_MinLength(Length, Com_SignalConfig[SignalId].ComSignalMaxLength);
+    CopyLength = Com_MinLength(Length, Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComSignalMaxLength);
     (void)memcpy(Com_SignalRuntime[SignalId].ComSignalValue, SignalDataPtr, CopyLength);
     Com_SignalRuntime[SignalId].ComSignalLength = CopyLength;
     Com_SignalRuntime[SignalId].ComSignalUpdated = TRUE;
@@ -443,10 +602,10 @@ Std_ReturnType Com_InvalidateSignal(Com_SignalIdType SignalId)
         return E_NOT_OK;
     }
 
-    SignalLength = Com_SignalConfig[SignalId].ComSignalLength;
+    SignalLength = Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComSignalLength;
     for (Index = 0U; Index < SignalLength; Index++)
     {
-        Com_SignalRuntime[SignalId].ComSignalValue[Index] = Com_SignalConfig[SignalId].ComInvalidValue;
+        Com_SignalRuntime[SignalId].ComSignalValue[Index] = Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComInvalidValue;
     }
     Com_SignalRuntime[SignalId].ComSignalLength = SignalLength;
     Com_SignalRuntime[SignalId].ComSignalInvalid = TRUE;
@@ -461,22 +620,48 @@ Std_ReturnType Com_SendSignalGroup(Com_SignalGroupIdType SignalGroupId)
     Com_SignalIdType FirstId;
     uint16 Count;
 
-    if ((Com_Initialized == FALSE) || (SignalGroupId >= COM_NUM_OF_SIGNAL_GROUPS))
+    if ((Com_Initialized == FALSE) || (Com_IsValidSignalGroupId(SignalGroupId) == FALSE))
     {
         return E_NOT_OK;
     }
 
-    if (Com_IpduGroupRuntime[Com_SignalGroupConfig[SignalGroupId].ComIpduGroupId].ComIpduGroupStarted == FALSE)
+    if (Com_IsSignalGroupActive(SignalGroupId) == FALSE)
     {
         return E_NOT_OK;
     }
 
-    FirstId = Com_SignalGroupConfig[SignalGroupId].ComFirstSignalId;
-    Count = Com_SignalGroupConfig[SignalGroupId].ComSignalCount;
+    FirstId = (Com_SignalIdType)Com_ConfigPtr->ComSignalGroupConfigPtr[SignalGroupId].ComFirstSignalId;
+    Count = Com_ConfigPtr->ComSignalGroupConfigPtr[SignalGroupId].ComSignalCount;
+
+    if (Com_SignalGroupRuntime[SignalGroupId].ComShadowUpdated == TRUE)
+    {
+        for (SignalId = FirstId; SignalId < (Com_SignalIdType)(FirstId + Count); SignalId++)
+        {
+            uint16 RelativePosition;
+            uint16 SignalLength;
+            if (Com_GetSignalGroupSignalLayout(SignalGroupId, SignalId, &RelativePosition, &SignalLength) == FALSE)
+            {
+                continue;
+            }
+            if ((uint32)RelativePosition + (uint32)SignalLength >
+                (uint32)Com_SignalGroupRuntime[SignalGroupId].ComShadowLength)
+            {
+                continue;
+            }
+
+            (void)memcpy(Com_SignalRuntime[SignalId].ComSignalValue,
+                         &Com_SignalGroupRuntime[SignalGroupId].ComShadowData[RelativePosition],
+                         SignalLength);
+            Com_SignalRuntime[SignalId].ComSignalLength = SignalLength;
+            Com_SignalRuntime[SignalId].ComSignalUpdated = TRUE;
+            Com_SignalRuntime[SignalId].ComSignalInvalid = FALSE;
+        }
+        Com_SignalGroupRuntime[SignalGroupId].ComShadowUpdated = FALSE;
+    }
 
     for (SignalId = FirstId; SignalId < (Com_SignalIdType)(FirstId + Count); SignalId++)
     {
-        if (SignalId < COM_NUM_OF_SIGNALS)
+        if (SignalId < Com_ConfigPtr->ComNumOfSignals)
         {
             (void)Com_CopySignalToIpdu(SignalId, Com_SignalRuntime[SignalId].ComSignalLength);
         }
@@ -492,29 +677,223 @@ Std_ReturnType Com_ReceiveSignalGroup(Com_SignalGroupIdType SignalGroupId)
     uint16 Count;
     boolean AnyUpdated = FALSE;
 
-    if ((Com_Initialized == FALSE) || (SignalGroupId >= COM_NUM_OF_SIGNAL_GROUPS))
+    if ((Com_Initialized == FALSE) || (Com_IsValidSignalGroupId(SignalGroupId) == FALSE))
     {
         return E_NOT_OK;
     }
 
-    if (Com_IpduGroupRuntime[Com_SignalGroupConfig[SignalGroupId].ComIpduGroupId].ComIpduGroupStarted == FALSE)
+    if (Com_IsSignalGroupActive(SignalGroupId) == FALSE)
     {
         return E_NOT_OK;
     }
 
-    FirstId = Com_SignalGroupConfig[SignalGroupId].ComFirstSignalId;
-    Count = Com_SignalGroupConfig[SignalGroupId].ComSignalCount;
+    FirstId = (Com_SignalIdType)Com_ConfigPtr->ComSignalGroupConfigPtr[SignalGroupId].ComFirstSignalId;
+    Count = Com_ConfigPtr->ComSignalGroupConfigPtr[SignalGroupId].ComSignalCount;
 
     for (SignalId = FirstId; SignalId < (Com_SignalIdType)(FirstId + Count); SignalId++)
     {
-        if ((SignalId < COM_NUM_OF_SIGNALS) && (Com_SignalRuntime[SignalId].ComSignalUpdated == TRUE))
+        if ((SignalId < Com_ConfigPtr->ComNumOfSignals) && (Com_SignalRuntime[SignalId].ComSignalUpdated == TRUE))
         {
             AnyUpdated = TRUE;
-            break;
         }
     }
 
+    if (AnyUpdated == TRUE)
+    {
+        uint16 GroupLength = Com_GetSignalGroupUsedLength(SignalGroupId);
+        (void)memset(Com_SignalGroupRuntime[SignalGroupId].ComShadowData, 0, GroupLength);
+
+        for (SignalId = FirstId; SignalId < (Com_SignalIdType)(FirstId + Count); SignalId++)
+        {
+            uint16 RelativePosition;
+            uint16 SignalLength;
+            uint16 RuntimeLength;
+            uint16 CopyLength;
+
+            if (Com_GetSignalGroupSignalLayout(SignalGroupId, SignalId, &RelativePosition, &SignalLength) == FALSE)
+            {
+                continue;
+            }
+            RuntimeLength = Com_SignalRuntime[SignalId].ComSignalLength;
+            CopyLength = Com_MinLength(SignalLength, RuntimeLength);
+            if (CopyLength > 0U)
+            {
+                (void)memcpy(&Com_SignalGroupRuntime[SignalGroupId].ComShadowData[RelativePosition],
+                             Com_SignalRuntime[SignalId].ComSignalValue,
+                             CopyLength);
+            }
+        }
+        Com_SignalGroupRuntime[SignalGroupId].ComShadowLength = GroupLength;
+        Com_SignalGroupRuntime[SignalGroupId].ComShadowUpdated = TRUE;
+    }
+
     return (AnyUpdated == TRUE) ? E_OK : E_NOT_OK;
+}
+
+Std_ReturnType Com_UpdateShadowSignal(Com_SignalIdType SignalId, const uint8* SignalDataPtr)
+{
+    Com_SignalGroupIdType SignalGroupId;
+    uint16 Offset;
+    uint16 SignalLength;
+
+    if ((Com_Initialized == FALSE) || (SignalDataPtr == NULL) || (Com_IsValidSignalId(SignalId) == FALSE))
+    {
+        return E_NOT_OK;
+    }
+
+    if (Com_FindSignalGroupForSignal(SignalId, &SignalGroupId, &Offset) == FALSE)
+    {
+        return E_NOT_OK;
+    }
+
+    if (Com_GetSignalGroupSignalLayout(SignalGroupId, SignalId, &Offset, &SignalLength) == FALSE)
+    {
+        return E_NOT_OK;
+    }
+
+    (void)memcpy(&Com_SignalGroupRuntime[SignalGroupId].ComShadowData[Offset], SignalDataPtr, SignalLength);
+    if (Com_SignalGroupRuntime[SignalGroupId].ComShadowLength < (uint16)(Offset + SignalLength))
+    {
+        Com_SignalGroupRuntime[SignalGroupId].ComShadowLength = (uint16)(Offset + SignalLength);
+    }
+    Com_SignalGroupRuntime[SignalGroupId].ComShadowUpdated = TRUE;
+
+    return E_OK;
+}
+
+Std_ReturnType Com_ReceiveShadowSignal(Com_SignalIdType SignalId, uint8* SignalDataPtr)
+{
+    Com_SignalGroupIdType SignalGroupId;
+    uint16 Offset;
+    uint16 SignalLength;
+
+    if ((Com_Initialized == FALSE) || (SignalDataPtr == NULL) || (Com_IsValidSignalId(SignalId) == FALSE))
+    {
+        return E_NOT_OK;
+    }
+
+    if (Com_FindSignalGroupForSignal(SignalId, &SignalGroupId, &Offset) == FALSE)
+    {
+        return E_NOT_OK;
+    }
+
+    if (Com_GetSignalGroupSignalLayout(SignalGroupId, SignalId, &Offset, &SignalLength) == FALSE)
+    {
+        return E_NOT_OK;
+    }
+
+    if ((Com_SignalGroupRuntime[SignalGroupId].ComShadowUpdated == FALSE) ||
+        (SignalLength == 0U) ||
+        ((uint32)Offset + (uint32)SignalLength > (uint32)Com_SignalGroupRuntime[SignalGroupId].ComShadowLength))
+    {
+        return E_NOT_OK;
+    }
+
+    (void)memcpy(SignalDataPtr, &Com_SignalGroupRuntime[SignalGroupId].ComShadowData[Offset], SignalLength);
+    return E_OK;
+}
+
+Std_ReturnType Com_InvalidateSignalGroup(Com_SignalGroupIdType SignalGroupId)
+{
+    Com_SignalIdType SignalId;
+    Com_SignalIdType FirstId;
+    uint16 Count;
+    uint16 Offset;
+    uint16 SignalLength;
+    uint16 FillIndex;
+
+    if ((Com_Initialized == FALSE) || (Com_IsValidSignalGroupId(SignalGroupId) == FALSE))
+    {
+        return E_NOT_OK;
+    }
+
+    FirstId = (Com_SignalIdType)Com_ConfigPtr->ComSignalGroupConfigPtr[SignalGroupId].ComFirstSignalId;
+    Count = Com_ConfigPtr->ComSignalGroupConfigPtr[SignalGroupId].ComSignalCount;
+    Com_SignalGroupRuntime[SignalGroupId].ComShadowLength = 0U;
+
+    for (SignalId = FirstId; SignalId < (Com_SignalIdType)(FirstId + Count); SignalId++)
+    {
+        if (SignalId < Com_ConfigPtr->ComNumOfSignals)
+        {
+            (void)Com_InvalidateSignal(SignalId);
+            if (Com_GetSignalGroupSignalLayout(SignalGroupId, SignalId, &Offset, &SignalLength) == TRUE)
+            {
+                for (FillIndex = 0U; FillIndex < SignalLength; FillIndex++)
+                {
+                    Com_SignalGroupRuntime[SignalGroupId].ComShadowData[Offset + FillIndex] =
+                        Com_ConfigPtr->ComSignalConfigPtr[SignalId].ComInvalidValue;
+                }
+                if (Com_SignalGroupRuntime[SignalGroupId].ComShadowLength < (uint16)(Offset + SignalLength))
+                {
+                    Com_SignalGroupRuntime[SignalGroupId].ComShadowLength = (uint16)(Offset + SignalLength);
+                }
+            }
+        }
+    }
+
+    Com_SignalGroupRuntime[SignalGroupId].ComShadowUpdated = TRUE;
+    return E_OK;
+}
+
+Std_ReturnType Com_SendSignalGroupArray(Com_SignalGroupIdType SignalGroupId,
+                                        const uint8* SignalGroupArrayPtr,
+                                        uint16 Length)
+{
+    uint16 GroupLength;
+
+    if ((Com_Initialized == FALSE) || (SignalGroupArrayPtr == NULL) ||
+        (Com_IsValidSignalGroupId(SignalGroupId) == FALSE))
+    {
+        return E_NOT_OK;
+    }
+    if (Com_IsSignalGroupActive(SignalGroupId) == FALSE)
+    {
+        return E_NOT_OK;
+    }
+
+    GroupLength = Com_ConfigPtr->ComSignalGroupConfigPtr[SignalGroupId].ComSignalGroupArrayLength;
+    GroupLength = Com_MinLength(GroupLength, COM_SIGNAL_MAX_LENGTH);
+    if ((Length == 0U) || (Length > GroupLength))
+    {
+        return E_NOT_OK;
+    }
+
+    (void)memcpy(Com_SignalGroupRuntime[SignalGroupId].ComShadowData, SignalGroupArrayPtr, Length);
+    Com_SignalGroupRuntime[SignalGroupId].ComShadowLength = Length;
+    Com_SignalGroupRuntime[SignalGroupId].ComShadowUpdated = TRUE;
+
+    return Com_SendSignalGroup(SignalGroupId);
+}
+
+Std_ReturnType Com_ReceiveSignalGroupArray(Com_SignalGroupIdType SignalGroupId,
+                                           uint8* SignalGroupArrayPtr,
+                                           uint16* LengthPtr)
+{
+    uint16 MaxCopy;
+
+    if ((Com_Initialized == FALSE) || (SignalGroupArrayPtr == NULL) || (LengthPtr == NULL) ||
+        (Com_IsValidSignalGroupId(SignalGroupId) == FALSE))
+    {
+        return E_NOT_OK;
+    }
+    if (Com_IsSignalGroupActive(SignalGroupId) == FALSE)
+    {
+        return E_NOT_OK;
+    }
+
+    if ((Com_SignalGroupRuntime[SignalGroupId].ComShadowUpdated == FALSE) && (Com_ReceiveSignalGroup(SignalGroupId) != E_OK))
+    {
+        return E_NOT_OK;
+    }
+
+    MaxCopy = Com_MinLength(*LengthPtr, Com_SignalGroupRuntime[SignalGroupId].ComShadowLength);
+    if (MaxCopy > 0U)
+    {
+        (void)memcpy(SignalGroupArrayPtr, Com_SignalGroupRuntime[SignalGroupId].ComShadowData, MaxCopy);
+    }
+
+    *LengthPtr = MaxCopy;
+    return E_OK;
 }
 
 void Com_IpduGroupStart(Com_IpduGroupIdType IpduGroupId, boolean Initialize)
@@ -532,7 +911,7 @@ void Com_IpduGroupStart(Com_IpduGroupIdType IpduGroupId, boolean Initialize)
     {
         for (pduId = 0U; pduId < COM_NUM_OF_TX_IPDU; pduId++)
         {
-            if (Com_TxIpduConfig[pduId].ComIpduGroupId == IpduGroupId)
+            if (Com_ConfigPtr->ComTxIpduConfigPtr[pduId].ComIpduGroupId == IpduGroupId)
             {
                 Com_TxIpduRuntime[pduId].ComTxPending = FALSE;
                 Com_TxIpduRuntime[pduId].ComTxConfirmed = TRUE;

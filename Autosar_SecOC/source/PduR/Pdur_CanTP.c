@@ -2,7 +2,7 @@
 /************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
-#include "Pdur_CanTP.h"
+#include "PduR_CanTp.h"
 #include "SecOC.h"
 #include "SecOC_Debug.h"
 
@@ -10,50 +10,70 @@
 /********************************************Functions***************************************************/
 /********************************************************************************************************/
 
-BufReq_ReturnType PduR_CanTpCopyTxData (PduIdType id,const PduInfoType* info,const RetryInfoType* retry,
-PduLengthType* availableDataPtr)
+BufReq_ReturnType PduR_CanTpCopyTxData(PduIdType id,
+                                       const PduInfoType* info,
+                                       const RetryInfoType* retry,
+                                       PduLengthType* availableDataPtr)
 {
     #ifdef PDUR_DEBUG
         printf("######## in PduR_CanTpCopyTxData \n");
     #endif
-   /* SWS_CanTp_00086 */
-   return SecOC_CopyTxData(id, info, retry, availableDataPtr);
+    if ((id >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING) || (availableDataPtr == NULL))
+    {
+        return BUFREQ_E_NOT_OK;
+    }
+    return SecOC_CopyTxData(id, info, retry, availableDataPtr);
 }
-
-
 
 void PduR_CanTpTxConfirmation(PduIdType TxPduId, Std_ReturnType result)
 {
     #ifdef PDUR_DEBUG
         printf("######## in PduR_CanTpTxConfirmation \n");
     #endif
-    /* SWS_PduR_00301 */
+    if (TxPduId >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING)
+    {
+        return;
+    }
     SecOC_TpTxConfirmation(TxPduId, result);
 }
 
-BufReq_ReturnType PduR_CanTpCopyRxData (PduIdType id,const PduInfoType* info,PduLengthType* bufferSizePtr)
+BufReq_ReturnType PduR_CanTpCopyRxData(PduIdType id,
+                                       const PduInfoType* info,
+                                       PduLengthType* bufferSizePtr)
 {
     #ifdef PDUR_DEBUG
         printf("######## in PduR_CanTpCopyRxData \n");
     #endif
-    /* SWS_PduR_00428 */
+    if ((id >= (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING) || (bufferSizePtr == NULL))
+    {
+        return BUFREQ_E_NOT_OK;
+    }
     return SecOC_CopyRxData(id, info, bufferSizePtr);
 }
 
-BufReq_ReturnType PduR_CanTpStartOfReception(PduIdType id, const PduInfoType* info, PduLengthType TpSduLength, PduLengthType* bufferSizePtr)
+BufReq_ReturnType PduR_CanTpStartOfReception(PduIdType id,
+                                             const PduInfoType* info,
+                                             PduLengthType TpSduLength,
+                                             PduLengthType* bufferSizePtr)
 {
     #ifdef PDUR_DEBUG
         printf("######## in PduR_CanTpStartOfReception \n");
     #endif
-    /* SWS_PduR_00549 */
+    if ((id >= (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING) || (bufferSizePtr == NULL))
+    {
+        return BUFREQ_E_NOT_OK;
+    }
     return SecOC_StartOfReception(id, info, TpSduLength, bufferSizePtr);
 }
 
-void PduR_CanTpRxIndication (PduIdType id, Std_ReturnType result)
+void PduR_CanTpRxIndication(PduIdType id, Std_ReturnType result)
 {
     #ifdef PDUR_DEBUG
         printf("######## in PduR_CanTpRxIndication \n");
     #endif
-    /* SWS_PduR_00207 */
+    if (id >= (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING)
+    {
+        return;
+    }
     SecOC_TpRxIndication(id, result);
 }

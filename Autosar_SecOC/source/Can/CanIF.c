@@ -217,7 +217,26 @@ void CanIf_RxIndication(PduIdType RxPduId, const PduInfoType *PduInfoPtr)
         return;
     }
 
-    PduR_CanIfRxIndication(RxPduId, PduInfoPtr);
+    if (RxPduId >= (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING)
+    {
+        return;
+    }
+
+    switch (PdusCollections[RxPduId].Type)
+    {
+    case SECOC_SECURED_PDU_CANTP:
+        CanTp_RxIndication(RxPduId, PduInfoPtr);
+        break;
+    case SECOC_SECURED_PDU_CANIF:
+    case SECOC_AUTH_COLLECTON_PDU:
+    case SECOC_CRYPTO_COLLECTON_PDU:
+        PduR_CanIfRxIndication(RxPduId, PduInfoPtr);
+        break;
+    default:
+        /* Keep legacy behavior for non-CAN routed types. */
+        PduR_CanIfRxIndication(RxPduId, PduInfoPtr);
+        break;
+    }
 }
 
 void CanIf_ControllerModeIndication(uint8 ControllerId, CanIf_ControllerModeType ControllerMode)

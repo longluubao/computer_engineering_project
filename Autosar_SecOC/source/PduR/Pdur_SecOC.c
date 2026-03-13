@@ -8,9 +8,7 @@
 #include "CanTP.h"
 #include "Dcm.h"
 #include "SoAd.h"
-#include "SecOC_Debug.h"
 #include "SecOC_Lcfg.h"
-
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
@@ -18,117 +16,59 @@
 
 extern SecOC_PduCollection PdusCollections[];
 
-
 /********************************************************************************************************/
 /********************************************Functions***************************************************/
 /********************************************************************************************************/
 
-/****************************************************
- *          * Function Info *                       *
- *                                                  *
- * Function_Name        : PduR_SecOCTransmit        *
- * Function_Index       : 8.3.2.1 [SWS_PduR_00406]  *
- * Function_File        : SWS of Pdur Interface     *
- * Function_Descripton  : Requests transmission     *
- *              of a PDU                            *
- ***************************************************/
-
-
 Std_ReturnType PduR_SecOCTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr)
 {
-   #ifdef PDUR_DEBUG
-        printf("######## in PduR_SecOCTransmit for id %d \n", TxPduId);
-    #endif
-
-   if (PduInfoPtr == NULL)
-   {
-       return E_NOT_OK;
-   }
-
-   if (TxPduId >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING)
-   {
-       return E_NOT_OK;
-   }
-
-
-   switch (PdusCollections[TxPduId].Type)
+    if (PduInfoPtr == NULL)
     {
-    case SECOC_SECURED_PDU_CANIF:
-         #ifdef PDUR_DEBUG
-            printf("sending CANIF \n");
-         #endif
-         return CanIf_Transmit(TxPduId,PduInfoPtr);
-         break;
-    case SECOC_SECURED_PDU_CANTP:
-         #ifdef PDUR_DEBUG
-            printf("sending CANTP \n");
-         #endif
-         return CanTp_Transmit(TxPduId, PduInfoPtr);
-        break;
-    case SECOC_SECURED_PDU_SOADTP:
-        #ifdef PDUR_DEBUG
-            printf("sending SOADTP \n");
-        #endif
-        return SoAd_TpTransmit(TxPduId, PduInfoPtr); 
-        break;
-    case SECOC_SECURED_PDU_SOADIF:
-        #ifdef PDUR_DEBUG
-            printf("sending SOADIF \n");
-        #endif
-        return SoAd_IfTransmit(TxPduId, PduInfoPtr);
-        break;
-    case SECOC_AUTH_COLLECTON_PDU:
-        #ifdef PDUR_DEBUG
-            printf("sending CANIF - Pdu collection - Auth \n");
-        #endif
-         return CanIf_Transmit(TxPduId,PduInfoPtr);
-        break;
-    case SECOC_CRYPTO_COLLECTON_PDU:
-        #ifdef PDUR_DEBUG
-            printf("sending CANIF - Pdu collection - Crypto \n");
-        #endif
-         return CanIf_Transmit(TxPduId,PduInfoPtr);
-        break;
-    
-    default:
-        #ifdef PDUR_DEBUG
-            printf("This is no type like it for ID : %d  type : %d \n", TxPduId, PdusCollections[TxPduId].Type);
-        #endif
         return E_NOT_OK;
-        break;
     }
-    return E_NOT_OK;
-}
+    if (TxPduId >= (PduIdType)SECOC_NUM_OF_PDU_COLLECTION)
+    {
+        return E_NOT_OK;
+    }
 
+    switch (PdusCollections[TxPduId].Type)
+    {
+        case SECOC_SECURED_PDU_CANIF:
+            return CanIf_Transmit(TxPduId, PduInfoPtr);
+        case SECOC_SECURED_PDU_CANTP:
+            return CanTp_Transmit(TxPduId, PduInfoPtr);
+        case SECOC_SECURED_PDU_SOADTP:
+            return SoAd_TpTransmit(TxPduId, PduInfoPtr);
+        case SECOC_SECURED_PDU_SOADIF:
+            return SoAd_IfTransmit(TxPduId, PduInfoPtr);
+        case SECOC_AUTH_COLLECTON_PDU:
+        case SECOC_CRYPTO_COLLECTON_PDU:
+            return CanIf_Transmit(TxPduId, PduInfoPtr);
+        default:
+            return E_NOT_OK;
+    }
+}
 
 void PduR_SecOCIfTxConfirmation(PduIdType TxPduId, Std_ReturnType result)
 {
-   #ifdef PDUR_DEBUG
-        printf("######## in PduR_SecOCIfTxConfirmation \n");
-    #endif
-	Com_TxConfirmation(TxPduId, result);
+    if (TxPduId >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING)
+    {
+        return;
+    }
+    Com_TxConfirmation(TxPduId, result);
 }
-
-
 
 void PduR_SecOCIfRxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
 {
-   #ifdef PDUR_DEBUG
-        printf("######## in PduR_SecOCIfRxIndication \n");
-    #endif
-   if (PduInfoPtr == NULL)
-   {
-       return;
-   }
-   Com_RxIndication(RxPduId, PduInfoPtr);
+    if ((PduInfoPtr == NULL) || (RxPduId >= (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING))
+    {
+        return;
+    }
+    Com_RxIndication(RxPduId, PduInfoPtr);
 }
-
 
 void PduR_SecOCTpTxConfirmation(PduIdType TxPduId, Std_ReturnType result)
 {
-   #ifdef PDUR_DEBUG
-        printf("######## in PduR_SecOCTpTxConfirmation \n");
-    #endif
     if (TxPduId < (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING)
     {
         Com_TpTxConfirmation(TxPduId, result);
@@ -136,5 +76,44 @@ void PduR_SecOCTpTxConfirmation(PduIdType TxPduId, Std_ReturnType result)
     else
     {
         Dcm_TpTxConfirmation(TxPduId, result);
+    }
+}
+
+BufReq_ReturnType PduR_SecOCTpStartOfReception(PduIdType RxPduId,
+                                               const PduInfoType* PduInfoPtr,
+                                               PduLengthType TpSduLength,
+                                               PduLengthType* RxBufferSizePtr)
+{
+    if (RxBufferSizePtr == NULL)
+    {
+        return BUFREQ_E_NOT_OK;
+    }
+    if (RxPduId < (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING)
+    {
+        return Com_StartOfReception(RxPduId, PduInfoPtr, TpSduLength, RxBufferSizePtr);
+    }
+    return BUFREQ_E_NOT_OK;
+}
+
+BufReq_ReturnType PduR_SecOCTpCopyRxData(PduIdType RxPduId,
+                                         const PduInfoType* PduInfoPtr,
+                                         PduLengthType* RxBufferSizePtr)
+{
+    if (RxBufferSizePtr == NULL)
+    {
+        return BUFREQ_E_NOT_OK;
+    }
+    if (RxPduId < (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING)
+    {
+        return Com_CopyRxData(RxPduId, PduInfoPtr, RxBufferSizePtr);
+    }
+    return BUFREQ_E_NOT_OK;
+}
+
+void PduR_SecOCTpRxIndication(PduIdType RxPduId, Std_ReturnType result)
+{
+    if (RxPduId < (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING)
+    {
+        Com_TpRxIndication(RxPduId, result);
     }
 }

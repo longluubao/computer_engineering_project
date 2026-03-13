@@ -12,6 +12,9 @@
 #include "TcpIp.h"
 #include "SoAd.h"
 #include "Det.h"
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_ETHIF)
+    #include "EthIf.h"
+#endif
 #include <string.h>
 
 #ifdef WINDOWS
@@ -38,6 +41,10 @@
 /********************************************************************************************************/
 
 #define TCPIP_RX_BUFFER_SIZE  (4096U)
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_ETHIF)
+#define TCPIP_ETHIF_CTRL_IDX        ((uint8)0U)
+#define TCPIP_ETHIF_FRAME_TYPE_BASE ((Eth_FrameType)0x9100U)
+#endif
 
 /********************************************************************************************************/
 /*******************************************TypeDefinitions**********************************************/
@@ -90,6 +97,14 @@ static void TcpIp_SockAddrToSockAddrIn(const TcpIp_SockAddrType* SrcAddr, struct
 static void TcpIp_SockAddrInToSockAddr(const struct sockaddr_in* SrcAddr, TcpIp_SockAddrType* DstAddr);
 static Std_ReturnType TcpIp_SetNonBlocking(PlatformSocketType Sock);
 static void TcpIp_ClosePlatformSocket(PlatformSocketType Sock);
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_ETHIF)
+static void TcpIp_EthIfRxIndicationCbk(uint8 CtrlIdx,
+                                       Eth_FrameType FrameType,
+                                       boolean IsBroadcast,
+                                       const uint8* PhysAddrPtr,
+                                       const uint8* DataPtr,
+                                       uint16 LenByte);
+#endif
 
 /********************************************************************************************************/
 /****************************************StaticFunctions*************************************************/
@@ -141,6 +156,43 @@ static void TcpIp_ClosePlatformSocket(PlatformSocketType Sock)
 #endif
 }
 
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_ETHIF)
+static void TcpIp_EthIfRxIndicationCbk(uint8 CtrlIdx,
+                                       Eth_FrameType FrameType,
+                                       boolean IsBroadcast,
+                                       const uint8* PhysAddrPtr,
+                                       const uint8* DataPtr,
+                                       uint16 LenByte)
+{
+    TcpIp_SocketIdType SocketId;
+    TcpIp_SockAddrType RemoteAddr;
+    (void)CtrlIdx;
+    (void)IsBroadcast;
+    (void)PhysAddrPtr;
+
+    if ((DataPtr == NULL) || (LenByte == 0U))
+    {
+        return;
+    }
+    if ((FrameType < TCPIP_ETHIF_FRAME_TYPE_BASE) ||
+        (FrameType >= (Eth_FrameType)(TCPIP_ETHIF_FRAME_TYPE_BASE + TCPIP_MAX_SOCKETS)))
+    {
+        return;
+    }
+
+    SocketId = (TcpIp_SocketIdType)(FrameType - TCPIP_ETHIF_FRAME_TYPE_BASE);
+    if ((SocketId >= TCPIP_MAX_SOCKETS) ||
+        (TcpIp_SocketTable[SocketId].state == TCPIP_SOCKET_STATE_UNUSED))
+    {
+        return;
+    }
+
+    /* EthIf backend has no IP peer metadata; preserve latest socket peer snapshot. */
+    RemoteAddr = TcpIp_SocketTable[SocketId].remoteAddr;
+    TcpIp_RxIndication(SocketId, &RemoteAddr, DataPtr, LenByte);
+}
+#endif
+
 /********************************************************************************************************/
 /********************************************Functions***************************************************/
 /********************************************************************************************************/
@@ -168,6 +220,12 @@ void TcpIp_Init(const TcpIp_ConfigType* ConfigPtr)
         }
         TcpIp_WinsockInitialized = TRUE;
     }
+#endif
+
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_ETHIF)
+    EthIf_Init(NULL);
+    (void)EthIf_SetControllerMode(TCPIP_ETHIF_CTRL_IDX, ETH_MODE_ACTIVE);
+    EthIf_SetRxIndicationCallback(TcpIp_EthIfRxIndicationCbk);
 #endif
 
     /* Initialize socket table */
@@ -217,7 +275,10 @@ void TcpIp_Shutdown(void)
     {
         if (TcpIp_SocketTable[idx].state != TCPIP_SOCKET_STATE_UNUSED)
         {
-            TcpIp_ClosePlatformSocket(TcpIp_SocketTable[idx].platformSocket);
+            if (TcpIp_SocketTable[idx].platformSocket != TCPIP_PLATFORM_INVALID_SOCKET)
+            {
+                TcpIp_ClosePlatformSocket(TcpIp_SocketTable[idx].platformSocket);
+            }
             TcpIp_SocketTable[idx].platformSocket = TCPIP_PLATFORM_INVALID_SOCKET;
             TcpIp_SocketTable[idx].state          = TCPIP_SOCKET_STATE_UNUSED;
         }
@@ -231,6 +292,11 @@ void TcpIp_Shutdown(void)
     }
 #endif
 
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_ETHIF)
+    EthIf_SetRxIndicationCallback(NULL);
+    (void)EthIf_SetControllerMode(TCPIP_ETHIF_CTRL_IDX, ETH_MODE_DOWN);
+#endif
+
     TcpIp_ModuleState = TCPIP_STATE_OFFLINE;
 }
 
@@ -241,8 +307,10 @@ Std_ReturnType TcpIp_GetSocketId(
 )
 {
     uint16 idx;
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_SOCKETS)
     int sockType;
     int sockProto;
+#endif
     PlatformSocketType newSock;
 
 #if (TCPIP_DEV_ERROR_DETECT == STD_ON)
@@ -286,6 +354,7 @@ Std_ReturnType TcpIp_GetSocketId(
     }
 
     /* Map protocol to platform socket type */
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_SOCKETS)
     if (Protocol == TCPIP_IPPROTO_TCP)
     {
         sockType  = SOCK_STREAM;
@@ -296,12 +365,16 @@ Std_ReturnType TcpIp_GetSocketId(
         sockType  = SOCK_DGRAM;
         sockProto = IPPROTO_UDP;
     }
+#endif
 
+    newSock = TCPIP_PLATFORM_INVALID_SOCKET;
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_SOCKETS)
     newSock = socket(AF_INET, sockType, sockProto);
     if (newSock == TCPIP_PLATFORM_INVALID_SOCKET)
     {
         return E_NOT_OK;
     }
+#endif
 
     TcpIp_SocketTable[idx].platformSocket = newSock;
     TcpIp_SocketTable[idx].state          = TCPIP_SOCKET_STATE_ALLOCATED;
@@ -338,6 +411,7 @@ Std_ReturnType TcpIp_Close(TcpIp_SocketIdType SocketId, boolean Abort)
 
     if (Abort == TRUE)
     {
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_SOCKETS)
         /* Set SO_LINGER with timeout 0 for immediate RST */
         struct linger lingerOpt;
         lingerOpt.l_onoff  = 1;
@@ -347,9 +421,13 @@ Std_ReturnType TcpIp_Close(TcpIp_SocketIdType SocketId, boolean Abort)
             SOL_SOCKET, SO_LINGER,
             (const char*)&lingerOpt, sizeof(lingerOpt)
         );
+#endif
     }
 
-    TcpIp_ClosePlatformSocket(TcpIp_SocketTable[SocketId].platformSocket);
+    if (TcpIp_SocketTable[SocketId].platformSocket != TCPIP_PLATFORM_INVALID_SOCKET)
+    {
+        TcpIp_ClosePlatformSocket(TcpIp_SocketTable[SocketId].platformSocket);
+    }
     TcpIp_SocketTable[SocketId].platformSocket = TCPIP_PLATFORM_INVALID_SOCKET;
     TcpIp_SocketTable[SocketId].state          = TCPIP_SOCKET_STATE_UNUSED;
     TcpIp_SocketTable[SocketId].localPort      = 0U;
@@ -364,8 +442,10 @@ Std_ReturnType TcpIp_Bind(
     uint16* PortPtr
 )
 {
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_SOCKETS)
     struct sockaddr_in bindAddr;
     int optVal = 1;
+#endif
 
 #if (TCPIP_DEV_ERROR_DETECT == STD_ON)
     if (TcpIp_ModuleState != TCPIP_STATE_ONLINE)
@@ -396,6 +476,7 @@ Std_ReturnType TcpIp_Bind(
 #endif
 
     /* Set SO_REUSEADDR */
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_SOCKETS)
     (void)setsockopt(
         TcpIp_SocketTable[SocketId].platformSocket,
         SOL_SOCKET, SO_REUSEADDR,
@@ -437,6 +518,7 @@ Std_ReturnType TcpIp_Bind(
             *PortPtr = ntohs(assignedAddr.sin_port);
         }
     }
+#endif
 
     TcpIp_SocketTable[SocketId].localAddrId = LocalAddrId;
     TcpIp_SocketTable[SocketId].localPort   = *PortPtr;
@@ -450,7 +532,9 @@ Std_ReturnType TcpIp_TcpConnect(
     const TcpIp_SockAddrType* RemoteAddrPtr
 )
 {
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_SOCKETS)
     struct sockaddr_in remoteAddr;
+#endif
 
 #if (TCPIP_DEV_ERROR_DETECT == STD_ON)
     if (TcpIp_ModuleState != TCPIP_STATE_ONLINE)
@@ -480,13 +564,14 @@ Std_ReturnType TcpIp_TcpConnect(
     }
 #endif
 
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_SOCKETS)
     TcpIp_SockAddrToSockAddrIn(RemoteAddrPtr, &remoteAddr);
-
     if (connect(TcpIp_SocketTable[SocketId].platformSocket,
                 (struct sockaddr*)&remoteAddr, sizeof(remoteAddr)) == TCPIP_PLATFORM_SOCKET_ERROR)
     {
         return E_NOT_OK;
     }
+#endif
 
     TcpIp_SocketTable[SocketId].remoteAddr = *RemoteAddrPtr;
     TcpIp_SocketTable[SocketId].state      = TCPIP_SOCKET_STATE_CONNECTED;
@@ -519,6 +604,7 @@ Std_ReturnType TcpIp_TcpListen(TcpIp_SocketIdType SocketId, uint16 MaxChannels)
     }
 #endif
 
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_SOCKETS)
     if (listen(TcpIp_SocketTable[SocketId].platformSocket, (int)MaxChannels) == TCPIP_PLATFORM_SOCKET_ERROR)
     {
         return E_NOT_OK;
@@ -526,6 +612,9 @@ Std_ReturnType TcpIp_TcpListen(TcpIp_SocketIdType SocketId, uint16 MaxChannels)
 
     /* Set non-blocking so MainFunction can poll */
     (void)TcpIp_SetNonBlocking(TcpIp_SocketTable[SocketId].platformSocket);
+#else
+    (void)MaxChannels;
+#endif
 
     TcpIp_SocketTable[SocketId].state = TCPIP_SOCKET_STATE_LISTENING;
 
@@ -539,8 +628,16 @@ Std_ReturnType TcpIp_UdpTransmit(
     uint16 TotalLength
 )
 {
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_SOCKETS)
     struct sockaddr_in destAddr;
     int sendResult;
+#endif
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_ETHIF)
+    Eth_BufIdxType BufIdx;
+    uint8* BufPtr;
+    uint16 RequestedLength;
+    Eth_FrameType FrameType;
+#endif
 
 #if (TCPIP_DEV_ERROR_DETECT == STD_ON)
     if (TcpIp_ModuleState != TCPIP_STATE_ONLINE)
@@ -575,8 +672,30 @@ Std_ReturnType TcpIp_UdpTransmit(
     }
 #endif
 
+    TcpIp_SocketTable[SocketId].remoteAddr = *RemoteAddrPtr;
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_ETHIF)
+    RequestedLength = TotalLength;
+    FrameType = (Eth_FrameType)(TCPIP_ETHIF_FRAME_TYPE_BASE + (Eth_FrameType)SocketId);
+    if (EthIf_ProvideTxBuffer(TCPIP_ETHIF_CTRL_IDX,
+                              FrameType,
+                              0U,
+                              &BufIdx,
+                              &BufPtr,
+                              &RequestedLength) != BUFREQ_OK)
+    {
+        return E_NOT_OK;
+    }
+    if ((BufPtr == NULL) || (RequestedLength < TotalLength))
+    {
+        return E_NOT_OK;
+    }
+    (void)memcpy(BufPtr, DataPtr, TotalLength);
+    if (EthIf_Transmit(TCPIP_ETHIF_CTRL_IDX, BufIdx, FrameType, FALSE, TotalLength, NULL) != E_OK)
+    {
+        return E_NOT_OK;
+    }
+#else
     TcpIp_SockAddrToSockAddrIn(RemoteAddrPtr, &destAddr);
-
     sendResult = sendto(
         TcpIp_SocketTable[SocketId].platformSocket,
         (const char*)DataPtr,
@@ -590,6 +709,7 @@ Std_ReturnType TcpIp_UdpTransmit(
     {
         return E_NOT_OK;
     }
+#endif
 
     return E_OK;
 }
@@ -601,7 +721,15 @@ Std_ReturnType TcpIp_TcpTransmit(
     boolean ForceRetrieve
 )
 {
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_SOCKETS)
     int sendResult;
+#endif
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_ETHIF)
+    Eth_BufIdxType BufIdx;
+    uint8* BufPtr;
+    uint16 RequestedLength;
+    Eth_FrameType FrameType;
+#endif
 
     (void)ForceRetrieve;
 
@@ -638,6 +766,37 @@ Std_ReturnType TcpIp_TcpTransmit(
     }
 #endif
 
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_ETHIF)
+    if (AvailableLength > 0xFFFFUL)
+    {
+        return E_NOT_OK;
+    }
+    RequestedLength = (uint16)AvailableLength;
+    FrameType = (Eth_FrameType)(TCPIP_ETHIF_FRAME_TYPE_BASE + (Eth_FrameType)SocketId);
+    if (EthIf_ProvideTxBuffer(TCPIP_ETHIF_CTRL_IDX,
+                              FrameType,
+                              0U,
+                              &BufIdx,
+                              &BufPtr,
+                              &RequestedLength) != BUFREQ_OK)
+    {
+        return E_NOT_OK;
+    }
+    if ((BufPtr == NULL) || (RequestedLength < (uint16)AvailableLength))
+    {
+        return E_NOT_OK;
+    }
+    (void)memcpy(BufPtr, DataPtr, (uint16)AvailableLength);
+    if (EthIf_Transmit(TCPIP_ETHIF_CTRL_IDX,
+                       BufIdx,
+                       FrameType,
+                       FALSE,
+                       (uint16)AvailableLength,
+                       NULL) != E_OK)
+    {
+        return E_NOT_OK;
+    }
+#else
     sendResult = send(
         TcpIp_SocketTable[SocketId].platformSocket,
         (const char*)DataPtr,
@@ -649,6 +808,7 @@ Std_ReturnType TcpIp_TcpTransmit(
     {
         return E_NOT_OK;
     }
+#endif
 
     return E_OK;
 }
@@ -683,6 +843,18 @@ void TcpIp_RxIndication(
 
 void TcpIp_MainFunction(void)
 {
+#if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_ETHIF)
+#if (TCPIP_DEV_ERROR_DETECT == STD_ON)
+    if (TcpIp_ModuleState != TCPIP_STATE_ONLINE)
+    {
+        return;
+    }
+#endif
+
+    EthIf_MainFunctionRx();
+    EthIf_MainFunctionTx();
+    return;
+#else
     uint16 idx;
     int recvLen;
 
@@ -806,6 +978,7 @@ void TcpIp_MainFunction(void)
             }
         }
     }
+#endif
 }
 
 void TcpIp_GetVersionInfo(Std_VersionInfoType* VersionInfoPtr)

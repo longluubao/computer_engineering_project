@@ -274,9 +274,9 @@ build_phase3_ethernet() {
         source/SecOC/SecOC_Lcfg.c \
         source/SecOC/SecOC_PBcfg.c \
         source/PduR/PduR_Com.c \
-        source/PduR/Pdur_SecOC.c \
-        source/PduR/Pdur_Canif.c \
-        source/PduR/Pdur_CanTP.c \
+        source/PduR/PduR_SecOC.c \
+        source/PduR/PduR_CanIf.c \
+        source/PduR/PduR_CanTp.c \
         source/PduR/PduR_SoAd.c \
         source/Com/Com.c \
         source/Can/CanIF.c \

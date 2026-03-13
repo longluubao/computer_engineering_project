@@ -70,6 +70,13 @@
 #define SOAD_MAX_SOCKET_CONNECTIONS      (16U)
 #define SOAD_MAX_ROUTING_GROUPS          (8U)
 
+/* Compile-time backend for SoAd payload path (default preserves current sockets behavior). */
+#define SOAD_TCPIP_PAYLOAD_BACKEND_SOCKETS   (0U)
+#define SOAD_TCPIP_PAYLOAD_BACKEND_ETHIF     (1U)
+#ifndef SOAD_TCPIP_PAYLOAD_BACKEND
+#define SOAD_TCPIP_PAYLOAD_BACKEND           SOAD_TCPIP_PAYLOAD_BACKEND_SOCKETS
+#endif
+
 /********************************************************************************************************/
 /*******************************************TypeDefinitions**********************************************/
 /********************************************************************************************************/

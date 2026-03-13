@@ -6,6 +6,8 @@
 #include "Det.h"
 #include "Dem.h"
 #include "Can.h"
+#include "CanIF.h"
+#include "CanTP.h"
 #include "CanSM.h"
 #include "CanNm.h"
 #include "BswM.h"
@@ -57,12 +59,14 @@ static void EcuM_NotifyBswMState(EcuM_StateType State);
 
 static Std_ReturnType EcuM_InitEthCommunicationPath(void)
 {
+#if (SOAD_TCPIP_PAYLOAD_BACKEND == SOAD_TCPIP_PAYLOAD_BACKEND_ETHIF)
     EthIf_Init(NULL);
 
     if (EthIf_SetControllerMode(0U, ETH_MODE_ACTIVE) != E_OK)
     {
         return E_NOT_OK;
     }
+#endif
 
     TcpIp_Init(NULL);
     SoAd_Init(NULL);
@@ -94,20 +98,32 @@ static void EcuM_MainFunctionEthCommunicationPath(void)
         return;
     }
 
+#if (SOAD_TCPIP_PAYLOAD_BACKEND == SOAD_TCPIP_PAYLOAD_BACKEND_ETHIF)
     EthIf_MainFunctionRx();
     EthIf_MainFunctionTx();
+#endif
     SoAd_MainFunctionTx();
     SoAd_MainFunctionRx();
 }
 
 static void EcuM_StartComCommunicationPath(void)
 {
-    Com_IpduGroupStart((Com_IpduGroupIdType)0U, TRUE);
+    Com_IpduGroupIdType GroupId;
+
+    for (GroupId = 0U; GroupId < (Com_IpduGroupIdType)COM_NUM_OF_IPDU_GROUPS; GroupId++)
+    {
+        Com_IpduGroupStart(GroupId, TRUE);
+    }
 }
 
 static void EcuM_StopComCommunicationPath(void)
 {
-    Com_IpduGroupStop((Com_IpduGroupIdType)0U);
+    Com_IpduGroupIdType GroupId;
+
+    for (GroupId = 0U; GroupId < (Com_IpduGroupIdType)COM_NUM_OF_IPDU_GROUPS; GroupId++)
+    {
+        Com_IpduGroupStop(GroupId);
+    }
 }
 
 static Std_ReturnType EcuM_ExecuteResetCalloutHook(void)
@@ -219,6 +235,10 @@ Std_ReturnType EcuM_StartupTwo(void)
     }
 #endif
 
+    /* Ensure CanIf callbacks are registered before communication starts. */
+    CanIf_Init();
+    CanTp_Init();
+
     if (ComM_RequestComMode(0U, COMM_FULL_COMMUNICATION) != E_OK)
     {
 #if defined(LINUX) || defined(WINDOWS)
@@ -273,6 +293,7 @@ Std_ReturnType EcuM_Shutdown(void)
         BswM_Deinit();
         CanNm_DeInit();
         CanSM_DeInit();
+        CanTp_Shutdown();
         Can_DeInit();
 #if defined(LINUX) || defined(WINDOWS)
         EcuM_DeInitEthCommunicationPath();
@@ -290,6 +311,7 @@ Std_ReturnType EcuM_Shutdown(void)
         BswM_Deinit();
         CanNm_DeInit();
         CanSM_DeInit();
+        CanTp_Shutdown();
         Can_DeInit();
 #if defined(LINUX) || defined(WINDOWS)
         EcuM_DeInitEthCommunicationPath();
@@ -717,6 +739,10 @@ void EcuM_MainFunction(void)
     /* In RUN state, delegate to BswM for periodic mode arbitration */
     if (EcuM_State == ECUM_STATE_RUN)
     {
+        Can_MainFunction_Write();
+        Can_MainFunction_Read();
+        CanTp_MainFunctionTx();
+        CanTp_MainFunctionRx();
         Com_MainFunctionTx();
         Com_MainFunctionRx();
         ComM_MainFunction();

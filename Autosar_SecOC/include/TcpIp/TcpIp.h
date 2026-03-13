@@ -55,6 +55,13 @@
 #define TCPIP_MAX_LOCAL_ADDR             (4U)
 #define TCPIP_SOCKET_ID_INVALID          (0xFFFFU)
 
+/* Compile-time payload backend selection (default preserves socket behavior). */
+#define TCPIP_PAYLOAD_BACKEND_SOCKETS    (0U)
+#define TCPIP_PAYLOAD_BACKEND_ETHIF      (1U)
+#ifndef TCPIP_PAYLOAD_BACKEND
+#define TCPIP_PAYLOAD_BACKEND            TCPIP_PAYLOAD_BACKEND_SOCKETS
+#endif
+
 /* Development Error Detection */
 #ifndef TCPIP_DEV_ERROR_DETECT
 #define TCPIP_DEV_ERROR_DETECT           STD_ON

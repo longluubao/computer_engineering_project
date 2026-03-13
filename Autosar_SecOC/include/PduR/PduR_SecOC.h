@@ -32,5 +32,16 @@ void PduR_SecOCIfRxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr);
 
 void PduR_SecOCTpTxConfirmation(PduIdType TxPduId, Std_ReturnType result);
 
+BufReq_ReturnType PduR_SecOCTpStartOfReception(PduIdType RxPduId,
+                                               const PduInfoType* PduInfoPtr,
+                                               PduLengthType TpSduLength,
+                                               PduLengthType* RxBufferSizePtr);
+
+BufReq_ReturnType PduR_SecOCTpCopyRxData(PduIdType RxPduId,
+                                         const PduInfoType* PduInfoPtr,
+                                         PduLengthType* RxBufferSizePtr);
+
+void PduR_SecOCTpRxIndication(PduIdType RxPduId, Std_ReturnType result);
+
 
 #endif

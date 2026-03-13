@@ -25,7 +25,7 @@ Std_ReturnType PduR_ComTransmit(PduIdType PduID, const PduInfoType *PduInfo)
     #ifdef PDUR_DEBUG
         printf("######## in PduR_ComTransmit \n");
     #endif
-    if (PduInfo == NULL)
+    if ((PduInfo == NULL) || (PduID >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING))
     {
         return E_NOT_OK;
     }
