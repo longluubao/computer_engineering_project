@@ -44,6 +44,8 @@ static EcuM_WakeupValidationCalloutType EcuM_WakeupValidationCallout = (EcuM_Wak
 static Std_ReturnType EcuM_InitEthCommunicationPath(void);
 static void EcuM_DeInitEthCommunicationPath(void);
 static void EcuM_MainFunctionEthCommunicationPath(void);
+static void EcuM_StartComCommunicationPath(void);
+static void EcuM_StopComCommunicationPath(void);
 static Std_ReturnType EcuM_ExecuteResetCalloutHook(void);
 static Std_ReturnType EcuM_ExecuteOffCalloutHook(void);
 static boolean EcuM_IsWakeupSourceValidFromHardware(EcuM_WakeupSourceType WakeupSource);
@@ -96,6 +98,16 @@ static void EcuM_MainFunctionEthCommunicationPath(void)
     EthIf_MainFunctionTx();
     SoAd_MainFunctionTx();
     SoAd_MainFunctionRx();
+}
+
+static void EcuM_StartComCommunicationPath(void)
+{
+    Com_IpduGroupStart((Com_IpduGroupIdType)0U, TRUE);
+}
+
+static void EcuM_StopComCommunicationPath(void)
+{
+    Com_IpduGroupStop((Com_IpduGroupIdType)0U);
 }
 
 static Std_ReturnType EcuM_ExecuteResetCalloutHook(void)
@@ -218,6 +230,7 @@ Std_ReturnType EcuM_StartupTwo(void)
 
     SecOC_Init(&SecOC_Config);
     Com_Init();
+    EcuM_StartComCommunicationPath();
 
     EcuM_State = ECUM_STATE_RUN;
     EcuM_NotifyBswMState(EcuM_State);
@@ -245,6 +258,7 @@ Std_ReturnType EcuM_Shutdown(void)
     if (EcuM_ShutdownTarget == ECUM_SHUTDOWN_TARGET_SLEEP)
     {
         (void)ComM_RequestComMode(0U, COMM_NO_COMMUNICATION);
+        EcuM_StopComCommunicationPath();
         EcuM_State = ECUM_STATE_SLEEP;
         EcuM_WakeupValidationCounter = 0U;
         EcuM_NotifyBswMState(EcuM_State);
@@ -252,7 +266,9 @@ Std_ReturnType EcuM_Shutdown(void)
     else if (EcuM_ShutdownTarget == ECUM_SHUTDOWN_TARGET_RESET)
     {
         (void)ComM_RequestComMode(0U, COMM_NO_COMMUNICATION);
+        EcuM_StopComCommunicationPath();
         SecOC_DeInit();
+        Com_DeInit();
         ComM_DeInit();
         BswM_Deinit();
         CanNm_DeInit();
@@ -267,7 +283,9 @@ Std_ReturnType EcuM_Shutdown(void)
     else
     {
         (void)ComM_RequestComMode(0U, COMM_NO_COMMUNICATION);
+        EcuM_StopComCommunicationPath();
         SecOC_DeInit();
+        Com_DeInit();
         ComM_DeInit();
         BswM_Deinit();
         CanNm_DeInit();
@@ -738,6 +756,7 @@ void EcuM_MainFunction(void)
         {
             if (ComM_RequestComMode(0U, COMM_FULL_COMMUNICATION) == E_OK)
             {
+                EcuM_StartComCommunicationPath();
                 EcuM_ClearWakeupEvent(EcuM_ValidatedWakeupEvents);
                 EcuM_WakeupValidationCounter = 0U;
                 EcuM_State = ECUM_STATE_RUN;

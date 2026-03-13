@@ -129,6 +129,12 @@ void PduR_SecOCTpTxConfirmation(PduIdType TxPduId, Std_ReturnType result)
    #ifdef PDUR_DEBUG
         printf("######## in PduR_SecOCTpTxConfirmation \n");
     #endif
-	/* Com_TxConfirmation(TxPduId, result);*/
-   Dcm_TpTxConfirmation(TxPduId, result);
+    if (TxPduId < (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING)
+    {
+        Com_TpTxConfirmation(TxPduId, result);
+    }
+    else
+    {
+        Dcm_TpTxConfirmation(TxPduId, result);
+    }
 }
