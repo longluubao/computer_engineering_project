@@ -113,5 +113,6 @@ Std_ReturnType BswM_RequestMode(uint16 RequesterId, BswM_ModeType RequestedMode)
 BswM_ModeType BswM_GetCurrentMode(uint16 RequesterId);
 BswM_GatewayProfileType BswM_GetGatewayProfile(void);
 Std_ReturnType BswM_GetGatewayHealth(BswM_GatewayHealthType *GatewayHealthPtr);
+Std_ReturnType BswM_SetGatewayHealth(const BswM_GatewayHealthType *GatewayHealthPtr);
 
 #endif /* INCLUDE_BSWM_H_ */

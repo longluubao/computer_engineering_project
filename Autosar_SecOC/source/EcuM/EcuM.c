@@ -5,6 +5,8 @@
 #include "EcuM.h"
 #include "Det.h"
 #include "Dem.h"
+#include "MemIf.h"
+#include "NvM.h"
 #include "Can.h"
 #include "CanIF.h"
 #include "CanTP.h"
@@ -18,6 +20,7 @@
 #include "SecOC.h"
 #include "SecOC_Lcfg.h"
 #include "Com.h"
+#include <string.h>
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
@@ -42,6 +45,8 @@ static boolean EcuM_EthPathStarted = FALSE;
 static EcuM_ResetCalloutType EcuM_ResetCallout = (EcuM_ResetCalloutType)0;
 static EcuM_OffCalloutType EcuM_OffCallout = (EcuM_OffCalloutType)0;
 static EcuM_WakeupValidationCalloutType EcuM_WakeupValidationCallout = (EcuM_WakeupValidationCalloutType)0;
+static BswM_GatewayHealthType EcuM_LastGatewayHealthSnapshot = {BSWM_GATEWAY_PROFILE_NORMAL, 0U, 0U, 0U, 0U};
+static boolean EcuM_HasGatewayHealthSnapshot = FALSE;
 
 static Std_ReturnType EcuM_InitEthCommunicationPath(void);
 static void EcuM_DeInitEthCommunicationPath(void);
@@ -52,6 +57,14 @@ static Std_ReturnType EcuM_ExecuteResetCalloutHook(void);
 static Std_ReturnType EcuM_ExecuteOffCalloutHook(void);
 static boolean EcuM_IsWakeupSourceValidFromHardware(EcuM_WakeupSourceType WakeupSource);
 static void EcuM_NotifyBswMState(EcuM_StateType State);
+static void EcuM_ExecuteNvMReadAllPhase(void);
+static void EcuM_ExecuteNvMWriteAllPhase(void);
+static Std_ReturnType EcuM_WaitNvMBlockCompletion(NvM_BlockIdType BlockId, uint16 TimeoutCycles, NvM_RequestResultType* ResultPtr);
+static uint32 EcuM_EncodePersistentStateWord(void);
+static void EcuM_DecodePersistentStateWord(uint32 PackedState);
+static void EcuM_LoadPersistentStateFromNvM(void);
+static void EcuM_PersistStateToNvM(void);
+static void EcuM_PersistGatewayHealthToNvM(void);
 
 /********************************************************************************************************/
 /********************************************Functions***************************************************/
@@ -161,6 +174,182 @@ static void EcuM_NotifyBswMState(EcuM_StateType State)
     (void)BswM_RequestMode((uint16)ECUM_MODULE_ID, (BswM_ModeType)State);
 }
 
+static void EcuM_ExecuteNvMReadAllPhase(void)
+{
+    NvM_RequestResultType NvMResult = NVM_REQ_PENDING;
+    uint16 WaitCounter = 0U;
+
+    if (NvM_ReadAll() != E_OK)
+    {
+        return;
+    }
+
+    while (WaitCounter < 256U)
+    {
+        NvM_MainFunction();
+        if ((NvM_GetErrorStatus(NVM_BLOCK_ID_DEM_DTC_STORAGE, &NvMResult) == E_OK) &&
+            (NvMResult != NVM_REQ_PENDING))
+        {
+            break;
+        }
+        WaitCounter++;
+    }
+}
+
+static void EcuM_ExecuteNvMWriteAllPhase(void)
+{
+    NvM_RequestResultType NvMResult = NVM_REQ_PENDING;
+    uint16 WaitCounter = 0U;
+
+    while ((NvM_WriteAll() != E_OK) && (WaitCounter < 64U))
+    {
+        NvM_MainFunction();
+        WaitCounter++;
+    }
+
+    if (WaitCounter >= 64U)
+    {
+        return;
+    }
+
+    WaitCounter = 0U;
+    while (WaitCounter < 256U)
+    {
+        NvM_MainFunction();
+        if ((NvM_GetErrorStatus(NVM_BLOCK_ID_DEM_DTC_STORAGE, &NvMResult) == E_OK) &&
+            (NvMResult != NVM_REQ_PENDING))
+        {
+            break;
+        }
+        WaitCounter++;
+    }
+}
+
+static Std_ReturnType EcuM_WaitNvMBlockCompletion(NvM_BlockIdType BlockId, uint16 TimeoutCycles, NvM_RequestResultType* ResultPtr)
+{
+    uint16 WaitCounter = 0U;
+    NvM_RequestResultType LocalResult = NVM_REQ_PENDING;
+
+    while (WaitCounter < TimeoutCycles)
+    {
+        NvM_MainFunction();
+        if (NvM_GetErrorStatus(BlockId, &LocalResult) != E_OK)
+        {
+            return E_NOT_OK;
+        }
+        if (LocalResult != NVM_REQ_PENDING)
+        {
+            if (ResultPtr != NULL)
+            {
+                *ResultPtr = LocalResult;
+            }
+            return E_OK;
+        }
+        WaitCounter++;
+    }
+
+    return E_NOT_OK;
+}
+
+static uint32 EcuM_EncodePersistentStateWord(void)
+{
+    uint32 PackedState = 0UL;
+
+    PackedState |= ((uint32)EcuM_ShutdownTarget & 0xFFUL);
+    PackedState |= (((uint32)EcuM_BootTarget & 0xFFUL) << 8U);
+    PackedState |= (((uint32)EcuM_SleepMode & 0xFFUL) << 16U);
+
+    return PackedState;
+}
+
+static void EcuM_DecodePersistentStateWord(uint32 PackedState)
+{
+    EcuM_ShutdownTargetType PersistedShutdownTarget = (EcuM_ShutdownTargetType)(PackedState & 0xFFUL);
+    EcuM_BootTargetType PersistedBootTarget = (EcuM_BootTargetType)((PackedState >> 8U) & 0xFFUL);
+    EcuM_SleepModeType PersistedSleepMode = (EcuM_SleepModeType)((PackedState >> 16U) & 0xFFUL);
+
+    if (PersistedShutdownTarget <= ECUM_SHUTDOWN_TARGET_OFF)
+    {
+        EcuM_ShutdownTarget = PersistedShutdownTarget;
+    }
+
+    if (PersistedBootTarget <= ECUM_BOOT_TARGET_BOOTLOADER)
+    {
+        EcuM_BootTarget = PersistedBootTarget;
+    }
+
+    if (PersistedSleepMode <= ECUM_SLEEP_MODE_POLL)
+    {
+        EcuM_SleepMode = PersistedSleepMode;
+    }
+}
+
+static void EcuM_LoadPersistentStateFromNvM(void)
+{
+    uint32 PersistedStateWord = 0UL;
+    uint32 PersistedHistoryWord = 0UL;
+    BswM_GatewayHealthType PersistedGatewayHealth;
+    NvM_RequestResultType NvMResult = NVM_REQ_PENDING;
+
+    if ((NvM_ReadBlock(NVM_BLOCK_ID_ECUM_DATASET, &PersistedStateWord) == E_OK) &&
+        (EcuM_WaitNvMBlockCompletion(NVM_BLOCK_ID_ECUM_DATASET, 128U, &NvMResult) == E_OK) &&
+        (NvMResult == NVM_REQ_OK))
+    {
+        EcuM_DecodePersistentStateWord(PersistedStateWord);
+    }
+
+    (void)NvM_SetDataIndex(NVM_BLOCK_ID_ECUM_DATASET, 1U);
+    if ((NvM_ReadBlock(NVM_BLOCK_ID_ECUM_DATASET, &PersistedHistoryWord) == E_OK) &&
+        (EcuM_WaitNvMBlockCompletion(NVM_BLOCK_ID_ECUM_DATASET, 128U, &NvMResult) == E_OK) &&
+        (NvMResult == NVM_REQ_OK))
+    {
+        EcuM_LastShutdownTarget = (EcuM_ShutdownTargetType)(PersistedHistoryWord & 0xFFUL);
+    }
+    (void)NvM_SetDataIndex(NVM_BLOCK_ID_ECUM_DATASET, 0U);
+
+    if ((NvM_ReadBlock(NVM_BLOCK_ID_GATEWAY_HEALTH, &PersistedGatewayHealth) == E_OK) &&
+        (EcuM_WaitNvMBlockCompletion(NVM_BLOCK_ID_GATEWAY_HEALTH, 128U, &NvMResult) == E_OK) &&
+        (NvMResult == NVM_REQ_OK))
+    {
+        (void)BswM_SetGatewayHealth(&PersistedGatewayHealth);
+        EcuM_LastGatewayHealthSnapshot = PersistedGatewayHealth;
+        EcuM_HasGatewayHealthSnapshot = TRUE;
+    }
+}
+
+static void EcuM_PersistStateToNvM(void)
+{
+    uint32 PersistedStateWord = EcuM_EncodePersistentStateWord();
+    uint32 PersistedHistoryWord = ((uint32)EcuM_LastShutdownTarget & 0xFFUL);
+
+    (void)NvM_SetDataIndex(NVM_BLOCK_ID_ECUM_DATASET, 0U);
+    (void)NvM_SetRamBlockStatus(NVM_BLOCK_ID_ECUM_DATASET, TRUE);
+    (void)NvM_WriteBlock(NVM_BLOCK_ID_ECUM_DATASET, &PersistedStateWord);
+    (void)NvM_SetDataIndex(NVM_BLOCK_ID_ECUM_DATASET, 1U);
+    (void)NvM_SetRamBlockStatus(NVM_BLOCK_ID_ECUM_DATASET, TRUE);
+    (void)NvM_WriteBlock(NVM_BLOCK_ID_ECUM_DATASET, &PersistedHistoryWord);
+    (void)NvM_SetDataIndex(NVM_BLOCK_ID_ECUM_DATASET, 0U);
+}
+
+static void EcuM_PersistGatewayHealthToNvM(void)
+{
+    BswM_GatewayHealthType CurrentGatewayHealth;
+
+    if (BswM_GetGatewayHealth(&CurrentGatewayHealth) != E_OK)
+    {
+        return;
+    }
+
+    if ((EcuM_HasGatewayHealthSnapshot == FALSE) ||
+        (memcmp(&CurrentGatewayHealth, &EcuM_LastGatewayHealthSnapshot, sizeof(BswM_GatewayHealthType)) != 0))
+    {
+        (void)NvM_SetRamBlockStatus(NVM_BLOCK_ID_GATEWAY_HEALTH, TRUE);
+        (void)NvM_WriteBlock(NVM_BLOCK_ID_GATEWAY_HEALTH, &CurrentGatewayHealth);
+        EcuM_LastGatewayHealthSnapshot = CurrentGatewayHealth;
+        EcuM_HasGatewayHealthSnapshot = TRUE;
+    }
+}
+
 void EcuM_Init(const EcuM_ConfigType *ConfigPtr)
 {
     if (ConfigPtr != (const EcuM_ConfigType*)0)
@@ -173,6 +362,9 @@ void EcuM_Init(const EcuM_ConfigType *ConfigPtr)
     /* Phase 1: Basic SW initialization per AUTOSAR SWS_EcuM_02811 */
     Det_Init(NULL);
     Det_Start();
+    MemIf_Init();
+    NvM_Init();
+    EcuM_ExecuteNvMReadAllPhase();
     Dem_Init();
 
     /* Phase 2: Driver initialization */
@@ -198,6 +390,8 @@ void EcuM_Init(const EcuM_ConfigType *ConfigPtr)
     EcuM_LastShutdownTarget = ECUM_SHUTDOWN_TARGET_OFF;
     EcuM_BootTarget = ECUM_BOOT_TARGET_APP;
     EcuM_SleepMode = ECUM_SLEEP_MODE_HALT;
+    EcuM_HasGatewayHealthSnapshot = FALSE;
+    EcuM_LoadPersistentStateFromNvM();
     EcuM_NotifyBswMState(EcuM_State);
 }
 
@@ -274,9 +468,12 @@ Std_ReturnType EcuM_Shutdown(void)
     EcuM_State = ECUM_STATE_SHUTDOWN;
     EcuM_NotifyBswMState(EcuM_State);
     EcuM_LastShutdownTarget = EcuM_ShutdownTarget;
+    EcuM_PersistGatewayHealthToNvM();
+    EcuM_PersistStateToNvM();
 
     if (EcuM_ShutdownTarget == ECUM_SHUTDOWN_TARGET_SLEEP)
     {
+        EcuM_ExecuteNvMWriteAllPhase();
         (void)ComM_RequestComMode(0U, COMM_NO_COMMUNICATION);
         EcuM_StopComCommunicationPath();
         EcuM_State = ECUM_STATE_SLEEP;
@@ -285,8 +482,10 @@ Std_ReturnType EcuM_Shutdown(void)
     }
     else if (EcuM_ShutdownTarget == ECUM_SHUTDOWN_TARGET_RESET)
     {
+        EcuM_ExecuteNvMWriteAllPhase();
         (void)ComM_RequestComMode(0U, COMM_NO_COMMUNICATION);
         EcuM_StopComCommunicationPath();
+        Dem_Shutdown();
         SecOC_DeInit();
         Com_DeInit();
         ComM_DeInit();
@@ -303,8 +502,10 @@ Std_ReturnType EcuM_Shutdown(void)
     }
     else
     {
+        EcuM_ExecuteNvMWriteAllPhase();
         (void)ComM_RequestComMode(0U, COMM_NO_COMMUNICATION);
         EcuM_StopComCommunicationPath();
+        Dem_Shutdown();
         SecOC_DeInit();
         Com_DeInit();
         ComM_DeInit();
@@ -343,6 +544,7 @@ Std_ReturnType EcuM_SelectShutdownTarget(EcuM_ShutdownTargetType Target)
     }
 
     EcuM_ShutdownTarget = Target;
+    EcuM_PersistStateToNvM();
     return E_OK;
 }
 
@@ -371,6 +573,7 @@ Std_ReturnType EcuM_SelectBootTarget(EcuM_BootTargetType Target)
     }
 
     EcuM_BootTarget = Target;
+    EcuM_PersistStateToNvM();
     return E_OK;
 }
 
@@ -394,6 +597,7 @@ Std_ReturnType EcuM_SelectSleepMode(EcuM_SleepModeType SleepMode)
     }
 
     EcuM_SleepMode = SleepMode;
+    EcuM_PersistStateToNvM();
     return E_OK;
 }
 
@@ -748,10 +952,13 @@ void EcuM_MainFunction(void)
         ComM_MainFunction();
         CanSM_MainFunction();
         CanNm_MainFunction();
+        NvM_MainFunction();
+        Dem_MainFunction();
 #if defined(LINUX) || defined(WINDOWS)
         EcuM_MainFunctionEthCommunicationPath();
 #endif
         BswM_MainFunction();
+        EcuM_PersistGatewayHealthToNvM();
     }
     else if (EcuM_State == ECUM_STATE_SLEEP)
     {

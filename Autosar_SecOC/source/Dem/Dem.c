@@ -4,6 +4,7 @@
 
 #include "Dem.h"
 #include "Det.h"
+#include "NvM.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -15,8 +16,10 @@ static uint8 Dem_Initialized = FALSE;
 static Dem_EventRecordType Dem_LastEvent = {0};
 
 /* DTC storage */
-static Dem_DtcRecordType Dem_DtcStorage[DEM_MAX_NUMBER_OF_DTCS];
+Dem_DtcRecordType Dem_DtcStorage[DEM_MAX_NUMBER_OF_DTCS];
 static Dem_DtcFilterType Dem_CurrentFilter = {0U, 0U};
+static uint8 Dem_NvMWritePending = FALSE;
+static uint8 Dem_NvMJobPending = FALSE;
 
 /********************************************************************************************************/
 /******************************************InternalFunctions********************************************/
@@ -64,24 +67,60 @@ static Dem_DtcRecordType* Dem_FindOrAllocateDtc(Dem_EventIdType EventId)
 
 void Dem_Init(void)
 {
+    NvM_RequestResultType DemNvMResult = NVM_REQ_NOT_OK;
+
     (void)memset(&Dem_LastEvent, 0, sizeof(Dem_LastEvent));
-    (void)memset(Dem_DtcStorage, 0, sizeof(Dem_DtcStorage));
     (void)memset(&Dem_CurrentFilter, 0, sizeof(Dem_CurrentFilter));
+    if ((NvM_GetErrorStatus(NVM_BLOCK_ID_DEM_DTC_STORAGE, &DemNvMResult) != E_OK) ||
+        (DemNvMResult != NVM_REQ_OK))
+    {
+        (void)memset(Dem_DtcStorage, 0, sizeof(Dem_DtcStorage));
+    }
     Dem_LastEvent.IsValid = FALSE;
+    Dem_NvMWritePending = FALSE;
+    Dem_NvMJobPending = FALSE;
     Dem_Initialized = TRUE;
 }
 
 void Dem_Shutdown(void)
 {
+    if (Dem_Initialized != FALSE)
+    {
+        (void)NvM_SetRamBlockStatus(NVM_BLOCK_ID_DEM_DTC_STORAGE, Dem_NvMWritePending);
+    }
     Dem_Initialized = FALSE;
 }
 
 void Dem_MainFunction(void)
 {
-    /* Periodic processing - placeholder for future NvM persistence */
     if (Dem_Initialized == FALSE)
     {
         return;
+    }
+
+    if ((Dem_NvMWritePending == TRUE) && (Dem_NvMJobPending == FALSE))
+    {
+        if (NvM_WriteBlock(NVM_BLOCK_ID_DEM_DTC_STORAGE, Dem_DtcStorage) == E_OK)
+        {
+            Dem_NvMJobPending = TRUE;
+        }
+    }
+    else if (Dem_NvMJobPending == TRUE)
+    {
+        NvM_RequestResultType DemNvMResult = NVM_REQ_PENDING;
+        if (NvM_GetErrorStatus(NVM_BLOCK_ID_DEM_DTC_STORAGE, &DemNvMResult) == E_OK)
+        {
+            if (DemNvMResult == NVM_REQ_OK)
+            {
+                Dem_NvMWritePending = FALSE;
+                Dem_NvMJobPending = FALSE;
+            }
+            else if (DemNvMResult != NVM_REQ_PENDING)
+            {
+                /* Retry in next main cycle on non-pending failure states. */
+                Dem_NvMJobPending = FALSE;
+            }
+        }
     }
 }
 
@@ -214,6 +253,8 @@ Std_ReturnType Dem_SetEventStatus(Dem_EventIdType EventId, Dem_EventStatusType E
             return E_NOT_OK;
     }
 
+    Dem_NvMWritePending = TRUE;
+    (void)NvM_SetRamBlockStatus(NVM_BLOCK_ID_DEM_DTC_STORAGE, TRUE);
     return E_OK;
 }
 
@@ -265,10 +306,15 @@ Std_ReturnType Dem_ClearDTC(uint32 DTC)
                 Dem_DtcStorage[i].StatusMask      = 0x00U;
                 Dem_DtcStorage[i].DebounceCounter  = 0;
                 Dem_DtcStorage[i].IsUsed           = FALSE;
+                Dem_NvMWritePending = TRUE;
             }
         }
     }
 
+    if (Dem_NvMWritePending == TRUE)
+    {
+        (void)NvM_SetRamBlockStatus(NVM_BLOCK_ID_DEM_DTC_STORAGE, TRUE);
+    }
     return E_OK;
 }
 

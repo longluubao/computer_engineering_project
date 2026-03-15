@@ -745,3 +745,26 @@ Std_ReturnType BswM_GetGatewayHealth(BswM_GatewayHealthType *GatewayHealthPtr)
 
     return E_OK;
 }
+
+Std_ReturnType BswM_SetGatewayHealth(const BswM_GatewayHealthType *GatewayHealthPtr)
+{
+    if (BswM_State != BSWM_INIT)
+    {
+        (void)Det_ReportError(BSWM_MODULE_ID, BSWM_INSTANCE_ID, BSWM_SID_GET_GATEWAY_HEALTH, BSWM_E_UNINIT);
+        return E_NOT_OK;
+    }
+
+    if (GatewayHealthPtr == NULL)
+    {
+        (void)Det_ReportError(BSWM_MODULE_ID, BSWM_INSTANCE_ID, BSWM_SID_GET_GATEWAY_HEALTH, BSWM_E_NULL_POINTER);
+        return E_NOT_OK;
+    }
+
+    BswM_GatewayProfile = GatewayHealthPtr->GatewayProfile;
+    BswM_CanFaultCounter = GatewayHealthPtr->CanFaultCounter;
+    BswM_EthFaultCounter = GatewayHealthPtr->EthFaultCounter;
+    BswM_SecOCFailCounter = GatewayHealthPtr->SecOCFailCounter;
+    BswM_RecoveryCounter = GatewayHealthPtr->RecoveryCounter;
+
+    return E_OK;
+}
