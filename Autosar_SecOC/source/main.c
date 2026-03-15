@@ -20,6 +20,10 @@ int main(void)
         SecOC_test();
     #endif
 
-    (void)printf("Program ran successfully (BSW/MCAL startup complete)\n");
-    return 0;
+    (void)printf("Program entered RUN state (BSW/MCAL startup complete)\n");
+
+    for (;;)
+    {
+        EcuM_MainFunction();
+    }
 }

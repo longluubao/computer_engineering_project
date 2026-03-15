@@ -15,6 +15,7 @@
 #include "BswM.h"
 #include "ComM.h"
 #include "EthIf.h"
+#include "EthSM.h"
 #include "TcpIp.h"
 #include "SoAd.h"
 #include "SecOC.h"
@@ -375,6 +376,7 @@ void EcuM_Init(const EcuM_ConfigType *ConfigPtr)
     /* Phase 3: BSW mode and communication managers */
     BswM_Init(NULL);
     ComM_Init();
+    EthSM_Init(NULL);
 
     EcuM_State = ECUM_STATE_STARTUP_ONE;
     EcuM_PendingWakeupEvents = 0U;
@@ -425,6 +427,7 @@ Std_ReturnType EcuM_StartupTwo(void)
     if (EcuM_InitEthCommunicationPath() != E_OK)
     {
         EcuM_State = ECUM_STATE_STARTUP_ONE;
+        EcuM_NotifyBswMState(EcuM_State);
         return E_NOT_OK;
     }
 #endif
@@ -439,6 +442,7 @@ Std_ReturnType EcuM_StartupTwo(void)
         EcuM_DeInitEthCommunicationPath();
 #endif
         EcuM_State = ECUM_STATE_STARTUP_ONE;
+        EcuM_NotifyBswMState(EcuM_State);
         return E_NOT_OK;
     }
 
@@ -957,6 +961,7 @@ void EcuM_MainFunction(void)
 #if defined(LINUX) || defined(WINDOWS)
         EcuM_MainFunctionEthCommunicationPath();
 #endif
+        EthSM_MainFunction();
         BswM_MainFunction();
         EcuM_PersistGatewayHealthToNvM();
     }
