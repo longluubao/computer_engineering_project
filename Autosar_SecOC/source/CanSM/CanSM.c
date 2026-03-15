@@ -7,6 +7,7 @@
 #include "Det.h"
 #include "CanIF.h"
 #include "ComM.h"
+#include "BswM.h"
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
@@ -36,6 +37,7 @@ void CanSM_Init(void)
     (void)Can_SetControllerMode(0U, CAN_CS_STOPPED);
     CanIf_ControllerModeIndication(0U, CANIF_CS_STOPPED);
     CanSM_BsmState = CANSM_BSM_S_NOCOM;
+    (void)BswM_RequestMode((uint16)CANSM_MODULE_ID, (BswM_ModeType)CanSM_CurrentComMode);
 }
 
 void CanSM_DeInit(void)
@@ -79,6 +81,7 @@ Std_ReturnType CanSM_RequestComMode(uint8 NetworkHandle, CanSM_ComModeType ComM_
 
         CanSM_BsmState = CANSM_BSM_S_FULLCOM;
         CanSM_CurrentComMode = CANSM_FULL_COMMUNICATION;
+        (void)BswM_RequestMode((uint16)CANSM_MODULE_ID, (BswM_ModeType)CanSM_CurrentComMode);
         (void)ComM_BusSM_ModeIndication(NetworkHandle, COMM_FULL_COMMUNICATION);
     }
     else
@@ -94,6 +97,7 @@ Std_ReturnType CanSM_RequestComMode(uint8 NetworkHandle, CanSM_ComModeType ComM_
 
         CanSM_BsmState = CANSM_BSM_S_NOCOM;
         CanSM_CurrentComMode = CANSM_NO_COMMUNICATION;
+        (void)BswM_RequestMode((uint16)CANSM_MODULE_ID, (BswM_ModeType)CanSM_CurrentComMode);
         (void)ComM_BusSM_ModeIndication(NetworkHandle, COMM_NO_COMMUNICATION);
     }
 
@@ -169,6 +173,7 @@ void CanSM_ControllerBusOff(uint8 ControllerId)
 
     /* Notify ComM of communication loss */
     CanSM_CurrentComMode = CANSM_NO_COMMUNICATION;
+    (void)BswM_RequestMode((uint16)CANSM_MODULE_ID, (BswM_ModeType)CanSM_CurrentComMode);
     (void)ComM_BusSM_ModeIndication(0U, COMM_NO_COMMUNICATION);
 }
 
@@ -207,6 +212,7 @@ void CanSM_MainFunction(void)
                 CanSM_CurrentComMode = CANSM_FULL_COMMUNICATION;
                 CanSM_BusOffPending = FALSE;
                 CanSM_BusOffRecoveryCount = 0;
+                (void)BswM_RequestMode((uint16)CANSM_MODULE_ID, (BswM_ModeType)CanSM_CurrentComMode);
                 (void)ComM_BusSM_ModeIndication(0U, COMM_FULL_COMMUNICATION);
             }
             else

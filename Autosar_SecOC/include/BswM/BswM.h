@@ -18,6 +18,9 @@
 #define BSWM_SID_DEINIT                 ((uint8)0x04)
 #define BSWM_SID_MAIN_FUNCTION          ((uint8)0x03)
 #define BSWM_SID_REQUEST_MODE           ((uint8)0x02)
+#define BSWM_SID_GET_CURRENT_MODE       ((uint8)0x05)
+#define BSWM_SID_GET_GATEWAY_PROFILE    ((uint8)0x06)
+#define BSWM_SID_GET_GATEWAY_HEALTH     ((uint8)0x07)
 #define BSWM_SID_GET_VERSION_INFO       ((uint8)0x01)
 
 #define BSWM_E_UNINIT                   ((uint8)0x01)
@@ -78,6 +81,22 @@ typedef struct
     uint8 ActionCount;
 } BswM_ActionListType;
 
+typedef enum
+{
+    BSWM_GATEWAY_PROFILE_NORMAL = 0,
+    BSWM_GATEWAY_PROFILE_DEGRADED,
+    BSWM_GATEWAY_PROFILE_DIAG_ONLY
+} BswM_GatewayProfileType;
+
+typedef struct
+{
+    BswM_GatewayProfileType GatewayProfile;
+    uint8 CanFaultCounter;
+    uint8 EthFaultCounter;
+    uint8 SecOCFailCounter;
+    uint8 RecoveryCounter;
+} BswM_GatewayHealthType;
+
 typedef struct
 {
     uint8 Dummy;
@@ -92,5 +111,7 @@ void BswM_Deinit(void);
 void BswM_MainFunction(void);
 Std_ReturnType BswM_RequestMode(uint16 RequesterId, BswM_ModeType RequestedMode);
 BswM_ModeType BswM_GetCurrentMode(uint16 RequesterId);
+BswM_GatewayProfileType BswM_GetGatewayProfile(void);
+Std_ReturnType BswM_GetGatewayHealth(BswM_GatewayHealthType *GatewayHealthPtr);
 
 #endif /* INCLUDE_BSWM_H_ */

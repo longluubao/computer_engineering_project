@@ -5,6 +5,7 @@
 #include "CanNm.h"
 #include "Det.h"
 #include "CanIF.h"
+#include "BswM.h"
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
@@ -54,6 +55,7 @@ static void CanNm_EnterRepeatMessage(void)
     CanNm_MsgTxEnabled = TRUE;
     CanNm_MsgCycleTimer = 0;
     CanNm_TxPduData[CANNM_NM_PDU_CBV_POSITION] |= CANNM_CBV_REPEAT_MSG_REQUEST;
+    (void)BswM_RequestMode((uint16)CANNM_MODULE_ID, (BswM_ModeType)CanNm_Mode);
 }
 
 static void CanNm_EnterNormalOperation(void)
@@ -63,6 +65,7 @@ static void CanNm_EnterNormalOperation(void)
     CanNm_NmTimeoutTimer = 0;
     CanNm_MsgTxEnabled = TRUE;
     CanNm_TxPduData[CANNM_NM_PDU_CBV_POSITION] &= (uint8)(~CANNM_CBV_REPEAT_MSG_REQUEST);
+    (void)BswM_RequestMode((uint16)CANNM_MODULE_ID, (BswM_ModeType)CanNm_Mode);
 }
 
 static void CanNm_EnterReadySleep(void)
@@ -71,6 +74,7 @@ static void CanNm_EnterReadySleep(void)
     CanNm_Mode = CANNM_MODE_NETWORK;
     CanNm_NmTimeoutTimer = 0;
     CanNm_MsgTxEnabled = FALSE;
+    (void)BswM_RequestMode((uint16)CANNM_MODULE_ID, (BswM_ModeType)CanNm_Mode);
 }
 
 static void CanNm_EnterPrepareBusSleep(void)
@@ -79,6 +83,7 @@ static void CanNm_EnterPrepareBusSleep(void)
     CanNm_Mode = CANNM_MODE_PREPARE_BUS_SLEEP;
     CanNm_WaitBusSleepTimer = 0;
     CanNm_MsgTxEnabled = FALSE;
+    (void)BswM_RequestMode((uint16)CANNM_MODULE_ID, (BswM_ModeType)CanNm_Mode);
 }
 
 static void CanNm_EnterBusSleep(void)
@@ -86,6 +91,7 @@ static void CanNm_EnterBusSleep(void)
     CanNm_NmState = CANNM_STATE_BUS_SLEEP;
     CanNm_Mode = CANNM_MODE_BUS_SLEEP;
     CanNm_MsgTxEnabled = FALSE;
+    (void)BswM_RequestMode((uint16)CANNM_MODULE_ID, (BswM_ModeType)CanNm_Mode);
 }
 
 /********************************************************************************************************/

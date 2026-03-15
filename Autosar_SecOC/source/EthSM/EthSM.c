@@ -13,6 +13,7 @@
 #include "EthSM.h"
 #include "EthIf.h"
 #include "Det.h"
+#include "BswM.h"
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
@@ -112,6 +113,7 @@ void EthSM_Init(const EthSM_ConfigType* ConfigPtr)
     }
 
     EthSM_Initialized = TRUE;
+    (void)BswM_RequestMode((uint16)ETHSM_MODULE_ID, (BswM_ModeType)ETHSM_STATE_OFFLINE);
 }
 
 Std_ReturnType EthSM_RequestComMode(NetworkHandleType NetworkHandle, ComM_ModeType ComM_Mode)
@@ -234,6 +236,7 @@ void EthSM_TcpIpModeIndication(uint8 CtrlIdx, TcpIp_StateType State)
         {
             EthSM_NetworkState[networkIdx].InternalState = ETHSM_STATE_ONLINE;
             EthSM_NetworkState[networkIdx].CurrentComMode = COMM_FULL_COMMUNICATION;
+            (void)BswM_RequestMode((uint16)ETHSM_MODULE_ID, (BswM_ModeType)ETHSM_STATE_ONLINE);
             EthSM_NotifyComM(networkIdx, COMM_FULL_COMMUNICATION);
         }
     }
@@ -243,6 +246,7 @@ void EthSM_TcpIpModeIndication(uint8 CtrlIdx, TcpIp_StateType State)
         {
             EthSM_NetworkState[networkIdx].InternalState = ETHSM_STATE_OFFLINE;
             EthSM_NetworkState[networkIdx].CurrentComMode = COMM_NO_COMMUNICATION;
+            (void)BswM_RequestMode((uint16)ETHSM_MODULE_ID, (BswM_ModeType)ETHSM_STATE_OFFLINE);
             EthSM_NotifyComM(networkIdx, COMM_NO_COMMUNICATION);
         }
     }
@@ -279,6 +283,7 @@ void EthSM_MainFunction(void)
                     if (EthIf_SetControllerMode(ctrlIdx, ETH_MODE_ACTIVE) == E_OK)
                     {
                         EthSM_NetworkState[idx].InternalState = ETHSM_STATE_WAIT_TRCVLINK;
+                        (void)BswM_RequestMode((uint16)ETHSM_MODULE_ID, (BswM_ModeType)ETHSM_STATE_WAIT_TRCVLINK);
                     }
                     break;
                 }
@@ -300,6 +305,7 @@ void EthSM_MainFunction(void)
                                     TCPIP_IPADDR_ASSIGNMENT_STATIC, NULL) == E_OK)
                             {
                                 EthSM_NetworkState[idx].InternalState = ETHSM_STATE_WAIT_ONLINE;
+                                (void)BswM_RequestMode((uint16)ETHSM_MODULE_ID, (BswM_ModeType)ETHSM_STATE_WAIT_ONLINE);
                             }
                         }
                     }
@@ -313,6 +319,7 @@ void EthSM_MainFunction(void)
                     {
                         EthSM_NetworkState[idx].InternalState = ETHSM_STATE_ONLINE;
                         EthSM_NetworkState[idx].CurrentComMode = COMM_FULL_COMMUNICATION;
+                        (void)BswM_RequestMode((uint16)ETHSM_MODULE_ID, (BswM_ModeType)ETHSM_STATE_ONLINE);
                         EthSM_NotifyComM(idx, COMM_FULL_COMMUNICATION);
                     }
                     break;
@@ -343,6 +350,7 @@ void EthSM_MainFunction(void)
 
                 EthSM_NetworkState[idx].InternalState = ETHSM_STATE_OFFLINE;
                 EthSM_NetworkState[idx].TcpIpState    = TCPIP_STATE_OFFLINE;
+                (void)BswM_RequestMode((uint16)ETHSM_MODULE_ID, (BswM_ModeType)ETHSM_STATE_OFFLINE);
 
                 if (EthSM_NetworkState[idx].CurrentComMode != COMM_NO_COMMUNICATION)
                 {

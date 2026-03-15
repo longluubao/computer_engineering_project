@@ -21,12 +21,16 @@
 #include "CanTP.h"
 #include "SecOC_Debug.h"
 #include "Det.h"
+#include "BswM.h"
 
 #if (SECOC_USE_PQC_MODE == TRUE)
 #include "PQC.h"
 #endif
 
 #include <string.h>
+
+#define SECOC_BSWM_STATUS_OK              ((BswM_ModeType)0U)
+#define SECOC_BSWM_STATUS_FAILURE         ((BswM_ModeType)1U)
 
 
 
@@ -1627,6 +1631,8 @@ void SecOC_MainFunctionRx(void)
     PduIdType idx = 0;
     SecOC_VerificationResultType result_ver;
     Std_ReturnType result;
+    boolean SecOCAnyVerificationFailure = FALSE;
+    boolean SecOCAnyVerificationSuccess = FALSE;
     for (idx = 0 ; idx < SECOC_NUM_OF_RX_PDU_PROCESSING; idx++) 
     {
         PduInfoType *authPdu = &(SecOCRxPduProcessing[idx].SecOCRxAuthenticPduLayer->SecOCRxAuthenticLayerPduRef);
@@ -1653,6 +1659,7 @@ void SecOC_MainFunctionRx(void)
 #endif
             if(result == E_OK)
             {
+                SecOCAnyVerificationSuccess = TRUE;
                 #ifdef SECOC_DEBUG
                 (void)printf("Verify success for id: %d\n", idx);
                 #endif
@@ -1697,6 +1704,7 @@ void SecOC_MainFunctionRx(void)
                 if( SecOC_RxCounters[idx].AuthenticationCounter >= SecOCRxPduProcessing[idx].SecOCAuthenticationBuildAttempts )
                 {
                     securedPdu->SduLength = 0;
+                    SecOCAnyVerificationFailure = TRUE;
                     if (IsTpAuthenticPdu == TRUE)
                     {
                         PduR_SecOCTpRxIndication(idx, E_NOT_OK);
@@ -1719,6 +1727,7 @@ void SecOC_MainFunctionRx(void)
                 if( SecOC_RxCounters[idx].VerificationCounter >= SecOCRxPduProcessing[idx].SecOCAuthenticationVerifyAttempts )
                 {
                     securedPdu->SduLength = 0;
+                    SecOCAnyVerificationFailure = TRUE;
                     if (IsTpAuthenticPdu == TRUE)
                     {
                         PduR_SecOCTpRxIndication(idx, E_NOT_OK);
@@ -1733,12 +1742,22 @@ void SecOC_MainFunctionRx(void)
                 #endif
                 /* [SWS_SecOC_00256] */
                 securedPdu->SduLength = 0;
+                SecOCAnyVerificationFailure = TRUE;
                 if (IsTpAuthenticPdu == TRUE)
                 {
                     PduR_SecOCTpRxIndication(idx, E_NOT_OK);
                 }
             }
         }
+    }
+
+    if (SecOCAnyVerificationFailure == TRUE)
+    {
+        (void)BswM_RequestMode((uint16)SECOC_MODULE_ID, SECOC_BSWM_STATUS_FAILURE);
+    }
+    else if (SecOCAnyVerificationSuccess == TRUE)
+    {
+        (void)BswM_RequestMode((uint16)SECOC_MODULE_ID, SECOC_BSWM_STATUS_OK);
     }
 
 }

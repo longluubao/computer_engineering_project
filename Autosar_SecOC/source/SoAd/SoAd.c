@@ -31,6 +31,8 @@
 #define SOAD_ETHIF_CTRL_IDX                  ((uint8)0U)
 #define SOAD_ETHIF_FRAME_TYPE_BASE           ((Eth_FrameType)0x9000U)
 #endif
+#define SOAD_ROUTING_GROUP_GATEWAY           ((SoAd_RoutingGroupIdType)0U)
+#define SOAD_ROUTING_GROUP_DIAG              ((SoAd_RoutingGroupIdType)1U)
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
@@ -270,6 +272,24 @@ static Std_ReturnType SoAd_FindRxPduIdBySocket(
     return E_NOT_OK;
 }
 
+static boolean SoAd_IsGatewayRoutingEnabled(void)
+{
+    boolean GatewayEnabled = FALSE;
+    boolean DiagEnabled = FALSE;
+
+    if (SOAD_ROUTING_GROUP_GATEWAY < SOAD_MAX_ROUTING_GROUPS)
+    {
+        GatewayEnabled = SoAd_RoutingGroupStates[SOAD_ROUTING_GROUP_GATEWAY].Enabled;
+    }
+
+    if (SOAD_ROUTING_GROUP_DIAG < SOAD_MAX_ROUTING_GROUPS)
+    {
+        DiagEnabled = SoAd_RoutingGroupStates[SOAD_ROUTING_GROUP_DIAG].Enabled;
+    }
+
+    return (boolean)((GatewayEnabled == TRUE) || (DiagEnabled == TRUE));
+}
+
 /********************************************************************************************************/
 /********************************************Functions***************************************************/
 /********************************************************************************************************/
@@ -355,6 +375,10 @@ Std_ReturnType SoAd_IfTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr)
 #endif
 
     if ((PduInfoPtr->SduLength > 0U) && (PduInfoPtr->SduDataPtr == NULL))
+    {
+        return E_NOT_OK;
+    }
+    if (SoAd_IsGatewayRoutingEnabled() == FALSE)
     {
         return E_NOT_OK;
     }
@@ -767,6 +791,10 @@ void SoAd_RxIndication(
     }
 
     if (rxPduId >= SECOC_NUM_OF_RX_PDU_PROCESSING)
+    {
+        return;
+    }
+    if (SoAd_IsGatewayRoutingEnabled() == FALSE)
     {
         return;
     }
