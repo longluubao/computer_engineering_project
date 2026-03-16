@@ -15,15 +15,13 @@
 /************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 #include "Std_Types.h"
-#include "PQC.h"
-#include "PQC_KeyExchange.h"
-#include "PQC_KeyDerivation.h"
+#include "Csm.h"
 
 /********************************************************************************************************/
 /***********************************************DEFINES***************************************************/
 /********************************************************************************************************/
 
-#define SOAD_PQC_MAX_PEERS      PQC_MAX_PEERS
+#define SOAD_PQC_MAX_PEERS      CSM_MAX_PEERS
 
 /********************************************************************************************************/
 /**********************************************TYPEDEFS***************************************************/
@@ -66,7 +64,7 @@ void SoAd_PQC_MainFunction(void);
  * @return E_OK if successful, E_NOT_OK otherwise
  */
 Std_ReturnType SoAd_PQC_KeyExchange(
-    PQC_PeerIdType PeerId,
+    Csm_PeerIdType PeerId,
     boolean IsInitiator
 );
 
@@ -75,13 +73,13 @@ Std_ReturnType SoAd_PQC_KeyExchange(
  * @param[in] PeerId Peer identifier
  * @return Current session state
  */
-SoAd_PQC_StateType SoAd_PQC_GetState(PQC_PeerIdType PeerId);
+SoAd_PQC_StateType SoAd_PQC_GetState(Csm_PeerIdType PeerId);
 
 /**
  * @brief Reset PQC session with a peer
  * @param[in] PeerId Peer identifier
  * @return E_OK if successful, E_NOT_OK otherwise
  */
-Std_ReturnType SoAd_PQC_ResetSession(PQC_PeerIdType PeerId);
+Std_ReturnType SoAd_PQC_ResetSession(Csm_PeerIdType PeerId);
 
 #endif /* SOAD_PQC_H */

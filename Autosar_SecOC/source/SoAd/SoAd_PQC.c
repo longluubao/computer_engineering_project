@@ -62,7 +62,7 @@ Std_ReturnType SoAd_PQC_Init(void)
 
 void SoAd_PQC_DeInit(void)
 {
-    PQC_PeerIdType peerId;
+    Csm_PeerIdType peerId;
 
     if (SoAd_PQC_Initialized == FALSE)
     {
@@ -91,12 +91,12 @@ void SoAd_PQC_MainFunction(void)
 /**
  * @brief Perform ML-KEM key exchange as INITIATOR (Alice)
  */
-static Std_ReturnType SoAd_PQC_KeyExchange_Initiator(PQC_PeerIdType PeerId)
+static Std_ReturnType SoAd_PQC_KeyExchange_Initiator(Csm_PeerIdType PeerId)
 {
     Std_ReturnType result;
-    uint8 publicKey[PQC_MLKEM_PUBLIC_KEY_BYTES];
-    uint8 ciphertext[PQC_MLKEM_CIPHERTEXT_BYTES];
-    uint8 sharedSecret[PQC_MLKEM_SHARED_SECRET_BYTES];
+    uint8 publicKey[CSM_MLKEM_PUBLIC_KEY_BYTES];
+    uint8 ciphertext[CSM_MLKEM_CIPHERTEXT_BYTES];
+    uint8 sharedSecret[CSM_MLKEM_SHARED_SECRET_BYTES];
     uint32 actualSize;
 
     printf("[SoAd-PQC] Initiating ML-KEM key exchange with peer %u...\n", PeerId);
@@ -104,7 +104,7 @@ static Std_ReturnType SoAd_PQC_KeyExchange_Initiator(PQC_PeerIdType PeerId)
     /* Step 1: Generate ML-KEM keypair and get public key */
     SoAd_PQC_States[PeerId] = SOAD_PQC_STATE_KEY_EXCHANGE_INITIATED;
 
-    actualSize = PQC_MLKEM_PUBLIC_KEY_BYTES;
+    actualSize = CSM_MLKEM_PUBLIC_KEY_BYTES;
     result = Csm_KeyExchangeInitiate(0U, PeerId, publicKey, &actualSize);
     if (result != E_OK)
     {
@@ -114,7 +114,7 @@ static Std_ReturnType SoAd_PQC_KeyExchange_Initiator(PQC_PeerIdType PeerId)
     }
 
     printf("  [Step 1/3] Generated ML-KEM keypair, sending public key (%u bytes)...\n",
-           PQC_MLKEM_PUBLIC_KEY_BYTES);
+           CSM_MLKEM_PUBLIC_KEY_BYTES);
 
     /* Step 2: Send public key to peer via TcpIp */
     {
@@ -142,7 +142,7 @@ static Std_ReturnType SoAd_PQC_KeyExchange_Initiator(PQC_PeerIdType PeerId)
             result = TcpIp_GetSocketId(TCPIP_AF_INET, TCPIP_IPPROTO_UDP, &sockId);
             if (result == E_OK)
             {
-                result = TcpIp_UdpTransmit(sockId, publicKey, &remoteAddr, PQC_MLKEM_PUBLIC_KEY_BYTES);
+                result = TcpIp_UdpTransmit(sockId, publicKey, &remoteAddr, CSM_MLKEM_PUBLIC_KEY_BYTES);
                 (void)TcpIp_Close(sockId, FALSE);
             }
         }
@@ -161,13 +161,13 @@ static Std_ReturnType SoAd_PQC_KeyExchange_Initiator(PQC_PeerIdType PeerId)
     /* Note: In a real system, TcpIp_MainFunction polls and delivers via RxIndication.
        For now, this is a placeholder; the ciphertext arrives asynchronously. */
     printf("  [NOTE] Ciphertext reception handled by TcpIp_MainFunction polling\n");
-    actualSize = PQC_MLKEM_CIPHERTEXT_BYTES; /* will be set by RxIndication */
+    actualSize = CSM_MLKEM_CIPHERTEXT_BYTES; /* will be set by RxIndication */
 
     printf("  [Step 3/3] Received ciphertext (%u bytes), decapsulating...\n",
-           PQC_MLKEM_CIPHERTEXT_BYTES);
+           CSM_MLKEM_CIPHERTEXT_BYTES);
 
     /* Step 4: Complete key exchange (decapsulate ciphertext) */
-    result = Csm_KeyExchangeComplete(0U, PeerId, ciphertext, PQC_MLKEM_CIPHERTEXT_BYTES);
+    result = Csm_KeyExchangeComplete(0U, PeerId, ciphertext, CSM_MLKEM_CIPHERTEXT_BYTES);
     if (result != E_OK)
     {
         printf("ERROR: ML-KEM decapsulation failed\n");
@@ -178,7 +178,7 @@ static Std_ReturnType SoAd_PQC_KeyExchange_Initiator(PQC_PeerIdType PeerId)
     SoAd_PQC_States[PeerId] = SOAD_PQC_STATE_KEY_EXCHANGE_COMPLETED;
 
     /* Step 5: Retrieve shared secret */
-    actualSize = PQC_MLKEM_SHARED_SECRET_BYTES;
+    actualSize = CSM_MLKEM_SHARED_SECRET_BYTES;
     result = Csm_KeyExchangeGetSharedSecret(0U, PeerId, sharedSecret, &actualSize);
     if (result != E_OK)
     {
@@ -187,11 +187,11 @@ static Std_ReturnType SoAd_PQC_KeyExchange_Initiator(PQC_PeerIdType PeerId)
         return E_NOT_OK;
     }
 
-    printf("  [SUCCESS] Shared secret established (%u bytes)\n", PQC_MLKEM_SHARED_SECRET_BYTES);
+    printf("  [SUCCESS] Shared secret established (%u bytes)\n", CSM_MLKEM_SHARED_SECRET_BYTES);
 
     /* Step 6: Derive session keys from shared secret */
     printf("  [HKDF] Deriving session keys from shared secret...\n");
-    result = Csm_DeriveSessionKeys(PeerId, sharedSecret, PQC_MLKEM_SHARED_SECRET_BYTES);
+    result = Csm_DeriveSessionKeys(PeerId, sharedSecret, CSM_MLKEM_SHARED_SECRET_BYTES);
     if (result != E_OK)
     {
         printf("ERROR: Session key derivation failed\n");
@@ -215,12 +215,12 @@ static Std_ReturnType SoAd_PQC_KeyExchange_Initiator(PQC_PeerIdType PeerId)
 /**
  * @brief Perform ML-KEM key exchange as RESPONDER (Bob)
  */
-static Std_ReturnType SoAd_PQC_KeyExchange_Responder(PQC_PeerIdType PeerId)
+static Std_ReturnType SoAd_PQC_KeyExchange_Responder(Csm_PeerIdType PeerId)
 {
     Std_ReturnType result;
-    uint8 peerPublicKey[PQC_MLKEM_PUBLIC_KEY_BYTES];
-    uint8 ciphertext[PQC_MLKEM_CIPHERTEXT_BYTES];
-    uint8 sharedSecret[PQC_MLKEM_SHARED_SECRET_BYTES];
+    uint8 peerPublicKey[CSM_MLKEM_PUBLIC_KEY_BYTES];
+    uint8 ciphertext[CSM_MLKEM_CIPHERTEXT_BYTES];
+    uint8 sharedSecret[CSM_MLKEM_SHARED_SECRET_BYTES];
     uint32 actualSize;
 
     printf("[SoAd-PQC] Responding to ML-KEM key exchange from peer %u...\n", PeerId);
@@ -228,17 +228,17 @@ static Std_ReturnType SoAd_PQC_KeyExchange_Responder(PQC_PeerIdType PeerId)
     /* Step 1: Receive public key from peer via TcpIp RxIndication */
     printf("  [Step 1/2] Waiting for public key from peer...\n");
     printf("  [NOTE] Public key reception handled by TcpIp_MainFunction polling\n");
-    actualSize = PQC_MLKEM_PUBLIC_KEY_BYTES; /* will be set by RxIndication */
+    actualSize = CSM_MLKEM_PUBLIC_KEY_BYTES; /* will be set by RxIndication */
 
     /* Step 2: Respond (encapsulate to create ciphertext and shared secret) */
     SoAd_PQC_States[PeerId] = SOAD_PQC_STATE_KEY_EXCHANGE_INITIATED;
 
-    actualSize = PQC_MLKEM_CIPHERTEXT_BYTES;
+    actualSize = CSM_MLKEM_CIPHERTEXT_BYTES;
     result = Csm_KeyExchangeRespond(
         0U,
         PeerId,
         peerPublicKey,
-        PQC_MLKEM_PUBLIC_KEY_BYTES,
+        CSM_MLKEM_PUBLIC_KEY_BYTES,
         ciphertext,
         &actualSize);
     if (result != E_OK)
@@ -249,11 +249,11 @@ static Std_ReturnType SoAd_PQC_KeyExchange_Responder(PQC_PeerIdType PeerId)
     }
 
     printf("  [Step 2/2] Encapsulated shared secret, sending ciphertext (%u bytes)...\n",
-           PQC_MLKEM_CIPHERTEXT_BYTES);
+           CSM_MLKEM_CIPHERTEXT_BYTES);
 
 #if defined(__linux__) || defined(WINDOWS)
     /* Step 3: Send ciphertext to peer */
-    result = ethernet_send(PeerId, ciphertext, PQC_MLKEM_CIPHERTEXT_BYTES);
+    result = ethernet_send(PeerId, ciphertext, CSM_MLKEM_CIPHERTEXT_BYTES);
     if (result != E_OK)
     {
         printf("ERROR: Failed to send ciphertext\n");
@@ -265,7 +265,7 @@ static Std_ReturnType SoAd_PQC_KeyExchange_Responder(PQC_PeerIdType PeerId)
     SoAd_PQC_States[PeerId] = SOAD_PQC_STATE_KEY_EXCHANGE_COMPLETED;
 
     /* Step 4: Retrieve shared secret */
-    actualSize = PQC_MLKEM_SHARED_SECRET_BYTES;
+    actualSize = CSM_MLKEM_SHARED_SECRET_BYTES;
     result = Csm_KeyExchangeGetSharedSecret(0U, PeerId, sharedSecret, &actualSize);
     if (result != E_OK)
     {
@@ -274,11 +274,11 @@ static Std_ReturnType SoAd_PQC_KeyExchange_Responder(PQC_PeerIdType PeerId)
         return E_NOT_OK;
     }
 
-    printf("  [SUCCESS] Shared secret established (%u bytes)\n", PQC_MLKEM_SHARED_SECRET_BYTES);
+    printf("  [SUCCESS] Shared secret established (%u bytes)\n", CSM_MLKEM_SHARED_SECRET_BYTES);
 
     /* Step 5: Derive session keys from shared secret */
     printf("  [HKDF] Deriving session keys from shared secret...\n");
-    result = Csm_DeriveSessionKeys(PeerId, sharedSecret, PQC_MLKEM_SHARED_SECRET_BYTES);
+    result = Csm_DeriveSessionKeys(PeerId, sharedSecret, CSM_MLKEM_SHARED_SECRET_BYTES);
     if (result != E_OK)
     {
         printf("ERROR: Session key derivation failed\n");
@@ -303,7 +303,7 @@ static Std_ReturnType SoAd_PQC_KeyExchange_Responder(PQC_PeerIdType PeerId)
  * @brief Perform ML-KEM key exchange with Ethernet peer
  */
 Std_ReturnType SoAd_PQC_KeyExchange(
-    PQC_PeerIdType PeerId,
+    Csm_PeerIdType PeerId,
     boolean IsInitiator)
 {
     if (SoAd_PQC_Initialized == FALSE)
@@ -340,7 +340,7 @@ Std_ReturnType SoAd_PQC_KeyExchange(
 /**
  * @brief Get current PQC session state for a peer
  */
-SoAd_PQC_StateType SoAd_PQC_GetState(PQC_PeerIdType PeerId)
+SoAd_PQC_StateType SoAd_PQC_GetState(Csm_PeerIdType PeerId)
 {
     if (PeerId >= SOAD_PQC_MAX_PEERS)
     {
@@ -353,7 +353,7 @@ SoAd_PQC_StateType SoAd_PQC_GetState(PQC_PeerIdType PeerId)
 /**
  * @brief Reset PQC session with a peer
  */
-Std_ReturnType SoAd_PQC_ResetSession(PQC_PeerIdType PeerId)
+Std_ReturnType SoAd_PQC_ResetSession(Csm_PeerIdType PeerId)
 {
     Std_ReturnType result;
 

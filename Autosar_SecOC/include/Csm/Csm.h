@@ -7,8 +7,7 @@
 
 #include "Std_Types.h"
 #include "SecOC/SecOC_Debug.h"
-#include "PQC_KeyExchange.h"
-#include "PQC_KeyDerivation.h"
+#include "CryIf.h"
 
 
 /********************************************************************************************************/
@@ -18,12 +17,23 @@
 #define CRYPTO_E_KEY_NOT_VALID      ((Std_ReturnType)0x09)
 #define CRYPTO_E_KEY_SIZE_MISMATCH  ((Std_ReturnType)0x0A)
 #define CRYPTO_E_KEY_EMPTY          ((Std_ReturnType)0x0D)
-#define CRYPTO_E_QUEUE_FULL         ((Std_ReturnType)0x05)
+#define CRYPTO_E_QUEUE_FULL         (QUEUE_FULL)
 
 #define CSM_MAX_JOB_CONTEXTS        ((uint8)16U)
 #define CSM_MAX_JOB_QUEUE           ((uint8)16U)
 #define CSM_MAX_STREAM_BUFFER       ((uint32)4096U)
 #define CSM_MAX_KEY_ELEMENTS        ((uint8)16U)
+
+#define CSM_MAX_PEERS                 CRYIF_MAX_PEERS
+#define CSM_MLDSA_PUBLIC_KEY_BYTES    CRYIF_MLDSA_PUBLIC_KEY_BYTES
+#define CSM_MLDSA_SECRET_KEY_BYTES    CRYIF_MLDSA_SECRET_KEY_BYTES
+#define CSM_MLDSA_SIGNATURE_BYTES     CRYIF_MLDSA_SIGNATURE_BYTES
+#define CSM_MLKEM_PUBLIC_KEY_BYTES    CRYIF_MLKEM_PUBLIC_KEY_BYTES
+#define CSM_MLKEM_CIPHERTEXT_BYTES    CRYIF_MLKEM_CIPHERTEXT_BYTES
+#define CSM_MLKEM_SHARED_SECRET_BYTES CRYIF_MLKEM_SHARED_SECRET_BYTES
+#define CSM_DERIVED_KEY_LENGTH        CRYIF_DERIVED_KEY_LENGTH
+
+#define CSM_MLDSA_KEY_PREFIX        ("mldsa_secoc")
 
 #define CSM_KEYID_MLDSA_LOCAL       ((uint32)1U)
 #define CSM_KEYID_SESSION_BASE      ((uint32)100U)
@@ -49,17 +59,40 @@ typedef enum
     CRYPTO_E_VER_NOT_OK = 0x01
 }Crypto_VerifyResultType;
 
-typedef struct
-{
-    uint8 CsmReserved;
-} Csm_ConfigType;
-
 typedef enum
 {
     CSM_JOBSTATE_IDLE = 0,
     CSM_JOBSTATE_ACTIVE,
     CSM_JOBSTATE_QUEUED
 } Csm_JobStateType;
+
+typedef uint8 Csm_PeerIdType;
+typedef PQC_SessionKeysType Csm_SessionKeysType;
+
+typedef enum
+{
+    CSM_MLDSA_BOOTSTRAP_DEMO_FILE_AUTO = 0U,
+    CSM_MLDSA_BOOTSTRAP_FILE_STRICT = 1U,
+    CSM_MLDSA_BOOTSTRAP_PROVISIONED = 2U,
+    CSM_MLDSA_BOOTSTRAP_HSM_HANDLE = 3U
+} Csm_MldsaBootstrapModeType;
+
+typedef Std_ReturnType (*Csm_LoadProvisionedMldsaKeysFctType)(
+    uint8* publicKeyPtr,
+    uint32 publicKeyLength,
+    uint8* secretKeyPtr,
+    uint32 secretKeyLength);
+
+typedef struct
+{
+    Csm_MldsaBootstrapModeType CsmMldsaBootstrapMode;
+    Csm_LoadProvisionedMldsaKeysFctType CsmLoadProvisionedMldsaKeysFct;
+} Csm_ConfigType;
+
+typedef void (*Csm_JobCallbackType)(
+    uint32 jobId,
+    Std_ReturnType result,
+    void* callbackContextPtr);
 
 
 /********************************************************************************************************/
@@ -70,6 +103,8 @@ void Csm_Init(const Csm_ConfigType* configPtr);
 void Csm_DeInit(void);
 void Csm_MainFunction(void);
 void Csm_GetVersionInfo(Std_VersionInfoType* versioninfo);
+Std_ReturnType Csm_RegisterJobCallback(uint32 jobId, Csm_JobCallbackType callbackFct, void* callbackContextPtr);
+Std_ReturnType Csm_GetJobResult(uint32 jobId, Std_ReturnType* resultPtr, boolean* completedPtr);
 
 Std_ReturnType Csm_MacGenerate ( 
     uint32 jobId, 
@@ -200,7 +235,7 @@ Std_ReturnType Csm_DeriveSessionKeys(
 
 Std_ReturnType Csm_GetSessionKeys(
     uint8 peerId,
-    PQC_SessionKeysType* sessionKeysPtr
+    Csm_SessionKeysType* sessionKeysPtr
 );
 
 Std_ReturnType Csm_ClearSessionKeys(

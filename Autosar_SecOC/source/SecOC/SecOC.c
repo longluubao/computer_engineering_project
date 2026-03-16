@@ -23,10 +23,6 @@
 #include "Det.h"
 #include "BswM.h"
 
-#if (SECOC_USE_PQC_MODE == TRUE)
-#include "PQC.h"
-#endif
-
 #include <string.h>
 
 #define SECOC_BSWM_STATUS_OK              ((BswM_ModeType)0U)
@@ -1664,12 +1660,7 @@ void SecOC_MainFunctionRx(void)
         boolean IsTpAuthenticPdu = (boolean)(SecOCRxPduProcessing[idx].SecOCRxAuthenticPduLayer->SecOCPduType == SECOC_TPPDU);
         
         uint8 AuthHeadlen = SecOCRxPduProcessing[idx].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCAuthPduHeaderLength;
-#if (SECOC_USE_PQC_MODE == TRUE)
-        /* PQC Mode: minimum = header + authPdu + freshness + ML-DSA-65 signature (3309 bytes) */
-        PduLengthType securePduLength = AuthHeadlen + authRecieveLength[idx] + BIT_TO_BYTES(SecOCRxPduProcessing[idx].SecOCFreshnessValueTruncLength) + PQC_MLDSA_SIGNATURE_BYTES;
-#else
         PduLengthType securePduLength = AuthHeadlen + authRecieveLength[idx] + BIT_TO_BYTES(SecOCRxPduProcessing[idx].SecOCFreshnessValueTruncLength) + BIT_TO_BYTES(SecOCRxPduProcessing[idx].SecOCAuthInfoTruncLength);
-#endif
 
         /* Check if there is data */
         /* [SWS_SecOC_00174] */

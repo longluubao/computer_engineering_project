@@ -7,10 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "encrypt.h"
-#include "PQC.h"
-#include "PQC_KeyExchange.h"
-#include "PQC_KeyDerivation.h"
+#include "SecOC_Cfg.h"
 
 /********************************************************************************************************/
 /*********************************************Defines****************************************************/
@@ -22,8 +19,30 @@
 #define CSM_SW_MINOR_VERSION                  ((uint8)0U)
 #define CSM_SW_PATCH_VERSION                  ((uint8)0U)
 
-#define CSM_KEYID_IS_SESSION(id)              (((id) >= CSM_KEYID_SESSION_BASE) && ((id) < (CSM_KEYID_SESSION_BASE + (uint32)PQC_MAX_PEERS)))
+#define CSM_KEYID_IS_SESSION(id)              (((id) >= CSM_KEYID_SESSION_BASE) && ((id) < (CSM_KEYID_SESSION_BASE + (uint32)CSM_MAX_PEERS)))
 #define CSM_SESSION_PEER_FROM_KEYID(id)       ((uint8)((id) - CSM_KEYID_SESSION_BASE))
+
+typedef enum
+{
+    CSM_PENDING_NONE = 0U,
+    CSM_PENDING_MAC_GENERATE,
+    CSM_PENDING_SIGNATURE_GENERATE,
+    CSM_PENDING_SIGNATURE_VERIFY
+} Csm_PendingOperationType;
+
+typedef struct
+{
+    Csm_JobCallbackType CsmJobCallbackFct;
+    void* CsmJobCallbackContextPtr;
+} Csm_JobCallbackConfigType;
+
+typedef struct
+{
+    uint32 CsmJobId;
+    CryIf_ProviderType CsmMacProvider;
+    CryIf_ProviderType CsmSignatureProvider;
+    CryIf_ProviderType CsmKeyExchangeProvider;
+} Csm_JobRoutingType;
 
 /********************************************************************************************************/
 /*******************************************TypeDefinitions**********************************************/
@@ -36,14 +55,26 @@ typedef struct
     Csm_JobStateType CsmJobState;
     uint32 CsmStreamLength;
     uint8 CsmStreamBuffer[CSM_MAX_STREAM_BUFFER];
+    Csm_PendingOperationType CsmPendingOperation;
+    const uint8* CsmPendingDataPtr;
+    uint32 CsmPendingDataLength;
+    const uint8* CsmPendingInputAuthenticatorPtr;
+    uint32 CsmPendingInputAuthenticatorLength;
+    uint8* CsmPendingOutputPtr;
+    uint32* CsmPendingOutputLengthPtr;
+    Crypto_VerifyResultType* CsmPendingVerifyResultPtr;
+    boolean CsmPendingValid;
+    Std_ReturnType CsmLastResult;
+    boolean CsmLastResultValid;
+    Csm_JobCallbackConfigType CsmCallbackConfig;
 } Csm_JobContextType;
 
 typedef struct
 {
     boolean CsmMldsaPublicKeyValid;
     boolean CsmMldsaSecretKeyValid;
-    uint8 CsmMldsaPublicKey[PQC_MLDSA_PUBLIC_KEY_BYTES];
-    uint8 CsmMldsaSecretKey[PQC_MLDSA_SECRET_KEY_BYTES];
+    uint8 CsmMldsaPublicKey[CSM_MLDSA_PUBLIC_KEY_BYTES];
+    uint8 CsmMldsaSecretKey[CSM_MLDSA_SECRET_KEY_BYTES];
 } Csm_KeyStoreType;
 
 /********************************************************************************************************/
@@ -57,9 +88,19 @@ static uint8 Csm_JobQueueHead = 0U;
 static uint8 Csm_JobQueueTail = 0U;
 static uint8 Csm_JobQueueCount = 0U;
 static Csm_KeyStoreType Csm_KeyStore;
-static PQC_SessionKeysType Csm_SessionKeys[PQC_MAX_PEERS];
+static PQC_SessionKeysType Csm_SessionKeys[CSM_MAX_PEERS];
 static PQC_MLDSA_KeyPairType Csm_MLDSA_KeyPair;
 static boolean Csm_PqcReady = FALSE;
+static Csm_ConfigType Csm_RuntimeConfig =
+{
+    CSM_MLDSA_BOOTSTRAP_DEMO_FILE_AUTO,
+    NULL
+};
+
+static const Csm_JobRoutingType Csm_JobRoutingTable[] =
+{
+    { (uint32)CSM_JOBID, CRYIF_PROVIDER_CLASSIC, CRYIF_PROVIDER_PQC, CRYIF_PROVIDER_PQC }
+};
 
 /********************************************************************************************************/
 /****************************************StaticFunctions*************************************************/
@@ -163,23 +204,156 @@ static Std_ReturnType Csm_AppendStreamData(Csm_JobContextType* contextPtr, const
     return E_OK;
 }
 
-static Std_ReturnType Csm_CheckAndHandleBusy(Csm_JobContextType* contextPtr)
+static CryIf_ProviderType Csm_SelectProvider(uint32 jobId, Csm_PendingOperationType operationType)
+{
+    uint8 idx;
+    CryIf_ProviderType defaultProvider = CRYIF_PROVIDER_PQC;
+
+    if (operationType == CSM_PENDING_MAC_GENERATE)
+    {
+        defaultProvider = CRYIF_PROVIDER_CLASSIC;
+    }
+
+    for (idx = 0U; idx < (uint8)(sizeof(Csm_JobRoutingTable) / sizeof(Csm_JobRoutingTable[0])); idx++)
+    {
+        if (Csm_JobRoutingTable[idx].CsmJobId != jobId)
+        {
+            continue;
+        }
+
+        if (operationType == CSM_PENDING_MAC_GENERATE)
+        {
+            return Csm_JobRoutingTable[idx].CsmMacProvider;
+        }
+
+        if ((operationType == CSM_PENDING_SIGNATURE_GENERATE) || (operationType == CSM_PENDING_SIGNATURE_VERIFY))
+        {
+            return Csm_JobRoutingTable[idx].CsmSignatureProvider;
+        }
+
+        return Csm_JobRoutingTable[idx].CsmKeyExchangeProvider;
+    }
+
+    return defaultProvider;
+}
+
+static void Csm_ClearPendingOperation(Csm_JobContextType* contextPtr)
+{
+    if (contextPtr == NULL)
+    {
+        return;
+    }
+
+    contextPtr->CsmPendingOperation = CSM_PENDING_NONE;
+    contextPtr->CsmPendingDataPtr = NULL;
+    contextPtr->CsmPendingDataLength = 0U;
+    contextPtr->CsmPendingInputAuthenticatorPtr = NULL;
+    contextPtr->CsmPendingInputAuthenticatorLength = 0U;
+    contextPtr->CsmPendingOutputPtr = NULL;
+    contextPtr->CsmPendingOutputLengthPtr = NULL;
+    contextPtr->CsmPendingVerifyResultPtr = NULL;
+    contextPtr->CsmPendingValid = FALSE;
+}
+
+static Std_ReturnType Csm_QueuePendingOperation(
+    Csm_JobContextType* contextPtr,
+    Csm_PendingOperationType operationType,
+    const uint8* dataPtr,
+    uint32 dataLength,
+    const uint8* inputAuthenticatorPtr,
+    uint32 inputAuthenticatorLength,
+    uint8* outputPtr,
+    uint32* outputLengthPtr,
+    Crypto_VerifyResultType* verifyResultPtr)
 {
     Std_ReturnType queueResult;
 
-    if ((contextPtr == NULL) || (contextPtr->CsmJobState != CSM_JOBSTATE_ACTIVE))
+    if (contextPtr == NULL)
     {
-        return E_OK;
+        return E_NOT_OK;
     }
 
-    queueResult = Csm_EnqueueJob(contextPtr->CsmJobId);
-    if (queueResult == E_OK)
+    if (contextPtr->CsmPendingValid == TRUE)
     {
-        contextPtr->CsmJobState = CSM_JOBSTATE_QUEUED;
         return E_BUSY;
     }
 
-    return CRYPTO_E_QUEUE_FULL;
+    queueResult = Csm_EnqueueJob(contextPtr->CsmJobId);
+    if (queueResult != E_OK)
+    {
+        return CRYPTO_E_QUEUE_FULL;
+    }
+
+    contextPtr->CsmPendingOperation = operationType;
+    contextPtr->CsmPendingDataPtr = dataPtr;
+    contextPtr->CsmPendingDataLength = dataLength;
+    contextPtr->CsmPendingInputAuthenticatorPtr = inputAuthenticatorPtr;
+    contextPtr->CsmPendingInputAuthenticatorLength = inputAuthenticatorLength;
+    contextPtr->CsmPendingOutputPtr = outputPtr;
+    contextPtr->CsmPendingOutputLengthPtr = outputLengthPtr;
+    contextPtr->CsmPendingVerifyResultPtr = verifyResultPtr;
+    contextPtr->CsmPendingValid = TRUE;
+    contextPtr->CsmJobState = CSM_JOBSTATE_QUEUED;
+
+    return E_BUSY;
+}
+
+static Std_ReturnType Csm_ExecutePendingOperation(Csm_JobContextType* contextPtr)
+{
+    CryIf_ProviderType provider;
+
+    if ((contextPtr == NULL) || (contextPtr->CsmPendingValid == FALSE))
+    {
+        return E_NOT_OK;
+    }
+
+    provider = Csm_SelectProvider(contextPtr->CsmJobId, contextPtr->CsmPendingOperation);
+
+    if (contextPtr->CsmPendingOperation == CSM_PENDING_MAC_GENERATE)
+    {
+        return CryIf_MacGenerate(
+            provider,
+            contextPtr->CsmPendingDataPtr,
+            contextPtr->CsmPendingDataLength,
+            contextPtr->CsmPendingOutputPtr,
+            contextPtr->CsmPendingOutputLengthPtr);
+    }
+
+    if (contextPtr->CsmPendingOperation == CSM_PENDING_SIGNATURE_GENERATE)
+    {
+        return CryIf_SignatureGenerate(
+            provider,
+            contextPtr->CsmPendingDataPtr,
+            contextPtr->CsmPendingDataLength,
+            Csm_KeyStore.CsmMldsaSecretKey,
+            contextPtr->CsmPendingOutputPtr,
+            contextPtr->CsmPendingOutputLengthPtr);
+    }
+
+    if (contextPtr->CsmPendingOperation == CSM_PENDING_SIGNATURE_VERIFY)
+    {
+        if (contextPtr->CsmPendingVerifyResultPtr == NULL)
+        {
+            return E_NOT_OK;
+        }
+
+        if (CryIf_SignatureVerify(
+                provider,
+                contextPtr->CsmPendingDataPtr,
+                contextPtr->CsmPendingDataLength,
+                contextPtr->CsmPendingInputAuthenticatorPtr,
+                contextPtr->CsmPendingInputAuthenticatorLength,
+                Csm_KeyStore.CsmMldsaPublicKey) == E_OK)
+        {
+            *contextPtr->CsmPendingVerifyResultPtr = CRYPTO_E_VER_OK;
+            return E_OK;
+        }
+
+        *contextPtr->CsmPendingVerifyResultPtr = CRYPTO_E_VER_NOT_OK;
+        return E_NOT_OK;
+    }
+
+    return E_NOT_OK;
 }
 
 static Std_ReturnType Csm_PQC_EnsureReady(void)
@@ -191,39 +365,59 @@ static Std_ReturnType Csm_PQC_EnsureReady(void)
         return E_OK;
     }
 
-    result = PQC_Init();
-    if (result != PQC_E_OK)
+    result = CryIf_Init();
+    if (result != E_OK)
     {
         printf("ERROR: CSM PQC init failed\n");
         return E_NOT_OK;
     }
 
-    if (PQC_KeyExchange_Init() != E_OK)
+    if (Csm_RuntimeConfig.CsmMldsaBootstrapMode == CSM_MLDSA_BOOTSTRAP_DEMO_FILE_AUTO)
     {
-        printf("ERROR: CSM key-exchange manager init failed\n");
-        return E_NOT_OK;
-    }
-
-    if (PQC_KeyDerivation_Init() != E_OK)
-    {
-        printf("ERROR: CSM key-derivation init failed\n");
-        return E_NOT_OK;
-    }
-
-    result = PQC_MLDSA_LoadKeys(&Csm_MLDSA_KeyPair, "mldsa_secoc");
-    if (result != PQC_E_OK)
-    {
-        result = PQC_MLDSA_KeyGen(&Csm_MLDSA_KeyPair);
-        if (result != PQC_E_OK)
+        result = CryIf_MldsaLoadKeys(&Csm_MLDSA_KeyPair, CSM_MLDSA_KEY_PREFIX);
+        if (result != E_OK)
         {
-            printf("ERROR: CSM ML-DSA key generation failed\n");
+            result = CryIf_MldsaGenerateKeyPair(&Csm_MLDSA_KeyPair);
+            if (result != E_OK)
+            {
+                printf("ERROR: CSM ML-DSA key generation failed\n");
+                return E_NOT_OK;
+            }
+
+            (void)CryIf_MldsaSaveKeys(&Csm_MLDSA_KeyPair, CSM_MLDSA_KEY_PREFIX);
+        }
+    }
+    else if (Csm_RuntimeConfig.CsmMldsaBootstrapMode == CSM_MLDSA_BOOTSTRAP_FILE_STRICT)
+    {
+        result = CryIf_MldsaLoadKeys(&Csm_MLDSA_KeyPair, CSM_MLDSA_KEY_PREFIX);
+        if (result != E_OK)
+        {
+            printf("ERROR: CSM strict key bootstrap failed (missing key files)\n");
             return E_NOT_OK;
         }
-        (void)PQC_MLDSA_SaveKeys(&Csm_MLDSA_KeyPair, "mldsa_secoc");
+    }
+    else
+    {
+        if (Csm_RuntimeConfig.CsmLoadProvisionedMldsaKeysFct == NULL)
+        {
+            printf("ERROR: CSM provisioned/HSM bootstrap requires key loading callback\n");
+            return E_NOT_OK;
+        }
+
+        result = Csm_RuntimeConfig.CsmLoadProvisionedMldsaKeysFct(
+            Csm_MLDSA_KeyPair.PublicKey,
+            CSM_MLDSA_PUBLIC_KEY_BYTES,
+            Csm_MLDSA_KeyPair.SecretKey,
+            CSM_MLDSA_SECRET_KEY_BYTES);
+        if (result != E_OK)
+        {
+            printf("ERROR: CSM provisioned/HSM key bootstrap failed\n");
+            return E_NOT_OK;
+        }
     }
 
-    (void)memcpy(Csm_KeyStore.CsmMldsaPublicKey, Csm_MLDSA_KeyPair.PublicKey, PQC_MLDSA_PUBLIC_KEY_BYTES);
-    (void)memcpy(Csm_KeyStore.CsmMldsaSecretKey, Csm_MLDSA_KeyPair.SecretKey, PQC_MLDSA_SECRET_KEY_BYTES);
+    (void)memcpy(Csm_KeyStore.CsmMldsaPublicKey, Csm_MLDSA_KeyPair.PublicKey, CSM_MLDSA_PUBLIC_KEY_BYTES);
+    (void)memcpy(Csm_KeyStore.CsmMldsaSecretKey, Csm_MLDSA_KeyPair.SecretKey, CSM_MLDSA_SECRET_KEY_BYTES);
     Csm_KeyStore.CsmMldsaPublicKeyValid = TRUE;
     Csm_KeyStore.CsmMldsaSecretKeyValid = TRUE;
     Csm_PqcReady = TRUE;
@@ -294,7 +488,16 @@ static Std_ReturnType Csm_PrepareOperationInput(
 
 void Csm_Init(const Csm_ConfigType* configPtr)
 {
-    (void)configPtr;
+    if (configPtr != NULL)
+    {
+        Csm_RuntimeConfig = *configPtr;
+    }
+    else
+    {
+        Csm_RuntimeConfig.CsmMldsaBootstrapMode = CSM_MLDSA_BOOTSTRAP_DEMO_FILE_AUTO;
+        Csm_RuntimeConfig.CsmLoadProvisionedMldsaKeysFct = NULL;
+    }
+
     Csm_ResetState();
     if (Csm_PQC_EnsureReady() == E_OK)
     {
@@ -310,12 +513,13 @@ void Csm_DeInit(void)
 {
     uint8 peerId;
 
-    for (peerId = 0U; peerId < PQC_MAX_PEERS; peerId++)
+    for (peerId = 0U; peerId < CSM_MAX_PEERS; peerId++)
     {
-        (void)PQC_KeyExchange_Reset(peerId);
-        (void)PQC_ClearSessionKeys(peerId);
+        (void)CryIf_KeyExchangeReset(peerId);
+        (void)CryIf_ClearSessionKeys(peerId);
     }
 
+    CryIf_DeInit();
     Csm_ResetState();
     Csm_IsInitialized = FALSE;
 }
@@ -324,6 +528,7 @@ void Csm_MainFunction(void)
 {
     uint32 queuedJobId = 0U;
     Csm_JobContextType* contextPtr;
+    Std_ReturnType operationResult;
 
     if (Csm_IsInitialized == FALSE)
     {
@@ -333,11 +538,70 @@ void Csm_MainFunction(void)
     if (Csm_DequeueJob(&queuedJobId) == E_OK)
     {
         contextPtr = Csm_GetJobContext(queuedJobId);
-        if (contextPtr != NULL)
+        if ((contextPtr != NULL) && (contextPtr->CsmPendingValid == TRUE))
         {
+            operationResult = Csm_ExecutePendingOperation(contextPtr);
+            contextPtr->CsmLastResult = operationResult;
+            contextPtr->CsmLastResultValid = TRUE;
             contextPtr->CsmJobState = CSM_JOBSTATE_IDLE;
+            Csm_ClearPendingOperation(contextPtr);
+
+            if (contextPtr->CsmCallbackConfig.CsmJobCallbackFct != NULL)
+            {
+                contextPtr->CsmCallbackConfig.CsmJobCallbackFct(
+                    contextPtr->CsmJobId,
+                    operationResult,
+                    contextPtr->CsmCallbackConfig.CsmJobCallbackContextPtr);
+            }
         }
     }
+}
+
+Std_ReturnType Csm_RegisterJobCallback(uint32 jobId, Csm_JobCallbackType callbackFct, void* callbackContextPtr)
+{
+    Csm_JobContextType* contextPtr;
+
+    if (Csm_IsInitialized == FALSE)
+    {
+        return E_NOT_OK;
+    }
+
+    contextPtr = Csm_GetJobContext(jobId);
+    if (contextPtr == NULL)
+    {
+        return CRYPTO_E_QUEUE_FULL;
+    }
+
+    contextPtr->CsmCallbackConfig.CsmJobCallbackFct = callbackFct;
+    contextPtr->CsmCallbackConfig.CsmJobCallbackContextPtr = callbackContextPtr;
+    return E_OK;
+}
+
+Std_ReturnType Csm_GetJobResult(uint32 jobId, Std_ReturnType* resultPtr, boolean* completedPtr)
+{
+    Csm_JobContextType* contextPtr;
+
+    if ((Csm_IsInitialized == FALSE) || (resultPtr == NULL) || (completedPtr == NULL))
+    {
+        return E_NOT_OK;
+    }
+
+    contextPtr = Csm_GetJobContext(jobId);
+    if (contextPtr == NULL)
+    {
+        return E_NOT_OK;
+    }
+
+    if ((contextPtr->CsmPendingValid == TRUE) || (contextPtr->CsmLastResultValid == FALSE))
+    {
+        *completedPtr = FALSE;
+        *resultPtr = E_BUSY;
+        return E_OK;
+    }
+
+    *completedPtr = TRUE;
+    *resultPtr = contextPtr->CsmLastResult;
+    return E_OK;
 }
 
 void Csm_GetVersionInfo(Std_VersionInfoType* versioninfo)
@@ -366,7 +630,7 @@ Std_ReturnType Csm_MacGenerate(
     const uint8* preparedDataPtr = NULL;
     uint32 preparedLength = 0U;
     Std_ReturnType prepareResult;
-    Std_ReturnType busyResult;
+    CryIf_ProviderType provider;
 
     if ((Csm_IsInitialized == FALSE) || (macPtr == NULL) || (macLengthPtr == NULL))
     {
@@ -377,12 +641,6 @@ Std_ReturnType Csm_MacGenerate(
     if (contextPtr == NULL)
     {
         return CRYPTO_E_QUEUE_FULL;
-    }
-
-    if ((mode == CRYPTO_OPERATIONMODE_SINGLECALL) && (contextPtr->CsmJobState == CSM_JOBSTATE_ACTIVE))
-    {
-        busyResult = Csm_CheckAndHandleBusy(contextPtr);
-        return busyResult;
     }
 
     prepareResult = Csm_PrepareOperationInput(
@@ -403,8 +661,25 @@ Std_ReturnType Csm_MacGenerate(
         return E_NOT_OK;
     }
 
-    startEncryption(preparedDataPtr, preparedLength, macPtr, macLengthPtr);
-    return E_OK;
+    if ((mode == CRYPTO_OPERATIONMODE_SINGLECALL) && (contextPtr->CsmJobState == CSM_JOBSTATE_ACTIVE))
+    {
+        return Csm_QueuePendingOperation(
+            contextPtr,
+            CSM_PENDING_MAC_GENERATE,
+            preparedDataPtr,
+            preparedLength,
+            NULL,
+            0U,
+            macPtr,
+            macLengthPtr,
+            NULL);
+    }
+
+    provider = Csm_SelectProvider(jobId, CSM_PENDING_MAC_GENERATE);
+    prepareResult = CryIf_MacGenerate(provider, preparedDataPtr, preparedLength, macPtr, macLengthPtr);
+    contextPtr->CsmLastResult = prepareResult;
+    contextPtr->CsmLastResultValid = TRUE;
+    return prepareResult;
 }
 
 Std_ReturnType Csm_MacVerify(
@@ -462,7 +737,7 @@ Std_ReturnType Csm_SignatureGenerate(
     const uint8* preparedDataPtr = NULL;
     uint32 preparedLength = 0U;
     Std_ReturnType prepareResult;
-    Std_ReturnType busyResult;
+    CryIf_ProviderType provider;
 
     if ((Csm_IsInitialized == FALSE) || (signaturePtr == NULL) || (signatureLengthPtr == NULL))
     {
@@ -478,12 +753,6 @@ Std_ReturnType Csm_SignatureGenerate(
     if (contextPtr == NULL)
     {
         return CRYPTO_E_QUEUE_FULL;
-    }
-
-    if ((mode == CRYPTO_OPERATIONMODE_SINGLECALL) && (contextPtr->CsmJobState == CSM_JOBSTATE_ACTIVE))
-    {
-        busyResult = Csm_CheckAndHandleBusy(contextPtr);
-        return busyResult;
     }
 
     prepareResult = Csm_PrepareOperationInput(
@@ -504,17 +773,31 @@ Std_ReturnType Csm_SignatureGenerate(
         return E_NOT_OK;
     }
 
-    if (PQC_MLDSA_Sign(
+    if ((mode == CRYPTO_OPERATIONMODE_SINGLECALL) && (contextPtr->CsmJobState == CSM_JOBSTATE_ACTIVE))
+    {
+        return Csm_QueuePendingOperation(
+            contextPtr,
+            CSM_PENDING_SIGNATURE_GENERATE,
             preparedDataPtr,
             preparedLength,
-            Csm_KeyStore.CsmMldsaSecretKey,
+            NULL,
+            0U,
             signaturePtr,
-            signatureLengthPtr) != PQC_E_OK)
-    {
-        return E_NOT_OK;
+            signatureLengthPtr,
+            NULL);
     }
 
-    return E_OK;
+    provider = Csm_SelectProvider(jobId, CSM_PENDING_SIGNATURE_GENERATE);
+    prepareResult = CryIf_SignatureGenerate(
+        provider,
+        preparedDataPtr,
+        preparedLength,
+        Csm_KeyStore.CsmMldsaSecretKey,
+        signaturePtr,
+        signatureLengthPtr);
+    contextPtr->CsmLastResult = prepareResult;
+    contextPtr->CsmLastResultValid = TRUE;
+    return prepareResult;
 }
 
 Std_ReturnType Csm_SignatureVerify(
@@ -530,7 +813,7 @@ Std_ReturnType Csm_SignatureVerify(
     const uint8* preparedDataPtr = NULL;
     uint32 preparedLength = 0U;
     Std_ReturnType prepareResult;
-    Std_ReturnType verifyResult;
+    CryIf_ProviderType provider;
 
     if ((Csm_IsInitialized == FALSE) || (verifyPtr == NULL) || (signaturePtr == NULL))
     {
@@ -569,20 +852,38 @@ Std_ReturnType Csm_SignatureVerify(
         return E_NOT_OK;
     }
 
-    verifyResult = PQC_MLDSA_Verify(
-        preparedDataPtr,
-        preparedLength,
-        signaturePtr,
-        signatureLength,
-        Csm_KeyStore.CsmMldsaPublicKey);
+    if ((mode == CRYPTO_OPERATIONMODE_SINGLECALL) && (contextPtr->CsmJobState == CSM_JOBSTATE_ACTIVE))
+    {
+        return Csm_QueuePendingOperation(
+            contextPtr,
+            CSM_PENDING_SIGNATURE_VERIFY,
+            preparedDataPtr,
+            preparedLength,
+            signaturePtr,
+            signatureLength,
+            NULL,
+            NULL,
+            verifyPtr);
+    }
 
-    if (verifyResult == PQC_E_OK)
+    provider = Csm_SelectProvider(jobId, CSM_PENDING_SIGNATURE_VERIFY);
+    if (CryIf_SignatureVerify(
+            provider,
+            preparedDataPtr,
+            preparedLength,
+            signaturePtr,
+            signatureLength,
+            Csm_KeyStore.CsmMldsaPublicKey) == E_OK)
     {
         *verifyPtr = CRYPTO_E_VER_OK;
+        contextPtr->CsmLastResult = E_OK;
+        contextPtr->CsmLastResultValid = TRUE;
         return E_OK;
     }
 
     *verifyPtr = CRYPTO_E_VER_NOT_OK;
+    contextPtr->CsmLastResult = E_NOT_OK;
+    contextPtr->CsmLastResultValid = TRUE;
     return E_NOT_OK;
 }
 
@@ -602,16 +903,16 @@ Std_ReturnType Csm_KeyElementSet(
 
     if (keyId == CSM_KEYID_MLDSA_LOCAL)
     {
-        if ((keyElementId == CSM_KEYELEMENT_MLDSA_PUBLIC) && (keyLength == PQC_MLDSA_PUBLIC_KEY_BYTES))
+        if ((keyElementId == CSM_KEYELEMENT_MLDSA_PUBLIC) && (keyLength == CSM_MLDSA_PUBLIC_KEY_BYTES))
         {
-            (void)memcpy(Csm_KeyStore.CsmMldsaPublicKey, keyPtr, PQC_MLDSA_PUBLIC_KEY_BYTES);
+            (void)memcpy(Csm_KeyStore.CsmMldsaPublicKey, keyPtr, CSM_MLDSA_PUBLIC_KEY_BYTES);
             Csm_KeyStore.CsmMldsaPublicKeyValid = FALSE;
             return E_OK;
         }
 
-        if ((keyElementId == CSM_KEYELEMENT_MLDSA_SECRET) && (keyLength == PQC_MLDSA_SECRET_KEY_BYTES))
+        if ((keyElementId == CSM_KEYELEMENT_MLDSA_SECRET) && (keyLength == CSM_MLDSA_SECRET_KEY_BYTES))
         {
-            (void)memcpy(Csm_KeyStore.CsmMldsaSecretKey, keyPtr, PQC_MLDSA_SECRET_KEY_BYTES);
+            (void)memcpy(Csm_KeyStore.CsmMldsaSecretKey, keyPtr, CSM_MLDSA_SECRET_KEY_BYTES);
             Csm_KeyStore.CsmMldsaSecretKeyValid = FALSE;
             return E_OK;
         }
@@ -621,23 +922,23 @@ Std_ReturnType Csm_KeyElementSet(
     if (CSM_KEYID_IS_SESSION(keyId) == TRUE)
     {
         peerId = CSM_SESSION_PEER_FROM_KEYID(keyId);
-        if (peerId >= PQC_MAX_PEERS)
+        if (peerId >= CSM_MAX_PEERS)
         {
             return E_NOT_OK;
         }
 
-        if (PQC_GetSessionKeys(peerId, &sessionKeys) != E_OK)
+        if (CryIf_GetSessionKeys(peerId, &sessionKeys) != E_OK)
         {
             (void)memset(&sessionKeys, 0, sizeof(sessionKeys));
         }
 
-        if ((keyElementId == CSM_KEYELEMENT_SESSION_ENC) && (keyLength == PQC_DERIVED_KEY_LENGTH))
+        if ((keyElementId == CSM_KEYELEMENT_SESSION_ENC) && (keyLength == CSM_DERIVED_KEY_LENGTH))
         {
-            (void)memcpy(sessionKeys.EncryptionKey, keyPtr, PQC_DERIVED_KEY_LENGTH);
+            (void)memcpy(sessionKeys.EncryptionKey, keyPtr, CSM_DERIVED_KEY_LENGTH);
         }
-        else if ((keyElementId == CSM_KEYELEMENT_SESSION_AUTH) && (keyLength == PQC_DERIVED_KEY_LENGTH))
+        else if ((keyElementId == CSM_KEYELEMENT_SESSION_AUTH) && (keyLength == CSM_DERIVED_KEY_LENGTH))
         {
-            (void)memcpy(sessionKeys.AuthenticationKey, keyPtr, PQC_DERIVED_KEY_LENGTH);
+            (void)memcpy(sessionKeys.AuthenticationKey, keyPtr, CSM_DERIVED_KEY_LENGTH);
         }
         else
         {
@@ -672,7 +973,7 @@ Std_ReturnType Csm_KeySetValid(uint32 keyId)
     if (CSM_KEYID_IS_SESSION(keyId) == TRUE)
     {
         peerId = CSM_SESSION_PEER_FROM_KEYID(keyId);
-        if (peerId >= PQC_MAX_PEERS)
+        if (peerId >= CSM_MAX_PEERS)
         {
             return E_NOT_OK;
         }
@@ -699,17 +1000,17 @@ Std_ReturnType Csm_KeyExchangeInitiate(
         return E_NOT_OK;
     }
 
-    if (*publicValueLengthPtr < PQC_MLKEM_PUBLIC_KEY_BYTES)
+    if (*publicValueLengthPtr < CSM_MLKEM_PUBLIC_KEY_BYTES)
     {
         return CRYPTO_E_KEY_SIZE_MISMATCH;
     }
 
-    if (PQC_KeyExchange_Initiate(peerId, publicValuePtr) != E_OK)
+    if (CryIf_KeyExchangeInitiate(peerId, publicValuePtr) != E_OK)
     {
         return E_NOT_OK;
     }
 
-    *publicValueLengthPtr = PQC_MLKEM_PUBLIC_KEY_BYTES;
+    *publicValueLengthPtr = CSM_MLKEM_PUBLIC_KEY_BYTES;
     return E_OK;
 }
 
@@ -728,17 +1029,17 @@ Std_ReturnType Csm_KeyExchangeRespond(
         return E_NOT_OK;
     }
 
-    if ((partnerPublicValueLength != PQC_MLKEM_PUBLIC_KEY_BYTES) || (*ciphertextLengthPtr < PQC_MLKEM_CIPHERTEXT_BYTES))
+    if ((partnerPublicValueLength != CSM_MLKEM_PUBLIC_KEY_BYTES) || (*ciphertextLengthPtr < CSM_MLKEM_CIPHERTEXT_BYTES))
     {
         return CRYPTO_E_KEY_SIZE_MISMATCH;
     }
 
-    if (PQC_KeyExchange_Respond(peerId, partnerPublicValuePtr, ciphertextPtr) != E_OK)
+    if (CryIf_KeyExchangeRespond(peerId, partnerPublicValuePtr, ciphertextPtr) != E_OK)
     {
         return E_NOT_OK;
     }
 
-    *ciphertextLengthPtr = PQC_MLKEM_CIPHERTEXT_BYTES;
+    *ciphertextLengthPtr = CSM_MLKEM_CIPHERTEXT_BYTES;
     return E_OK;
 }
 
@@ -755,22 +1056,22 @@ Std_ReturnType Csm_KeyExchangeComplete(
         return E_NOT_OK;
     }
 
-    if (ciphertextLength != PQC_MLKEM_CIPHERTEXT_BYTES)
+    if (ciphertextLength != CSM_MLKEM_CIPHERTEXT_BYTES)
     {
         return CRYPTO_E_KEY_SIZE_MISMATCH;
     }
 
-    return PQC_KeyExchange_Complete(peerId, ciphertextPtr);
+    return CryIf_KeyExchangeComplete(peerId, ciphertextPtr);
 }
 
 Std_ReturnType Csm_KeyExchangeReset(uint8 peerId)
 {
-    if ((Csm_IsInitialized == FALSE) || (peerId >= PQC_MAX_PEERS))
+    if ((Csm_IsInitialized == FALSE) || (peerId >= CSM_MAX_PEERS))
     {
         return E_NOT_OK;
     }
 
-    return PQC_KeyExchange_Reset(peerId);
+    return CryIf_KeyExchangeReset(peerId);
 }
 
 Std_ReturnType Csm_KeyExchangeGetSharedSecret(
@@ -786,17 +1087,17 @@ Std_ReturnType Csm_KeyExchangeGetSharedSecret(
         return E_NOT_OK;
     }
 
-    if (*sharedSecretLengthPtr < PQC_MLKEM_SHARED_SECRET_BYTES)
+    if (*sharedSecretLengthPtr < CSM_MLKEM_SHARED_SECRET_BYTES)
     {
         return CRYPTO_E_KEY_SIZE_MISMATCH;
     }
 
-    if (PQC_KeyExchange_GetSharedSecret(peerId, sharedSecretPtr) != E_OK)
+    if (CryIf_KeyExchangeGetSharedSecret(peerId, sharedSecretPtr) != E_OK)
     {
         return E_NOT_OK;
     }
 
-    *sharedSecretLengthPtr = PQC_MLKEM_SHARED_SECRET_BYTES;
+    *sharedSecretLengthPtr = CSM_MLKEM_SHARED_SECRET_BYTES;
     return E_OK;
 }
 
@@ -807,12 +1108,12 @@ Std_ReturnType Csm_DeriveSessionKeys(
 {
     PQC_SessionKeysType sessionKeys;
 
-    if ((Csm_IsInitialized == FALSE) || (sharedSecretPtr == NULL) || (sharedSecretLength != PQC_MLKEM_SHARED_SECRET_BYTES))
+    if ((Csm_IsInitialized == FALSE) || (sharedSecretPtr == NULL) || (sharedSecretLength != CSM_MLKEM_SHARED_SECRET_BYTES))
     {
         return E_NOT_OK;
     }
 
-    if (PQC_DeriveSessionKeys(sharedSecretPtr, peerId, &sessionKeys) != E_OK)
+    if (CryIf_DeriveSessionKeys(sharedSecretPtr, peerId, &sessionKeys) != E_OK)
     {
         return E_NOT_OK;
     }
@@ -823,14 +1124,14 @@ Std_ReturnType Csm_DeriveSessionKeys(
 
 Std_ReturnType Csm_GetSessionKeys(
     uint8 peerId,
-    PQC_SessionKeysType* sessionKeysPtr)
+    Csm_SessionKeysType* sessionKeysPtr)
 {
-    if ((Csm_IsInitialized == FALSE) || (sessionKeysPtr == NULL) || (peerId >= PQC_MAX_PEERS))
+    if ((Csm_IsInitialized == FALSE) || (sessionKeysPtr == NULL) || (peerId >= CSM_MAX_PEERS))
     {
         return E_NOT_OK;
     }
 
-    if (PQC_GetSessionKeys(peerId, sessionKeysPtr) == E_OK)
+    if (CryIf_GetSessionKeys(peerId, sessionKeysPtr) == E_OK)
     {
         return E_OK;
     }
@@ -846,11 +1147,11 @@ Std_ReturnType Csm_GetSessionKeys(
 
 Std_ReturnType Csm_ClearSessionKeys(uint8 peerId)
 {
-    if ((Csm_IsInitialized == FALSE) || (peerId >= PQC_MAX_PEERS))
+    if ((Csm_IsInitialized == FALSE) || (peerId >= CSM_MAX_PEERS))
     {
         return E_NOT_OK;
     }
 
     (void)memset(&Csm_SessionKeys[peerId], 0, sizeof(PQC_SessionKeysType));
-    return PQC_ClearSessionKeys(peerId);
+    return CryIf_ClearSessionKeys(peerId);
 }
