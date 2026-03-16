@@ -20,6 +20,10 @@
 #define DCM_SID_MAIN_FUNCTION        ((uint8)0x02U)
 #define DCM_SID_PROCESS_REQUEST      ((uint8)0x03U)
 #define DCM_SID_TP_TX_CONFIRMATION   ((uint8)0x04U)
+#define DCM_SID_DEINIT               ((uint8)0x05U)
+#define DCM_SID_TP_START_OF_RECEPTION ((uint8)0x06U)
+#define DCM_SID_TP_COPY_RX_DATA      ((uint8)0x07U)
+#define DCM_SID_TP_RX_INDICATION     ((uint8)0x08U)
 
 /* DET Error Codes */
 #define DCM_E_UNINIT                 ((uint8)0x01U)
@@ -56,6 +60,7 @@ typedef struct
 /********************************************************************************************************/
 
 void Dcm_Init(const Dcm_ConfigType* ConfigPtr);
+void Dcm_DeInit(void);
 void Dcm_MainFunction(void);
 
 /**
@@ -70,5 +75,13 @@ Std_ReturnType Dcm_ProcessRequest(const uint8* RequestData, uint16 RequestLength
                                   uint8* ResponseData, uint16* ResponseLength);
 
 void Dcm_TpTxConfirmation(PduIdType TxPduId, Std_ReturnType result);
+BufReq_ReturnType Dcm_TpStartOfReception(PduIdType RxPduId,
+                                         const PduInfoType* PduInfoPtr,
+                                         PduLengthType TpSduLength,
+                                         PduLengthType* RxBufferSizePtr);
+BufReq_ReturnType Dcm_TpCopyRxData(PduIdType RxPduId,
+                                   const PduInfoType* PduInfoPtr,
+                                   PduLengthType* RxBufferSizePtr);
+void Dcm_TpRxIndication(PduIdType RxPduId, Std_ReturnType result);
 
 #endif /* INCLUDE_DCM_H_ */

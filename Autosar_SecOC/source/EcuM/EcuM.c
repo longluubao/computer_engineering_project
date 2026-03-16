@@ -5,6 +5,7 @@
 #include "EcuM.h"
 #include "Det.h"
 #include "Dem.h"
+#include "Dcm.h"
 #include "MemIf.h"
 #include "NvM.h"
 #include "Can.h"
@@ -18,9 +19,11 @@
 #include "EthSM.h"
 #include "TcpIp.h"
 #include "SoAd.h"
+#include "SoAd_PQC.h"
 #include "ApBridge.h"
 #include "SecOC.h"
 #include "SecOC_Lcfg.h"
+#include "Csm.h"
 #include "Com.h"
 #include <string.h>
 
@@ -97,12 +100,11 @@ static void EcuM_DeInitEthCommunicationPath(void)
         return;
     }
 
-    /*
-     * Extension point:
-     * SoAd/EthIf currently expose no public de-init APIs in this codebase.
-     * Keep shutdown deterministic using available public API only.
-     */
+    SoAd_DeInit();
     TcpIp_Shutdown();
+#if (SOAD_TCPIP_PAYLOAD_BACKEND == SOAD_TCPIP_PAYLOAD_BACKEND_ETHIF)
+    EthIf_DeInit();
+#endif
     EcuM_EthPathStarted = FALSE;
 }
 
@@ -368,6 +370,8 @@ void EcuM_Init(const EcuM_ConfigType *ConfigPtr)
     NvM_Init();
     EcuM_ExecuteNvMReadAllPhase();
     Dem_Init();
+    Dcm_Init(NULL);
+    Csm_Init(NULL);
 
     /* Phase 2: Driver and mode-manager initialization */
     Can_Init(NULL);
@@ -448,6 +452,10 @@ Std_ReturnType EcuM_StartupTwo(void)
     SecOC_Init(&SecOC_Config);
     Com_Init();
     ApBridge_Init();
+    if (SoAd_PQC_Init() != E_OK)
+    {
+        ApBridge_ReportServiceStatus(FALSE);
+    }
     EcuM_StartComCommunicationPath();
 
     EcuM_State = ECUM_STATE_RUN;
@@ -490,7 +498,10 @@ Std_ReturnType EcuM_Shutdown(void)
         (void)ComM_RequestComMode(0U, COMM_NO_COMMUNICATION);
         EcuM_StopComCommunicationPath();
         Dem_Shutdown();
+        Dcm_DeInit();
+        Csm_DeInit();
         ApBridge_DeInit();
+        SoAd_PQC_DeInit();
         SecOC_DeInit();
         Com_DeInit();
         ComM_DeInit();
@@ -502,6 +513,7 @@ Std_ReturnType EcuM_Shutdown(void)
 #if defined(LINUX) || defined(WINDOWS)
         EcuM_DeInitEthCommunicationPath();
 #endif
+        EthSM_DeInit();
         (void)EcuM_ExecuteResetCalloutHook();
         EcuM_State = ECUM_STATE_OFF;
     }
@@ -511,7 +523,10 @@ Std_ReturnType EcuM_Shutdown(void)
         (void)ComM_RequestComMode(0U, COMM_NO_COMMUNICATION);
         EcuM_StopComCommunicationPath();
         Dem_Shutdown();
+        Dcm_DeInit();
+        Csm_DeInit();
         ApBridge_DeInit();
+        SoAd_PQC_DeInit();
         SecOC_DeInit();
         Com_DeInit();
         ComM_DeInit();
@@ -523,6 +538,7 @@ Std_ReturnType EcuM_Shutdown(void)
 #if defined(LINUX) || defined(WINDOWS)
         EcuM_DeInitEthCommunicationPath();
 #endif
+        EthSM_DeInit();
         (void)EcuM_ExecuteOffCalloutHook();
         EcuM_State = ECUM_STATE_OFF;
     }
@@ -939,38 +955,14 @@ EcuM_WakeupStatusType EcuM_GetWakeupStatus(EcuM_WakeupSourceType WakeupSource)
     return ECUM_WAKEUP_NONE;
 }
 
-void EcuM_MainFunction(void)
+void EcuM_MainFunctionState(void)
 {
     if (EcuM_State == ECUM_STATE_UNINIT)
     {
         return;
     }
 
-    /* In RUN state, delegate to BswM for periodic mode arbitration */
-    if (EcuM_State == ECUM_STATE_RUN)
-    {
-        Can_MainFunction_Write();
-        Can_MainFunction_Read();
-        CanTp_MainFunctionTx();
-        CanTp_MainFunctionRx();
-        SecOC_MainFunctionRx();
-        Com_MainFunctionTx();
-        SecOC_MainFunctionTx();
-        Com_MainFunctionRx();
-        ComM_MainFunction();
-        CanSM_MainFunction();
-        CanNm_MainFunction();
-        ApBridge_MainFunction();
-        NvM_MainFunction();
-        Dem_MainFunction();
-#if defined(LINUX) || defined(WINDOWS)
-        EcuM_MainFunctionEthCommunicationPath();
-#endif
-        EthSM_MainFunction();
-        BswM_MainFunction();
-        EcuM_PersistGatewayHealthToNvM();
-    }
-    else if (EcuM_State == ECUM_STATE_SLEEP)
+    if (EcuM_State == ECUM_STATE_SLEEP)
     {
         if (EcuM_SleepMode == ECUM_SLEEP_MODE_POLL)
         {
@@ -1007,4 +999,77 @@ void EcuM_MainFunction(void)
             }
         }
     }
+}
+
+void EcuM_MainFunctionComStack(void)
+{
+    if (EcuM_State != ECUM_STATE_RUN)
+    {
+        return;
+    }
+
+    Can_MainFunction_Write();
+    Can_MainFunction_Read();
+    CanTp_MainFunctionTx();
+    CanTp_MainFunctionRx();
+    Com_MainFunctionTx();
+    Com_MainFunctionRx();
+}
+
+void EcuM_MainFunctionSecurityStack(void)
+{
+    if (EcuM_State != ECUM_STATE_RUN)
+    {
+        return;
+    }
+
+    SecOC_MainFunctionRx();
+    SecOC_MainFunctionTx();
+    Csm_MainFunction();
+    SoAd_PQC_MainFunction();
+}
+
+void EcuM_MainFunctionNetworkStack(void)
+{
+    if (EcuM_State != ECUM_STATE_RUN)
+    {
+        return;
+    }
+
+    ComM_MainFunction();
+    CanSM_MainFunction();
+    CanNm_MainFunction();
+    ApBridge_MainFunction();
+#if defined(LINUX) || defined(WINDOWS)
+    EcuM_MainFunctionEthCommunicationPath();
+#endif
+    EthSM_MainFunction();
+    BswM_MainFunction();
+}
+
+void EcuM_MainFunctionDiagnosticsStack(void)
+{
+    if (EcuM_State != ECUM_STATE_RUN)
+    {
+        return;
+    }
+
+    Dcm_MainFunction();
+    Dem_MainFunction();
+}
+
+void EcuM_MainFunctionNvStack(void)
+{
+    if (EcuM_State != ECUM_STATE_RUN)
+    {
+        return;
+    }
+
+    NvM_MainFunction();
+    EcuM_PersistGatewayHealthToNvM();
+}
+
+void EcuM_MainFunction(void)
+{
+    EcuM_MainFunctionState();
 }

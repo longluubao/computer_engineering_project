@@ -174,6 +174,8 @@ typedef struct
    uint16                  SecOCMessageLinkPos;
 } SecOC_UseMessageLinkType;
 
+typedef struct SecOC_TxAuthServiceConfigRefTypeTag SecOC_TxAuthServiceConfigRefType;
+
 
 
 
@@ -286,7 +288,7 @@ typedef struct
    uint8                                               SecOCTxPduUnusedAreasDefault;
    boolean                                             SecOCUseTxConfirmation;
    /*                                                  SecOCSameBufferPduRef;*/
-   /*                                                  SecOCTxAuthServiceConfigRef*/
+   SecOC_TxAuthServiceConfigRefType                    *SecOCTxAuthServiceConfigRef;
    /*                                                  SecOCTxPduMainFunctionRef;*/
    SecOC_TxAuthenticPduLayerType                      *SecOCTxAuthenticPduLayer;
    /*const SecOC_TxPduSecuredAreaType                  *SecOCTxPduSecuredArea;*/
@@ -413,6 +415,11 @@ typedef struct
 {
    Csm_JobType    *CsmJob;
 }SecOC_RxAuthServiceConfigRefType;
+
+struct SecOC_TxAuthServiceConfigRefTypeTag
+{
+   Csm_JobType    *CsmJob;
+};
 
 /*************************************************************
 *                          Container                         *

@@ -71,6 +71,30 @@ static boolean SecOC_IsValidCollectionPduId(PduIdType PduId)
     return (boolean)(PduId < (PduIdType)SECOC_NUM_OF_PDU_COLLECTION);
 }
 
+static uint32 SecOC_GetTxCsmJobId(PduIdType TxPduId)
+{
+    if ((SecOC_IsValidTxPduId(TxPduId) == TRUE) &&
+        (SecOCTxPduProcessing[TxPduId].SecOCTxAuthServiceConfigRef != NULL) &&
+        (SecOCTxPduProcessing[TxPduId].SecOCTxAuthServiceConfigRef->CsmJob != NULL))
+    {
+        return SecOCTxPduProcessing[TxPduId].SecOCTxAuthServiceConfigRef->CsmJob->CsmJobId;
+    }
+
+    return (uint32)CSM_JOBID;
+}
+
+static uint32 SecOC_GetRxCsmJobId(PduIdType RxPduId)
+{
+    if ((SecOC_IsValidRxPduId(RxPduId) == TRUE) &&
+        (SecOCRxPduProcessing[RxPduId].SecOCRxAuthServiceConfigRef != NULL) &&
+        (SecOCRxPduProcessing[RxPduId].SecOCRxAuthServiceConfigRef->CsmJob != NULL))
+    {
+        return SecOCRxPduProcessing[RxPduId].SecOCRxAuthServiceConfigRef->CsmJob->CsmJobId;
+    }
+
+    return (uint32)CSM_JOBID;
+}
+
 
 
 /********************************************************************************************************/
@@ -372,7 +396,7 @@ STATIC Std_ReturnType authenticate(const PduIdType TxPduId, PduInfoType* AuthPdu
 
     /* [SWS_SecOC_00035], [SWS_SecOC_00036]  [SWS_SecOC_00012]*/
     result = Csm_MacGenerate(
-        SecOCTxPduProcessing[TxPduId].SecOCDataId,
+        SecOC_GetTxCsmJobId(TxPduId),
         0,
         SecOCIntermediate.DataToAuth,
         SecOCIntermediate.DataToAuthLen,
@@ -1324,7 +1348,7 @@ STATIC Std_ReturnType verify(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_Verif
 
         /* [SWS_SecOC_00047] */
         Std_ReturnType Mac_verify = Csm_MacVerify(
-            SecOCRxPduProcessing[RxPduId].SecOCDataId,
+            SecOC_GetRxCsmJobId(RxPduId),
             CRYPTO_OPERATIONMODE_SINGLECALL,
             SecOCIntermediate.DataToAuth,
             SecOCIntermediate.DataToAuthLen,
@@ -1414,7 +1438,7 @@ STATIC Std_ReturnType authenticate_PQC(const PduIdType TxPduId, PduInfoType* Aut
     uint32 signatureLen = 0;
 
     result = Csm_SignatureGenerate(
-        SecOCTxPduProcessing[TxPduId].SecOCDataId,
+        SecOC_GetTxCsmJobId(TxPduId),
         0,
         SecOCIntermediate.DataToAuth,
         SecOCIntermediate.DataToAuthLen,
@@ -1563,7 +1587,7 @@ STATIC Std_ReturnType verify_PQC(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_V
         uint32 signatureLen = BIT_TO_BYTES(SecOCIntermediate.macLenBits);
 
         Std_ReturnType Sig_verify = Csm_SignatureVerify(
-            SecOCRxPduProcessing[RxPduId].SecOCDataId,
+            SecOC_GetRxCsmJobId(RxPduId),
             CRYPTO_OPERATIONMODE_SINGLECALL,
             SecOCIntermediate.DataToAuth,
             SecOCIntermediate.DataToAuthLen,

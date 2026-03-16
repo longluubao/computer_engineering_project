@@ -338,6 +338,11 @@ Csm_JobType CsmJob =
     CSM_JOBID
 };
 
+SecOC_TxAuthServiceConfigRefType SecOC_TxAuthServiceConfigRef =
+{
+    &CsmJob
+};
+
 
 
 SecOC_RxAuthServiceConfigRefType SecOC_RxAuthServiceConfigRef = 
@@ -576,7 +581,7 @@ SecOC_TxPduProcessingType SecOC_TxPduProcessing[] = {
         SECOC_TX_PDU_UNUSED_AREAS_DEFAULT,
         SECOC_USE_TX_CONFIRMATION,
         /*                                                  SecOCSameBufferPduRef;*/
-        /*                                                  SecOCTxAuthServiceConfigRef*/
+        &SecOC_TxAuthServiceConfigRef,
         /*                                                  SecOCTxPduMainFunctionRef;*/
         &SecOC_TxAuthenticPduLayer[0],
         &SecOC_TxSecuredPduLayer[0],
@@ -595,7 +600,7 @@ SecOC_TxPduProcessingType SecOC_TxPduProcessing[] = {
         .SecOCTxPduUnusedAreasDefault =                 ((uint8) 0),
         .SecOCUseTxConfirmation =                       ((boolean) FALSE),
         /*                                              SecOCSameBufferPduRef;*/
-        /*                                              SecOCTxAuthServiceConfigRef*/
+        .SecOCTxAuthServiceConfigRef =                  &SecOC_TxAuthServiceConfigRef,
         /*                                              SecOCTxPduMainFunctionRef;*/
         .SecOCTxAuthenticPduLayer =                     &SecOC_TxAuthenticPduLayer[1],
         .SecOCTxSecuredPduLayer =                       &SecOC_TxSecuredPduLayer[1],
@@ -614,7 +619,7 @@ SecOC_TxPduProcessingType SecOC_TxPduProcessing[] = {
         .SecOCTxPduUnusedAreasDefault =                 ((uint8) 0),
         .SecOCUseTxConfirmation =                       ((boolean) FALSE),
         /*                                              SecOCSameBufferPduRef;*/
-        /*                                              SecOCTxAuthServiceConfigRef*/
+        .SecOCTxAuthServiceConfigRef =                  &SecOC_TxAuthServiceConfigRef,
         /*                                              SecOCTxPduMainFunctionRef;*/
         .SecOCTxAuthenticPduLayer =                     &SecOC_TxAuthenticPduLayer[2],
         .SecOCTxSecuredPduLayer =                       &SecOC_TxSecuredPduLayer[2],
@@ -633,7 +638,7 @@ SecOC_TxPduProcessingType SecOC_TxPduProcessing[] = {
         .SecOCTxPduUnusedAreasDefault =                 ((uint8) 0),
         .SecOCUseTxConfirmation =                       ((boolean) FALSE),
         /*                                              SecOCSameBufferPduRef;*/
-        /*                                              SecOCTxAuthServiceConfigRef*/
+        .SecOCTxAuthServiceConfigRef =                  &SecOC_TxAuthServiceConfigRef,
         /*                                              SecOCTxPduMainFunctionRef;*/
         .SecOCTxAuthenticPduLayer =                     &SecOC_TxAuthenticPduLayer[3],
         .SecOCTxSecuredPduLayer =                       &SecOC_TxSecuredPduLayer[3],
@@ -652,7 +657,7 @@ SecOC_TxPduProcessingType SecOC_TxPduProcessing[] = {
         .SecOCTxPduUnusedAreasDefault =                 ((uint8) 0),
         .SecOCUseTxConfirmation =                       ((boolean) FALSE),
         /*                                              SecOCSameBufferPduRef;*/
-        /*                                              SecOCTxAuthServiceConfigRef*/
+        .SecOCTxAuthServiceConfigRef =                  &SecOC_TxAuthServiceConfigRef,
         /*                                              SecOCTxPduMainFunctionRef;*/
         .SecOCTxAuthenticPduLayer =                     &SecOC_TxAuthenticPduLayer[4],
         .SecOCTxSecuredPduLayer =                       &SecOC_TxSecuredPduLayer[4],
@@ -671,7 +676,7 @@ SecOC_TxPduProcessingType SecOC_TxPduProcessing[] = {
         .SecOCTxPduUnusedAreasDefault =                 ((uint8) 0),
         .SecOCUseTxConfirmation =                       ((boolean) FALSE),
         /*                                              SecOCSameBufferPduRef;*/
-        /*                                              SecOCTxAuthServiceConfigRef*/
+        .SecOCTxAuthServiceConfigRef =                  &SecOC_TxAuthServiceConfigRef,
         /*                                              SecOCTxPduMainFunctionRef;*/
         .SecOCTxAuthenticPduLayer =                     &SecOC_TxAuthenticPduLayer[5],
         .SecOCTxSecuredPduLayer =                       &SecOC_TxSecuredPduLayer[5],

@@ -22,6 +22,9 @@ elseif(UNIX)
     # Remove Windows-specific files on Linux
     list(REMOVE_ITEM SCR_FILES "${CMAKE_SOURCE_DIR}/source/Ethernet/ethernet_windows.c")
     list(REMOVE_ITEM HDR_FILES "${CMAKE_SOURCE_DIR}/include/Ethernet/ethernet_windows.h")
+    # Keep scheduler path disabled when OS task-based dispatch is active
+    list(REMOVE_ITEM SCR_FILES "${CMAKE_SOURCE_DIR}/source/Scheduler/scheduler.c")
+    list(REMOVE_ITEM HDR_FILES "${CMAKE_SOURCE_DIR}/include/Scheduler/scheduler.h")
     set( CMAKE_CXX_COMPILER "/usr/bin/g++" )
     set( CMAKE_C_COMPILER "/usr/bin/gcc" )
     set (CMAKE_GENERATOR "Unix Makefiles" CACHE INTERNAL "" FORCE)

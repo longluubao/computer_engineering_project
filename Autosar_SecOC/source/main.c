@@ -2,6 +2,8 @@
 #include "SecOC.h"
 #include "SecOC_Debug.h"
 #include "EcuM.h"
+#include "Os.h"
+#include <stdio.h>
 
 #ifdef DEBUG_ALL
 void SecOC_test(void);
@@ -16,6 +18,10 @@ int main(void)
         return 1;
     }
 
+    Os_Init(&Os_Config);
+    Os_SetStartupHook(Os_GatewayStartupHook);
+    StartOS(OSDEFAULTAPPMODE);
+
     #ifdef DEBUG_ALL
         SecOC_test();
     #endif
@@ -24,6 +30,6 @@ int main(void)
 
     for (;;)
     {
-        EcuM_MainFunction();
+        Os_MainFunction();
     }
 }

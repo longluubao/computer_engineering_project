@@ -37,6 +37,7 @@
 #define ETHIF_SID_GET_VERSION_INFO       (0x0BU)
 #define ETHIF_SID_MAIN_FUNCTION_RX       (0x20U)
 #define ETHIF_SID_MAIN_FUNCTION_TX       (0x21U)
+#define ETHIF_SID_DEINIT                 (0x22U)
 
 /* --- DET Error Codes --- */
 #define ETHIF_E_INV_CTRL_IDX             (0x01U)
@@ -90,6 +91,7 @@ typedef void (*EthIf_TxConfirmationCbkType)(uint8 CtrlIdx,
  * @param[in] CfgPtr Pointer to configuration. May be NULL.
  */
 void EthIf_Init(const EthIf_ConfigType* CfgPtr);
+void EthIf_DeInit(void);
 
 /**
  * @brief Set the mode of an Ethernet controller.

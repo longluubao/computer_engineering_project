@@ -50,6 +50,8 @@ typedef enum {
  * @return E_OK if successful, E_NOT_OK otherwise
  */
 Std_ReturnType SoAd_PQC_Init(void);
+void SoAd_PQC_DeInit(void);
+void SoAd_PQC_MainFunction(void);
 
 /**
  * @brief Perform ML-KEM key exchange with Ethernet peer

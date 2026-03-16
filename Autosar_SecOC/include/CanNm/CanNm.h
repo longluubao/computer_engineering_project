@@ -36,6 +36,8 @@
 
 /* NM PDU configuration */
 #define CANNM_PDU_LENGTH                      ((uint8)8)
+#define CANNM_TX_PDU_ID                       ((PduIdType)0U)
+#define CANNM_RX_PDU_ID                       ((PduIdType)0U)
 #define CANNM_NM_PDU_NID_POSITION             ((uint8)0)
 #define CANNM_NM_PDU_CBV_POSITION             ((uint8)1)
 

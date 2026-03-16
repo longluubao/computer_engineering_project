@@ -92,7 +92,7 @@ BufReq_ReturnType PduR_SecOCTpStartOfReception(PduIdType RxPduId,
     {
         return Com_StartOfReception(RxPduId, PduInfoPtr, TpSduLength, RxBufferSizePtr);
     }
-    return BUFREQ_E_NOT_OK;
+    return Dcm_TpStartOfReception(RxPduId, PduInfoPtr, TpSduLength, RxBufferSizePtr);
 }
 
 BufReq_ReturnType PduR_SecOCTpCopyRxData(PduIdType RxPduId,
@@ -107,7 +107,7 @@ BufReq_ReturnType PduR_SecOCTpCopyRxData(PduIdType RxPduId,
     {
         return Com_CopyRxData(RxPduId, PduInfoPtr, RxBufferSizePtr);
     }
-    return BUFREQ_E_NOT_OK;
+    return Dcm_TpCopyRxData(RxPduId, PduInfoPtr, RxBufferSizePtr);
 }
 
 void PduR_SecOCTpRxIndication(PduIdType RxPduId, Std_ReturnType result)
@@ -115,5 +115,9 @@ void PduR_SecOCTpRxIndication(PduIdType RxPduId, Std_ReturnType result)
     if (RxPduId < (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING)
     {
         Com_TpRxIndication(RxPduId, result);
+    }
+    else
+    {
+        Dcm_TpRxIndication(RxPduId, result);
     }
 }

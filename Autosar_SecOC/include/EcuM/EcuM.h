@@ -151,6 +151,12 @@ EcuM_WakeupSourceType EcuM_GetPendingWakeupEvents(void);
 EcuM_WakeupSourceType EcuM_GetValidatedWakeupEvents(void);
 EcuM_WakeupSourceType EcuM_GetExpiredWakeupEvents(void);
 EcuM_WakeupStatusType EcuM_GetWakeupStatus(EcuM_WakeupSourceType WakeupSource);
+void EcuM_MainFunctionState(void);
+void EcuM_MainFunctionComStack(void);
+void EcuM_MainFunctionSecurityStack(void);
+void EcuM_MainFunctionNetworkStack(void);
+void EcuM_MainFunctionDiagnosticsStack(void);
+void EcuM_MainFunctionNvStack(void);
 void EcuM_MainFunction(void);
 
 #endif /* INCLUDE_ECUM_H_ */

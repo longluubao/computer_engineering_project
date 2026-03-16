@@ -224,8 +224,6 @@ void TcpIp_Init(const TcpIp_ConfigType* ConfigPtr)
 #endif
 
 #if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_ETHIF)
-    EthIf_Init(NULL);
-    (void)EthIf_SetControllerMode(TCPIP_ETHIF_CTRL_IDX, ETH_MODE_ACTIVE);
     EthIf_SetRxIndicationCallback(TcpIp_EthIfRxIndicationCbk);
 #endif
 
@@ -295,7 +293,6 @@ void TcpIp_Shutdown(void)
 
 #if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_ETHIF)
     EthIf_SetRxIndicationCallback(NULL);
-    (void)EthIf_SetControllerMode(TCPIP_ETHIF_CTRL_IDX, ETH_MODE_DOWN);
 #endif
 
     TcpIp_ModuleState = TCPIP_STATE_OFFLINE;

@@ -46,6 +46,7 @@
 #define SOAD_SID_RX_INDICATION           (0x12U)
 #define SOAD_SID_TX_CONFIRMATION         (0x13U)
 #define SOAD_SID_SET_AP_BRIDGE_STATE     (0x14U)
+#define SOAD_SID_DEINIT                  (0x15U)
 
 /* DET error codes */
 #define SOAD_E_NOTINIT                   (0x01U)
@@ -138,6 +139,7 @@ typedef enum
  * @implements SWS_SoAd_00093
  */
 void SoAd_Init(const SoAd_ConfigType* ConfigPtr);
+void SoAd_DeInit(void);
 
 /**
  * @brief Requests transmission of an IF-PDU over socket.

@@ -42,8 +42,7 @@ static void CanNm_TransmitNmMessage(void)
     pduInfo.SduLength = CANNM_PDU_LENGTH;
     pduInfo.MetaDataPtr = NULL;
 
-    /* Use PDU ID 0 for NM messages (simplified) */
-    (void)CanIf_Transmit(0U, &pduInfo);
+    (void)CanIf_Transmit(CANNM_TX_PDU_ID, &pduInfo);
 }
 
 static void CanNm_EnterRepeatMessage(void)

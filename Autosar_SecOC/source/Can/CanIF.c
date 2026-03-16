@@ -5,6 +5,7 @@
 #include "CanIF.h"
 #include "Can.h"
 #include "CanTP.h"
+#include "CanNm.h"
 #include "Det.h"
 #include "SecOC.h"
 #include "SecOC_Debug.h"
@@ -22,6 +23,11 @@ static CanIf_PduModeType CanIf_PduModes[CAN_MAX_CONTROLLERS];
 
 static void CanIf_InternalTxConfirmation(PduIdType TxPduId, Std_ReturnType result)
 {
+    if (TxPduId == CANNM_TX_PDU_ID)
+    {
+        CanNm_TxConfirmation(TxPduId, result);
+    }
+
     if (TxPduId >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING)
     {
         return;
@@ -215,6 +221,11 @@ void CanIf_RxIndication(PduIdType RxPduId, const PduInfoType *PduInfoPtr)
     if (CanIf_PduModes[0U] == CANIF_OFFLINE)
     {
         return;
+    }
+
+    if (RxPduId == CANNM_RX_PDU_ID)
+    {
+        CanNm_RxIndication(RxPduId, PduInfoPtr);
     }
 
     if (RxPduId >= (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING)

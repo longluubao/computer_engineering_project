@@ -96,6 +96,30 @@ void EthIf_Init(const EthIf_ConfigType* CfgPtr)
     printf("[EthIf] Initialized\n");
 }
 
+void EthIf_DeInit(void)
+{
+    uint8 idx;
+
+#if (ETHIF_DEV_ERROR_DETECT == STD_ON)
+    if (EthIf_Initialized == FALSE)
+    {
+        (void)Det_ReportError(ETHIF_MODULE_ID, 0U, ETHIF_SID_DEINIT, ETHIF_E_NOT_INITIALIZED);
+        return;
+    }
+#endif
+
+    for (idx = 0U; idx < ETHIF_TX_BUF_COUNT; idx++)
+    {
+        EthIf_TxBufPool[idx].State = ETHIF_BUF_FREE;
+        EthIf_TxBufPool[idx].Length = 0U;
+        EthIf_TxBufPool[idx].ConfirmRequested = FALSE;
+    }
+
+    EthIf_RxCbk = NULL;
+    EthIf_TxCbk = NULL;
+    EthIf_Initialized = FALSE;
+}
+
 Std_ReturnType EthIf_SetControllerMode(uint8 CtrlIdx, Eth_ModeType CtrlMode)
 {
 #if (ETHIF_DEV_ERROR_DETECT == STD_ON)

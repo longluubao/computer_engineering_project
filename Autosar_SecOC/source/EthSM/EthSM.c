@@ -116,6 +116,26 @@ void EthSM_Init(const EthSM_ConfigType* ConfigPtr)
     (void)BswM_RequestMode((uint16)ETHSM_MODULE_ID, (BswM_ModeType)ETHSM_STATE_OFFLINE);
 }
 
+void EthSM_DeInit(void)
+{
+    uint8 idx;
+
+    if (EthSM_Initialized == FALSE)
+    {
+        return;
+    }
+
+    for (idx = 0U; idx < ETHSM_MAX_NETWORKS; idx++)
+    {
+        EthSM_NetworkState[idx].InternalState = ETHSM_STATE_OFFLINE;
+        EthSM_NetworkState[idx].RequestedMode = COMM_NO_COMMUNICATION;
+        EthSM_NetworkState[idx].CurrentComMode = COMM_NO_COMMUNICATION;
+        EthSM_NetworkState[idx].TcpIpState = TCPIP_STATE_OFFLINE;
+    }
+
+    EthSM_Initialized = FALSE;
+}
+
 Std_ReturnType EthSM_RequestComMode(NetworkHandleType NetworkHandle, ComM_ModeType ComM_Mode)
 {
 #if (ETHSM_DEV_ERROR_DETECT == STD_ON)

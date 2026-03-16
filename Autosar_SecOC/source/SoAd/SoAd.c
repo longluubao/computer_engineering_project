@@ -426,6 +426,36 @@ void SoAd_Init(const SoAd_ConfigType* ConfigPtr)
     #endif
 }
 
+void SoAd_DeInit(void)
+{
+    SoAd_SoConIdType idx;
+
+#if (SOAD_DEV_ERROR_DETECT == STD_ON)
+    if (SoAd_Initialized == FALSE)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_DEINIT, SOAD_E_NOTINIT);
+        return;
+    }
+#endif
+
+    for (idx = 0U; idx < SOAD_MAX_SOCKET_CONNECTIONS; idx++)
+    {
+        if ((SoAd_SoConStates[idx].IsAllocated == TRUE) &&
+            (SoAd_SoConStates[idx].SocketId != TCPIP_SOCKET_ID_INVALID))
+        {
+            (void)TcpIp_Close(SoAd_SoConStates[idx].SocketId, TRUE);
+        }
+        SoAd_SoConStates[idx].SocketId = TCPIP_SOCKET_ID_INVALID;
+        SoAd_SoConStates[idx].Mode = SOAD_SOCON_OFFLINE;
+        SoAd_SoConStates[idx].IsAllocated = FALSE;
+    }
+
+    SoAd_ApBridgeState = SOAD_AP_BRIDGE_NOT_READY;
+    SoAd_ApBridgeExternalControl = FALSE;
+    (void)BswM_RequestMode(BSWM_REQUESTER_ID_AP_READY, (BswM_ModeType)SOAD_AP_BRIDGE_NOT_READY);
+    SoAd_Initialized = FALSE;
+}
+
 /****************************************************
  *          * Function Info *                       *
  *                                                  *

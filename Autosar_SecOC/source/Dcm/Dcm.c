@@ -13,6 +13,10 @@
 /********************************************************************************************************/
 
 static uint8 Dcm_Initialized = FALSE;
+static uint8 Dcm_RxTpBuffer[DCM_RESPONSE_BUFFER_SIZE];
+static uint16 Dcm_RxTpLength = 0U;
+static uint8 Dcm_TxTpBuffer[DCM_RESPONSE_BUFFER_SIZE];
+static uint16 Dcm_TxTpLength = 0U;
 
 /********************************************************************************************************/
 /********************************************Functions***************************************************/
@@ -31,6 +35,13 @@ void Dcm_MainFunction(void)
     {
         return;
     }
+}
+
+void Dcm_DeInit(void)
+{
+    Dcm_Initialized = FALSE;
+    Dcm_RxTpLength = 0U;
+    Dcm_TxTpLength = 0U;
 }
 
 Std_ReturnType Dcm_ProcessRequest(const uint8* RequestData, uint16 RequestLength,
@@ -218,4 +229,91 @@ void Dcm_TpTxConfirmation(PduIdType TxPduId, Std_ReturnType result)
         printf("DCM received data with status E_NOT_OK\n");
         #endif
     }
+}
+
+BufReq_ReturnType Dcm_TpStartOfReception(PduIdType RxPduId,
+                                         const PduInfoType* PduInfoPtr,
+                                         PduLengthType TpSduLength,
+                                         PduLengthType* RxBufferSizePtr)
+{
+    (void)RxPduId;
+    (void)PduInfoPtr;
+
+    if (Dcm_Initialized == FALSE)
+    {
+        (void)Det_ReportError(DCM_MODULE_ID, DCM_INSTANCE_ID, DCM_SID_TP_START_OF_RECEPTION, DCM_E_UNINIT);
+        return BUFREQ_E_NOT_OK;
+    }
+    if (RxBufferSizePtr == NULL)
+    {
+        (void)Det_ReportError(DCM_MODULE_ID, DCM_INSTANCE_ID, DCM_SID_TP_START_OF_RECEPTION, DCM_E_PARAM_POINTER);
+        return BUFREQ_E_NOT_OK;
+    }
+    if (TpSduLength > DCM_RESPONSE_BUFFER_SIZE)
+    {
+        *RxBufferSizePtr = DCM_RESPONSE_BUFFER_SIZE;
+        return BUFREQ_E_OVFL;
+    }
+
+    Dcm_RxTpLength = 0U;
+    *RxBufferSizePtr = (PduLengthType)DCM_RESPONSE_BUFFER_SIZE;
+    return BUFREQ_OK;
+}
+
+BufReq_ReturnType Dcm_TpCopyRxData(PduIdType RxPduId,
+                                   const PduInfoType* PduInfoPtr,
+                                   PduLengthType* RxBufferSizePtr)
+{
+    uint16 copyLength;
+    uint16 idx;
+    (void)RxPduId;
+
+    if (Dcm_Initialized == FALSE)
+    {
+        (void)Det_ReportError(DCM_MODULE_ID, DCM_INSTANCE_ID, DCM_SID_TP_COPY_RX_DATA, DCM_E_UNINIT);
+        return BUFREQ_E_NOT_OK;
+    }
+    if ((PduInfoPtr == NULL) || (RxBufferSizePtr == NULL))
+    {
+        (void)Det_ReportError(DCM_MODULE_ID, DCM_INSTANCE_ID, DCM_SID_TP_COPY_RX_DATA, DCM_E_PARAM_POINTER);
+        return BUFREQ_E_NOT_OK;
+    }
+    if ((PduInfoPtr->SduLength > 0U) && (PduInfoPtr->SduDataPtr == NULL))
+    {
+        return BUFREQ_E_NOT_OK;
+    }
+    if ((uint32)Dcm_RxTpLength + (uint32)PduInfoPtr->SduLength > (uint32)DCM_RESPONSE_BUFFER_SIZE)
+    {
+        *RxBufferSizePtr = 0U;
+        return BUFREQ_E_OVFL;
+    }
+
+    copyLength = (uint16)PduInfoPtr->SduLength;
+    for (idx = 0U; idx < copyLength; idx++)
+    {
+        Dcm_RxTpBuffer[Dcm_RxTpLength + idx] = PduInfoPtr->SduDataPtr[idx];
+    }
+    Dcm_RxTpLength = (uint16)(Dcm_RxTpLength + copyLength);
+    *RxBufferSizePtr = (PduLengthType)((uint16)DCM_RESPONSE_BUFFER_SIZE - Dcm_RxTpLength);
+
+    return BUFREQ_OK;
+}
+
+void Dcm_TpRxIndication(PduIdType RxPduId, Std_ReturnType result)
+{
+    (void)RxPduId;
+
+    if ((Dcm_Initialized == FALSE) || (result != E_OK))
+    {
+        Dcm_RxTpLength = 0U;
+        Dcm_TxTpLength = 0U;
+        return;
+    }
+
+    if (Dcm_ProcessRequest(Dcm_RxTpBuffer, Dcm_RxTpLength, Dcm_TxTpBuffer, &Dcm_TxTpLength) != E_OK)
+    {
+        Dcm_TxTpLength = 0U;
+    }
+
+    Dcm_RxTpLength = 0U;
 }

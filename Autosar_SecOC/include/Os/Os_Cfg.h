@@ -31,4 +31,11 @@
 
 #define OS_DEV_ERROR_DETECT         (STD_ON)
 
+#define OS_TASK_ID_BSW_CYCLE        ((uint8)0U)
+
+#define OS_ALARM_ID_BSW_CYCLE       ((uint8)0U)
+#define OS_BSW_CYCLE_PERIOD_TICKS   ((uint32)1U)
+
+void Os_GatewayStartupHook(void);
+
 #endif /* OS_CFG_H */

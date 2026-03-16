@@ -44,6 +44,7 @@
 #define ETHSM_SID_TCPIP_MODE_INDICATION  (0x05U)
 #define ETHSM_SID_MAIN_FUNCTION          (0x06U)
 #define ETHSM_SID_GET_VERSION_INFO       (0x07U)
+#define ETHSM_SID_DEINIT                 (0x08U)
 
 /* DET error codes */
 #define ETHSM_E_NOT_INITIALIZED          (0x01U)
@@ -90,6 +91,7 @@ typedef struct
  * @param[in] ConfigPtr Pointer to configuration. May be NULL for default config.
  */
 void EthSM_Init(const EthSM_ConfigType* ConfigPtr);
+void EthSM_DeInit(void);
 
 /**
  * @brief Request a communication mode for an Ethernet network.
