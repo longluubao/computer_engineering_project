@@ -76,6 +76,7 @@ static Std_ReturnType ComM_ApplyMode(uint8 Channel, ComM_ModeType TargetMode)
     }
 
     ComM_CurrentMode = TargetMode;
+    (void)BswM_RequestMode((uint16)COMM_MODULE_ID, (BswM_ModeType)ComM_CurrentMode);
     return E_OK;
 }
 
@@ -96,6 +97,8 @@ void ComM_Init(void)
     ComM_CurrentMode = COMM_NO_COMMUNICATION;
     ComM_SubState = COMM_NO_COM_NO_PENDING_REQUEST;
     ComM_State = COMM_INIT;
+    (void)BswM_RequestMode((uint16)COMM_MODULE_ID, (BswM_ModeType)COMM_NO_COMMUNICATION);
+    (void)BswM_RequestMode(BSWM_REQUESTER_ID_COMM_DESIRED, (BswM_ModeType)COMM_NO_COMMUNICATION);
 }
 
 void ComM_DeInit(void)
@@ -125,12 +128,20 @@ Std_ReturnType ComM_RequestComMode(uint8 Channel, ComM_ModeType ComMode)
         return E_NOT_OK;
     }
 
+    if (ComMode > COMM_FULL_COMMUNICATION)
+    {
+        (void)Det_ReportError(COMM_MODULE_ID, COMM_INSTANCE_ID, COMM_SID_REQUEST_COM_MODE, COMM_E_PARAM_MODE);
+        return E_NOT_OK;
+    }
+
     /* Store user request (use Channel as user index for simplified model) */
     if (Channel < COMM_MAX_USERS)
     {
         ComM_UserRequests[Channel].RequestedMode = ComMode;
         ComM_UserRequests[Channel].IsActive = TRUE;
     }
+
+    (void)BswM_RequestMode(BSWM_REQUESTER_ID_COMM_DESIRED, (BswM_ModeType)ComMode);
 
     /* Apply immediately */
     return ComM_ApplyMode(Channel, ComMode);

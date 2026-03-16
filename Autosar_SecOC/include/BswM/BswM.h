@@ -32,6 +32,16 @@
 #define BSWM_MAX_RULES                  ((uint8)8)
 #define BSWM_MAX_ACTION_LISTS           ((uint8)8)
 
+#define BSWM_REQUESTER_ID_COMM_DESIRED  ((uint16)0x8001U)
+#define BSWM_REQUESTER_ID_AP_READY      ((uint16)0x8002U)
+
+#define BSWM_AP_STATE_NOT_READY         ((BswM_ModeType)0U)
+#define BSWM_AP_STATE_READY             ((BswM_ModeType)1U)
+#define BSWM_AP_STATE_DEGRADED          ((BswM_ModeType)2U)
+
+#define BSWM_AP_READY_FALSE             BSWM_AP_STATE_NOT_READY
+#define BSWM_AP_READY_TRUE              BSWM_AP_STATE_READY
+
 /********************************************************************************************************/
 /*******************************************StructAndEnums***********************************************/
 /********************************************************************************************************/

@@ -11,6 +11,7 @@
 
 #include "TcpIp.h"
 #include "SoAd.h"
+#include "EthSM.h"
 #include "Det.h"
 #if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_ETHIF)
     #include "EthIf.h"
@@ -298,6 +299,7 @@ void TcpIp_Shutdown(void)
 #endif
 
     TcpIp_ModuleState = TCPIP_STATE_OFFLINE;
+    EthSM_TcpIpModeIndication(0U, TCPIP_STATE_OFFLINE);
 }
 
 Std_ReturnType TcpIp_GetSocketId(
@@ -1025,6 +1027,7 @@ Std_ReturnType TcpIp_RequestIpAddrAssignment(
     }
 
     TcpIp_LocalAddrTable[LocalAddrId].assigned = TRUE;
+    EthSM_TcpIpModeIndication(0U, TCPIP_STATE_ONLINE);
 
     return E_OK;
 }

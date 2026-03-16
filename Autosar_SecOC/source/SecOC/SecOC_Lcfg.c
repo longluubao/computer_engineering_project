@@ -187,7 +187,7 @@ SecOC_RxAuthenticPduLayerType SecOC_RxAuthenticPduLayer[] =
         {AuthPdu0BufferRx, NULL, 3},
     },
     { /* for Tp */
-        .SecOCPduType =                 SECOC_IFPDU,
+        .SecOCPduType =                 SECOC_TPPDU,
         .SecOCRxAuthenticLayerPduId =   ((uint16)11),
         .SecOCRxAuthenticLayerPduRef = 
         {
@@ -375,7 +375,7 @@ SecOC_TxAuthenticPduLayerType SecOC_TxAuthenticPduLayer[]=
         }
     },
     { /* for SOAD "Ethernet APIs" */
-        .SecOCPduType =                 SECOC_TPPDU,
+        .SecOCPduType =                 SECOC_IFPDU,
         .SecOCTxAuthenticLayerPduId =   ((uint16) 2),
         .SecOCTxAuthenticLayerPduRef = 
         {

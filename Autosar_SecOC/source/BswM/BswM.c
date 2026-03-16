@@ -36,6 +36,16 @@
 #define BSWM_RULE_ID_GATEWAY_PATH_DOWN     ((uint8)4)
 #define BSWM_RULE_COUNT                    ((uint8)5)
 
+typedef enum
+{
+    BSWM_GATEWAY_COMMAND_NONE = 0,
+    BSWM_GATEWAY_COMMAND_STARTUP_HOLD,
+    BSWM_GATEWAY_COMMAND_NO_COMM,
+    BSWM_GATEWAY_COMMAND_PROFILE_NORMAL,
+    BSWM_GATEWAY_COMMAND_PROFILE_DEGRADED,
+    BSWM_GATEWAY_COMMAND_PROFILE_DIAG_ONLY
+} BswM_GatewayCommandType;
+
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
 /********************************************************************************************************/
@@ -50,6 +60,7 @@ static uint8 BswM_CanFaultCounter = 0U;
 static uint8 BswM_EthFaultCounter = 0U;
 static uint8 BswM_SecOCFailCounter = 0U;
 static uint8 BswM_RecoveryCounter = 0U;
+static BswM_GatewayCommandType BswM_LastGatewayCommand = BSWM_GATEWAY_COMMAND_NONE;
 
 static BswM_RuleResultType BswM_EvaluateRule_EcuMStartup(void);
 static BswM_RuleResultType BswM_EvaluateRule_EcuMShutdownPath(void);
@@ -70,6 +81,8 @@ static void BswM_ApplyGatewayProfile(BswM_GatewayProfileType TargetProfile);
 static void BswM_Action_ProfileNormal(void);
 static void BswM_Action_ProfileDegraded(void);
 static void BswM_Action_ProfileDiagOnly(void);
+static BswM_GatewayCommandType BswM_ComputeGatewayCommand(void);
+static boolean BswM_IsApReady(void);
 
 static const BswM_RuleType BswM_Rules[BSWM_RULE_COUNT] =
 {
@@ -143,7 +156,98 @@ static boolean BswM_IsModeValueValid(uint16 RequesterId, BswM_ModeType Requested
         return (RequestedMode <= BSWM_SECOC_STATUS_FAILURE) ? TRUE : FALSE;
     }
 
+    if (RequesterId == BSWM_REQUESTER_ID_COMM_DESIRED)
+    {
+        return (RequestedMode <= (BswM_ModeType)COMM_FULL_COMMUNICATION) ? TRUE : FALSE;
+    }
+
+    if (RequesterId == BSWM_REQUESTER_ID_AP_READY)
+    {
+        return (RequestedMode <= BSWM_AP_STATE_DEGRADED) ? TRUE : FALSE;
+    }
+
     return FALSE;
+}
+
+static boolean BswM_IsApReady(void)
+{
+    BswM_ModeType ApReadyMode = BSWM_AP_STATE_NOT_READY;
+
+    if (BswM_GetRequesterMode(BSWM_REQUESTER_ID_AP_READY, &ApReadyMode) == FALSE)
+    {
+        return FALSE;
+    }
+
+    return (ApReadyMode == BSWM_AP_STATE_READY) ? TRUE : FALSE;
+}
+
+static BswM_GatewayCommandType BswM_ComputeGatewayCommand(void)
+{
+    BswM_ModeType EcuMMode = BSWM_MODE_INVALID;
+    BswM_ModeType ComMDesiredMode = BSWM_MODE_INVALID;
+    BswM_ModeType ComMMode = BSWM_MODE_INVALID;
+    BswM_ModeType ApBridgeMode = BSWM_AP_STATE_NOT_READY;
+
+    if (BswM_GetRequesterMode((uint16)ECUM_MODULE_ID, &EcuMMode) == FALSE)
+    {
+        return BSWM_GATEWAY_COMMAND_NONE;
+    }
+
+    if (BswM_GetRequesterMode(BSWM_REQUESTER_ID_COMM_DESIRED, &ComMDesiredMode) == FALSE)
+    {
+        if (BswM_GetRequesterMode((uint16)COMM_MODULE_ID, &ComMMode) == TRUE)
+        {
+            ComMDesiredMode = ComMMode;
+        }
+    }
+
+    if (((EcuM_StateType)EcuMMode == ECUM_STATE_SHUTDOWN) ||
+        ((EcuM_StateType)EcuMMode == ECUM_STATE_SLEEP) ||
+        ((EcuM_StateType)EcuMMode == ECUM_STATE_OFF))
+    {
+        return BSWM_GATEWAY_COMMAND_NO_COMM;
+    }
+
+    if (((EcuM_StateType)EcuMMode == ECUM_STATE_STARTUP_ONE) ||
+        ((EcuM_StateType)EcuMMode == ECUM_STATE_STARTUP_TWO))
+    {
+        return BSWM_GATEWAY_COMMAND_STARTUP_HOLD;
+    }
+
+    if ((EcuM_StateType)EcuMMode != ECUM_STATE_RUN)
+    {
+        return BSWM_GATEWAY_COMMAND_NO_COMM;
+    }
+
+    if (((ComM_ModeType)ComMDesiredMode == COMM_NO_COMMUNICATION) ||
+        ((ComM_ModeType)ComMDesiredMode == COMM_SILENT_COMMUNICATION))
+    {
+        return BSWM_GATEWAY_COMMAND_NO_COMM;
+    }
+
+    if (BswM_GetRequesterMode(BSWM_REQUESTER_ID_AP_READY, &ApBridgeMode) == TRUE)
+    {
+        if (ApBridgeMode == BSWM_AP_STATE_NOT_READY)
+        {
+            return BSWM_GATEWAY_COMMAND_NO_COMM;
+        }
+        if (ApBridgeMode == BSWM_AP_STATE_DEGRADED)
+        {
+            return BSWM_GATEWAY_COMMAND_PROFILE_DIAG_ONLY;
+        }
+    }
+
+    if (BswM_GatewayProfile == BSWM_GATEWAY_PROFILE_DIAG_ONLY)
+    {
+        return BSWM_GATEWAY_COMMAND_PROFILE_DIAG_ONLY;
+    }
+
+    if (BswM_GatewayProfile == BSWM_GATEWAY_PROFILE_DEGRADED)
+    {
+        return BSWM_GATEWAY_COMMAND_PROFILE_DEGRADED;
+    }
+
+    return BSWM_GATEWAY_COMMAND_PROFILE_NORMAL;
 }
 
 static BswM_RuleResultType BswM_EvaluateRule_EcuMStartup(void)
@@ -292,13 +396,18 @@ static void BswM_Action_AllowCommNo(void)
 
 static void BswM_Action_GatewayComFull(void)
 {
-    if (SoAd_EnableRouting(BSWM_ROUTING_GROUP_NORMAL) != E_OK)
+    if (BswM_IsApReady() == TRUE)
     {
-        (void)Det_ReportError(BSWM_MODULE_ID, BSWM_INSTANCE_ID, BSWM_SID_MAIN_FUNCTION, BSWM_E_PARAM_INVALID);
+        if (SoAd_EnableRouting(BSWM_ROUTING_GROUP_NORMAL) != E_OK)
+        {
+            (void)Det_ReportError(BSWM_MODULE_ID, BSWM_INSTANCE_ID, BSWM_SID_MAIN_FUNCTION, BSWM_E_PARAM_INVALID);
+        }
+    }
+    else
+    {
+        (void)SoAd_DisableRouting(BSWM_ROUTING_GROUP_NORMAL);
     }
     (void)SoAd_DisableRouting(BSWM_ROUTING_GROUP_DIAG);
-    (void)CanNm_NetworkRequest(BSWM_CHANNEL_ID_DEFAULT);
-    (void)CanSM_RequestComMode(BSWM_CHANNEL_ID_DEFAULT, CANSM_FULL_COMMUNICATION);
     (void)EthSM_RequestComMode(BSWM_CHANNEL_ID_DEFAULT, COMM_FULL_COMMUNICATION);
 }
 
@@ -310,8 +419,6 @@ static void BswM_Action_GatewayComNo(void)
     }
     (void)SoAd_DisableRouting(BSWM_ROUTING_GROUP_DIAG);
     (void)EthSM_RequestComMode(BSWM_CHANNEL_ID_DEFAULT, COMM_NO_COMMUNICATION);
-    (void)CanSM_RequestComMode(BSWM_CHANNEL_ID_DEFAULT, CANSM_NO_COMMUNICATION);
-    (void)CanNm_NetworkRelease(BSWM_CHANNEL_ID_DEFAULT);
 }
 
 static void BswM_Action_Startup(void)
@@ -327,28 +434,36 @@ static void BswM_Action_Shutdown(void)
 static void BswM_Action_ProfileNormal(void)
 {
     BswM_Action_AllowCommFull();
-    (void)CanNm_NetworkRequest(BSWM_CHANNEL_ID_DEFAULT);
-    (void)CanSM_RequestComMode(BSWM_CHANNEL_ID_DEFAULT, CANSM_FULL_COMMUNICATION);
     (void)EthSM_RequestComMode(BSWM_CHANNEL_ID_DEFAULT, COMM_FULL_COMMUNICATION);
-    (void)SoAd_EnableRouting(BSWM_ROUTING_GROUP_NORMAL);
+    if (BswM_IsApReady() == TRUE)
+    {
+        (void)SoAd_EnableRouting(BSWM_ROUTING_GROUP_NORMAL);
+    }
+    else
+    {
+        (void)SoAd_DisableRouting(BSWM_ROUTING_GROUP_NORMAL);
+    }
     (void)SoAd_DisableRouting(BSWM_ROUTING_GROUP_DIAG);
 }
 
 static void BswM_Action_ProfileDegraded(void)
 {
     BswM_Action_AllowCommFull();
-    (void)CanNm_NetworkRequest(BSWM_CHANNEL_ID_DEFAULT);
-    (void)CanSM_RequestComMode(BSWM_CHANNEL_ID_DEFAULT, CANSM_FULL_COMMUNICATION);
     (void)EthSM_RequestComMode(BSWM_CHANNEL_ID_DEFAULT, COMM_FULL_COMMUNICATION);
-    (void)SoAd_EnableRouting(BSWM_ROUTING_GROUP_NORMAL);
+    if (BswM_IsApReady() == TRUE)
+    {
+        (void)SoAd_EnableRouting(BSWM_ROUTING_GROUP_NORMAL);
+    }
+    else
+    {
+        (void)SoAd_DisableRouting(BSWM_ROUTING_GROUP_NORMAL);
+    }
     (void)SoAd_EnableRouting(BSWM_ROUTING_GROUP_DIAG);
 }
 
 static void BswM_Action_ProfileDiagOnly(void)
 {
     BswM_Action_AllowCommFull();
-    (void)CanNm_NetworkRelease(BSWM_CHANNEL_ID_DEFAULT);
-    (void)CanSM_RequestComMode(BSWM_CHANNEL_ID_DEFAULT, CANSM_NO_COMMUNICATION);
     (void)EthSM_RequestComMode(BSWM_CHANNEL_ID_DEFAULT, COMM_FULL_COMMUNICATION);
     (void)SoAd_DisableRouting(BSWM_ROUTING_GROUP_NORMAL);
     (void)SoAd_EnableRouting(BSWM_ROUTING_GROUP_DIAG);
@@ -496,7 +611,7 @@ static void BswM_UpdateGatewayHealth(void)
         BswM_EthFaultCounter = 0U;
         BswM_SecOCFailCounter = 0U;
         BswM_RecoveryCounter = 0U;
-        TargetProfile = BSWM_GATEWAY_PROFILE_NORMAL;
+        TargetProfile = BswM_GatewayProfile;
     }
 
     BswM_ApplyGatewayProfile(TargetProfile);
@@ -552,9 +667,12 @@ void BswM_Init(const BswM_ConfigType *ConfigPtr)
     BswM_EthFaultCounter = 0U;
     BswM_SecOCFailCounter = 0U;
     BswM_RecoveryCounter = 0U;
+    BswM_LastGatewayCommand = BSWM_GATEWAY_COMMAND_NONE;
 
     BswM_PendingRequestCount = 0U;
     BswM_State = BSWM_INIT;
+    (void)BswM_RequestMode(BSWM_REQUESTER_ID_AP_READY, BSWM_AP_READY_FALSE);
+    (void)BswM_RequestMode(BSWM_REQUESTER_ID_COMM_DESIRED, (BswM_ModeType)COMM_NO_COMMUNICATION);
 }
 
 void BswM_Deinit(void)
@@ -585,6 +703,7 @@ void BswM_Deinit(void)
     BswM_EthFaultCounter = 0U;
     BswM_SecOCFailCounter = 0U;
     BswM_RecoveryCounter = 0U;
+    BswM_LastGatewayCommand = BSWM_GATEWAY_COMMAND_NONE;
 
     BswM_PendingRequestCount = 0U;
     BswM_State = BSWM_UNINIT;
@@ -654,7 +773,9 @@ BswM_ModeType BswM_GetCurrentMode(uint16 RequesterId)
         (RequesterId != (uint16)CANSM_MODULE_ID) &&
         (RequesterId != (uint16)CANNM_MODULE_ID) &&
         (RequesterId != (uint16)ETHSM_MODULE_ID) &&
-        (RequesterId != (uint16)SECOC_MODULE_ID))
+        (RequesterId != (uint16)SECOC_MODULE_ID) &&
+        (RequesterId != BSWM_REQUESTER_ID_COMM_DESIRED) &&
+        (RequesterId != BSWM_REQUESTER_ID_AP_READY))
     {
         (void)Det_ReportError(BSWM_MODULE_ID, BSWM_INSTANCE_ID, BSWM_SID_GET_CURRENT_MODE, BSWM_E_PARAM_INVALID);
         return (BswM_ModeType)0U;
@@ -674,7 +795,7 @@ BswM_ModeType BswM_GetCurrentMode(uint16 RequesterId)
 
 void BswM_MainFunction(void)
 {
-    uint8 RuleIdx;
+    BswM_GatewayCommandType GatewayCommand;
 
     if (BswM_State != BSWM_INIT)
     {
@@ -682,34 +803,37 @@ void BswM_MainFunction(void)
         return;
     }
 
-    /* Deferred arbitration: evaluate configured rules and execute
-     * action lists only when rule results change. */
-    for (RuleIdx = 0U; RuleIdx < BSWM_RULE_COUNT; RuleIdx++)
+    BswM_UpdateGatewayHealth();
+    GatewayCommand = BswM_ComputeGatewayCommand();
+
+    if (GatewayCommand == BswM_LastGatewayCommand)
     {
-        BswM_RuleResultType CurrentResult = BSWM_CONDITION_FALSE;
-
-        if ((BswM_Rules[RuleIdx].IsEnabled == FALSE) ||
-            (BswM_Rules[RuleIdx].EvalFunc == (BswM_RuleEvalFuncType)0))
-        {
-            continue;
-        }
-
-        CurrentResult = BswM_Rules[RuleIdx].EvalFunc();
-
-        if ((BswM_IsLastRuleResultValid[RuleIdx] == FALSE) ||
-            (BswM_LastRuleResults[RuleIdx] != CurrentResult))
-        {
-            BswM_LastRuleResults[RuleIdx] = CurrentResult;
-            BswM_IsLastRuleResultValid[RuleIdx] = TRUE;
-
-            if (CurrentResult == BSWM_CONDITION_TRUE)
-            {
-                BswM_ExecuteActionList(BswM_Rules[RuleIdx].TrueActionListId);
-            }
-        }
+        return;
     }
 
-    BswM_UpdateGatewayHealth();
+    switch (GatewayCommand)
+    {
+        case BSWM_GATEWAY_COMMAND_STARTUP_HOLD:
+            BswM_Action_GatewayComNo();
+            break;
+        case BSWM_GATEWAY_COMMAND_NO_COMM:
+            BswM_Action_AllowCommNo();
+            BswM_Action_GatewayComNo();
+            break;
+        case BSWM_GATEWAY_COMMAND_PROFILE_NORMAL:
+            BswM_Action_ProfileNormal();
+            break;
+        case BSWM_GATEWAY_COMMAND_PROFILE_DEGRADED:
+            BswM_Action_ProfileDegraded();
+            break;
+        case BSWM_GATEWAY_COMMAND_PROFILE_DIAG_ONLY:
+            BswM_Action_ProfileDiagOnly();
+            break;
+        default:
+            break;
+    }
+
+    BswM_LastGatewayCommand = GatewayCommand;
 }
 
 BswM_GatewayProfileType BswM_GetGatewayProfile(void)

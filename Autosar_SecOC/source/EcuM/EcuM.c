@@ -18,6 +18,7 @@
 #include "EthSM.h"
 #include "TcpIp.h"
 #include "SoAd.h"
+#include "ApBridge.h"
 #include "SecOC.h"
 #include "SecOC_Lcfg.h"
 #include "Com.h"
@@ -368,15 +369,13 @@ void EcuM_Init(const EcuM_ConfigType *ConfigPtr)
     EcuM_ExecuteNvMReadAllPhase();
     Dem_Init();
 
-    /* Phase 2: Driver initialization */
+    /* Phase 2: Driver and mode-manager initialization */
     Can_Init(NULL);
-    CanSM_Init();
-    CanNm_Init();
-
-    /* Phase 3: BSW mode and communication managers */
     BswM_Init(NULL);
     ComM_Init();
     EthSM_Init(NULL);
+    CanSM_Init();
+    CanNm_Init();
 
     EcuM_State = ECUM_STATE_STARTUP_ONE;
     EcuM_PendingWakeupEvents = 0U;
@@ -448,6 +447,7 @@ Std_ReturnType EcuM_StartupTwo(void)
 
     SecOC_Init(&SecOC_Config);
     Com_Init();
+    ApBridge_Init();
     EcuM_StartComCommunicationPath();
 
     EcuM_State = ECUM_STATE_RUN;
@@ -490,6 +490,7 @@ Std_ReturnType EcuM_Shutdown(void)
         (void)ComM_RequestComMode(0U, COMM_NO_COMMUNICATION);
         EcuM_StopComCommunicationPath();
         Dem_Shutdown();
+        ApBridge_DeInit();
         SecOC_DeInit();
         Com_DeInit();
         ComM_DeInit();
@@ -510,6 +511,7 @@ Std_ReturnType EcuM_Shutdown(void)
         (void)ComM_RequestComMode(0U, COMM_NO_COMMUNICATION);
         EcuM_StopComCommunicationPath();
         Dem_Shutdown();
+        ApBridge_DeInit();
         SecOC_DeInit();
         Com_DeInit();
         ComM_DeInit();
@@ -951,11 +953,14 @@ void EcuM_MainFunction(void)
         Can_MainFunction_Read();
         CanTp_MainFunctionTx();
         CanTp_MainFunctionRx();
+        SecOC_MainFunctionRx();
         Com_MainFunctionTx();
+        SecOC_MainFunctionTx();
         Com_MainFunctionRx();
         ComM_MainFunction();
         CanSM_MainFunction();
         CanNm_MainFunction();
+        ApBridge_MainFunction();
         NvM_MainFunction();
         Dem_MainFunction();
 #if defined(LINUX) || defined(WINDOWS)

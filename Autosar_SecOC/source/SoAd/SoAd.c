@@ -16,6 +16,8 @@
 #include "SecOC_Debug.h"
 #include "SecOC_Cfg.h"
 #include "TcpIp.h"
+#include "BswM.h"
+#include "ApBridge.h"
 #include "Det.h"
 #if (SOAD_TCPIP_PAYLOAD_BACKEND == SOAD_TCPIP_PAYLOAD_BACKEND_ETHIF)
     #include "EthIf.h"
@@ -51,6 +53,8 @@ static SoAd_SoConStateType SoAd_SoConStates[SOAD_MAX_SOCKET_CONNECTIONS];
 
 /* Routing group table */
 static SoAd_RoutingGroupStateType SoAd_RoutingGroupStates[SOAD_MAX_ROUTING_GROUPS];
+static SoAd_ApBridgeStateType SoAd_ApBridgeState = SOAD_AP_BRIDGE_NOT_READY;
+static boolean SoAd_ApBridgeExternalControl = FALSE;
 
 extern const SecOC_RxPduProcessingType     *SecOCRxPduProcessing;
 extern SecOC_PduCollection PdusCollections[];
@@ -124,6 +128,34 @@ static SoAd_SoConIdType SoAd_FindOrCreateSoCon(PduIdType TxPduId)
     }
 
     return SOAD_MAX_SOCKET_CONNECTIONS; /* no free slot */
+}
+
+static void SoAd_UpdateApReadinessStatus(void)
+{
+    SoAd_SoConIdType idx;
+    SoAd_ApBridgeStateType DerivedState = SOAD_AP_BRIDGE_NOT_READY;
+
+    if (SoAd_ApBridgeExternalControl == TRUE)
+    {
+        return;
+    }
+
+    for (idx = 0U; idx < SOAD_MAX_SOCKET_CONNECTIONS; idx++)
+    {
+        if ((SoAd_SoConStates[idx].IsAllocated == TRUE) &&
+            (SoAd_SoConStates[idx].Mode == SOAD_SOCON_ONLINE))
+        {
+            DerivedState = SOAD_AP_BRIDGE_READY;
+            break;
+        }
+    }
+
+    if (DerivedState != SoAd_ApBridgeState)
+    {
+        SoAd_ApBridgeState = DerivedState;
+        (void)BswM_RequestMode(BSWM_REQUESTER_ID_AP_READY,
+                               (BswM_ModeType)SoAd_ApBridgeState);
+    }
 }
 
 /**
@@ -313,10 +345,10 @@ void SoAd_Init(const SoAd_ConfigType* ConfigPtr)
         (void)memset(&SoAd_SoConStates[idx].RemoteAddr, 0, sizeof(TcpIp_SockAddrType));
     }
 
-    /* Initialize routing groups (all enabled by default) */
+    /* Initialize routing groups disabled until BswM arbitration opens paths. */
     for (idx = 0U; idx < SOAD_MAX_ROUTING_GROUPS; idx++)
     {
-        SoAd_RoutingGroupStates[idx].Enabled = TRUE;
+        SoAd_RoutingGroupStates[idx].Enabled = FALSE;
     }
 
     /* Initialize TP buffers */
@@ -330,6 +362,9 @@ void SoAd_Init(const SoAd_ConfigType* ConfigPtr)
 #endif
 
     SoAd_Initialized = TRUE;
+    SoAd_ApBridgeState = SOAD_AP_BRIDGE_NOT_READY;
+    SoAd_ApBridgeExternalControl = FALSE;
+    (void)BswM_RequestMode(BSWM_REQUESTER_ID_AP_READY, (BswM_ModeType)SOAD_AP_BRIDGE_NOT_READY);
 
     #ifdef SOAD_DEBUG
         printf("######## SoAd_Init completed\n");
@@ -378,6 +413,18 @@ Std_ReturnType SoAd_IfTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr)
     {
         return E_NOT_OK;
     }
+
+#if (SOAD_TCPIP_PAYLOAD_BACKEND == SOAD_TCPIP_PAYLOAD_BACKEND_SOCKETS)
+    {
+        SoAd_SoConIdType soConId = SoAd_FindOrCreateSoCon(TxPduId);
+        if (soConId >= SOAD_MAX_SOCKET_CONNECTIONS)
+        {
+            return E_NOT_OK;
+        }
+        SoAd_UpdateApReadinessStatus();
+    }
+#endif
+
     if (SoAd_IsGatewayRoutingEnabled() == FALSE)
     {
         return E_NOT_OK;
@@ -401,6 +448,8 @@ Std_ReturnType SoAd_IfTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr)
 #else
     result = SoAd_TcpIpTransmit(TxPduId, PduInfoPtr->SduDataPtr, (uint16)PduInfoPtr->SduLength);
 #endif
+
+    ApBridge_ReportServiceStatus((result == E_OK) ? TRUE : FALSE);
 
     /* Confirmation callbacks (preserved from original) */
     if (PdusCollections[TxPduId].Type == SECOC_SECURED_PDU_SOADTP)
@@ -521,6 +570,7 @@ Std_ReturnType SoAd_OpenSoCon(SoAd_SoConIdType SoConId)
     }
 
     SoAd_SoConStates[SoConId].Mode = SOAD_SOCON_ONLINE;
+    SoAd_UpdateApReadinessStatus();
 
     #ifdef SOAD_DEBUG
         printf("######## SoAd_OpenSoCon: SoConId=%u now ONLINE\n", SoConId);
@@ -562,6 +612,7 @@ Std_ReturnType SoAd_CloseSoCon(SoAd_SoConIdType SoConId, boolean Abort)
     }
 
     SoAd_SoConStates[SoConId].Mode = SOAD_SOCON_OFFLINE;
+    SoAd_UpdateApReadinessStatus();
 
     #ifdef SOAD_DEBUG
         printf("######## SoAd_CloseSoCon: SoConId=%u now OFFLINE\n", SoConId);
@@ -801,6 +852,8 @@ void SoAd_RxIndication(
 
     /* Keep latest remote peer associated with the socket connection. */
     SoAd_SoConStates[soConId].RemoteAddr = *RemoteAddrPtr;
+    ApBridge_ReportHeartbeat(TRUE);
+    ApBridge_ReportServiceStatus(TRUE);
 
     pduInfo.SduDataPtr = (uint8*)BufPtr;
     pduInfo.MetaDataPtr = NULL;
@@ -911,6 +964,8 @@ void SoAd_MainFunctionTx(void)
             #endif
 
             int frameIndex;
+            uint8 retryBudget = 3U;
+            boolean txFailed = FALSE;
             for (frameIndex = 0; frameIndex < lastFrameIndex; frameIndex++)
             {
                 if (frameIndex == (lastFrameIndex - 1))
@@ -938,12 +993,19 @@ void SoAd_MainFunctionTx(void)
 
                 if ((resultTransmit != E_OK) || (resultCopy != BUFREQ_OK))
                 {
+                    if (retryBudget == 0U)
+                    {
+                        txFailed = TRUE;
+                        break;
+                    }
+                    retryBudget--;
                     retry.TpDataState = TP_DATARETRY;
                     frameIndex--;
                 }
                 else
                 {
                     retry.TpDataState = TP_DATACONF;
+                    retryBudget = 3U;
                 }
 
                 #ifdef SOAD_DEBUG
@@ -951,10 +1013,19 @@ void SoAd_MainFunctionTx(void)
                 #endif
             }
 
-            PduR_SoAdTpTxConfirmation(TxPduId, E_OK);
+            if (txFailed == FALSE)
+            {
+                PduR_SoAdTpTxConfirmation(TxPduId, E_OK);
+            }
+            else
+            {
+                PduR_SoAdTpTxConfirmation(TxPduId, E_NOT_OK);
+            }
             SoAdTp_Buffer[TxPduId].SduLength = 0U;
         }
     }
+
+    SoAd_UpdateApReadinessStatus();
 }
 
 void SoAdTp_TxConfirmation(PduIdType TxPduId, Std_ReturnType result)
@@ -1033,9 +1104,39 @@ void SoAd_MainFunctionRx(void)
                 result = PduR_SoAdTpCopyRxData(RxPduId, &SoAdTp_Buffer_Rx[RxPduId], &bufferSizePtr);
             }
 
+            ApBridge_ReportServiceStatus((result == BUFREQ_OK) ? TRUE : FALSE);
+
             #ifdef SCHEDULER_ON
                 pthread_mutex_unlock(&lock);
             #endif
         }
     }
+
+    SoAd_UpdateApReadinessStatus();
+}
+
+Std_ReturnType SoAd_SetApBridgeState(SoAd_ApBridgeStateType State)
+{
+#if (SOAD_DEV_ERROR_DETECT == STD_ON)
+    if (SoAd_Initialized == FALSE)
+    {
+        (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_SET_AP_BRIDGE_STATE, SOAD_E_NOTINIT);
+        return E_NOT_OK;
+    }
+#endif
+
+    if (State > SOAD_AP_BRIDGE_DEGRADED)
+    {
+        return E_NOT_OK;
+    }
+
+    SoAd_ApBridgeExternalControl = TRUE;
+
+    if (SoAd_ApBridgeState != State)
+    {
+        SoAd_ApBridgeState = State;
+        (void)BswM_RequestMode(BSWM_REQUESTER_ID_AP_READY, (BswM_ModeType)State);
+    }
+
+    return E_OK;
 }

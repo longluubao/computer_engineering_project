@@ -62,7 +62,9 @@ void RecieveMainFunctions() {
     while (1) {
         tasks[1].state++;
         SoAd_MainFunctionRx();
+#if (SCHEDULER_SECOC_HANDLED_BY_ECUM == 0)
         SecOC_MainFunctionRx();
+#endif
         CanTp_MainFunctionRx();
         swapcontext(&tasks[1].context, &tasks[2].context);
     }
@@ -74,7 +76,9 @@ void TxMainFunctions()
     {
         tasks[2].state++;
         Com_MainTx();
+#if (SCHEDULER_SECOC_HANDLED_BY_ECUM == 0)
         SecOC_MainFunctionTx();
+#endif
         SoAd_MainFunctionTx();
         CanTp_MainFunctionTx();
         swapcontext(&tasks[2].context, &tasks[0].context);

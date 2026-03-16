@@ -15,6 +15,7 @@
 
 #define NUM_FUNCTIONS 3
 #define STACK_SIZE 1152
+#define SCHEDULER_SECOC_HANDLED_BY_ECUM 1
 
 
 /********************************************************************************************************/

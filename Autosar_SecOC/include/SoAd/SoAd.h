@@ -45,6 +45,7 @@
 #define SOAD_SID_MAIN_FUNCTION_RX        (0x11U)
 #define SOAD_SID_RX_INDICATION           (0x12U)
 #define SOAD_SID_TX_CONFIRMATION         (0x13U)
+#define SOAD_SID_SET_AP_BRIDGE_STATE     (0x14U)
 
 /* DET error codes */
 #define SOAD_E_NOTINIT                   (0x01U)
@@ -119,6 +120,13 @@ typedef struct
 {
     uint8 dummy;
 } SoAd_ConfigType;
+
+typedef enum
+{
+    SOAD_AP_BRIDGE_NOT_READY = 0U,
+    SOAD_AP_BRIDGE_READY = 1U,
+    SOAD_AP_BRIDGE_DEGRADED = 2U
+} SoAd_ApBridgeStateType;
 
 /********************************************************************************************************/
 /*****************************************FunctionPrototype**********************************************/
@@ -258,6 +266,8 @@ void SoAd_MainFunctionTx(void);
  * @implements SWS_SoAd_00095
  */
 void SoAd_MainFunctionRx(void);
+
+Std_ReturnType SoAd_SetApBridgeState(SoAd_ApBridgeStateType State);
 
 /**
  * @brief Indicate received socket data from TcpIp into SoAd routing.
