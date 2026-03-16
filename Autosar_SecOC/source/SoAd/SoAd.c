@@ -35,6 +35,10 @@
 #endif
 #define SOAD_ROUTING_GROUP_GATEWAY           ((SoAd_RoutingGroupIdType)0U)
 #define SOAD_ROUTING_GROUP_DIAG              ((SoAd_RoutingGroupIdType)1U)
+#define SOAD_AP_CTRL_MAGIC0                  ((uint8)0xA5U)
+#define SOAD_AP_CTRL_MAGIC1                  ((uint8)0x5AU)
+#define SOAD_AP_CTRL_VERSION                 ((uint8)0x01U)
+#define SOAD_AP_CTRL_PDU_LENGTH              ((uint16)6U)
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
@@ -156,6 +160,57 @@ static void SoAd_UpdateApReadinessStatus(void)
         (void)BswM_RequestMode(BSWM_REQUESTER_ID_AP_READY,
                                (BswM_ModeType)SoAd_ApBridgeState);
     }
+}
+
+static boolean SoAd_IsApControlPdu(const uint8* BufPtr, uint16 Length)
+{
+    if ((BufPtr == NULL) || (Length != SOAD_AP_CTRL_PDU_LENGTH))
+    {
+        return FALSE;
+    }
+
+    if ((BufPtr[0] != SOAD_AP_CTRL_MAGIC0) ||
+        (BufPtr[1] != SOAD_AP_CTRL_MAGIC1) ||
+        (BufPtr[2] != SOAD_AP_CTRL_VERSION))
+    {
+        return FALSE;
+    }
+
+    if (BufPtr[3] > (uint8)SOAD_AP_BRIDGE_DEGRADED)
+    {
+        return FALSE;
+    }
+
+    if ((uint8)(BufPtr[0] ^ BufPtr[1] ^ BufPtr[2] ^ BufPtr[3] ^ BufPtr[4]) != BufPtr[5])
+    {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+static void SoAd_HandleApControlPdu(const uint8* BufPtr)
+{
+    SoAd_ApBridgeStateType ControlState;
+
+    if (BufPtr == NULL)
+    {
+        return;
+    }
+
+    ControlState = (SoAd_ApBridgeStateType)BufPtr[3];
+    ApBridge_ReportHeartbeat(TRUE);
+
+    if (ControlState == SOAD_AP_BRIDGE_READY)
+    {
+        ApBridge_ReportServiceStatus(TRUE);
+    }
+    else
+    {
+        ApBridge_ReportServiceStatus(FALSE);
+    }
+
+    (void)SoAd_SetApBridgeState(ControlState);
 }
 
 /**
@@ -836,6 +891,12 @@ void SoAd_RxIndication(
         return;
     }
 
+    if (SoAd_IsApControlPdu(BufPtr, Length) == TRUE)
+    {
+        SoAd_HandleApControlPdu(BufPtr);
+        return;
+    }
+
     if (SoAd_FindRxPduIdBySocket(SocketId, &rxPduId, &soConId) != E_OK)
     {
         return;
@@ -852,8 +913,6 @@ void SoAd_RxIndication(
 
     /* Keep latest remote peer associated with the socket connection. */
     SoAd_SoConStates[soConId].RemoteAddr = *RemoteAddrPtr;
-    ApBridge_ReportHeartbeat(TRUE);
-    ApBridge_ReportServiceStatus(TRUE);
 
     pduInfo.SduDataPtr = (uint8*)BufPtr;
     pduInfo.MetaDataPtr = NULL;
