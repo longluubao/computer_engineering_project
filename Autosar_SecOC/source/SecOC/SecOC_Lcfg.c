@@ -337,7 +337,8 @@ SecOC_RxSecuredPduLayerType SecOC_RxSecuredPduLayer[] =
 
 
 // cppcheck-suppress misra-c2012-8.4
-Csm_JobType CsmJob = 
+// cppcheck-suppress misra-c2012-5.8
+Csm_JobType CsmJob =
 {
     CSM_JOBID
 };

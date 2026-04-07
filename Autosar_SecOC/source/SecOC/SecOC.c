@@ -113,7 +113,7 @@ STATIC Std_ReturnType seperatePduCollectionTx(const PduIdType TxPduId,uint32 Aut
 void SecOC_Init(const SecOC_ConfigType *config)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_Init \n");
+        (void)printf("######## in SecOC_Init \n");
     #endif
 
     if (config == NULL)
@@ -144,7 +144,7 @@ void SecOC_DeInit(void)
 {
 
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_DeInit \n");
+        (void)printf("######## in SecOC_DeInit \n");
     #endif
     if(SecOCState != SECOC_INIT)
     {
@@ -186,7 +186,7 @@ void SecOC_DeInit(void)
 Std_ReturnType SecOC_IfTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr) 
 {
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_IfTransmit \n");
+        (void)printf("######## in SecOC_IfTransmit \n");
     #endif
     Std_ReturnType result = E_OK;
 
@@ -220,12 +220,12 @@ Std_ReturnType SecOC_IfTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr
     SecOC_TxCounters[TxPduId].AuthenticationCounter = 0;
 
     #ifdef SECOC_DEBUG
-        printf("###### Getting The Auth PDU \n");
+        (void)printf("###### Getting The Auth PDU \n");
         for(int i = 0; i < authpdu->SduLength; i++)
         {
-            printf("%d ", authpdu->SduDataPtr[i]);
+            (void)printf("%d ", authpdu->SduDataPtr[i]);
         }
-        printf("\n");
+        (void)printf("\n");
     #endif
 
     return result;
@@ -248,7 +248,7 @@ Std_ReturnType SecOC_IfTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr
 static void constructDataToAuthenticatorTx(const PduIdType TxPduId, SecOC_TxIntermediateType *SecOCIntermediate, const PduInfoType* AuthPdu)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in constructDataToAuthenticatorTx\n");
+        (void)printf("######## in constructDataToAuthenticatorTx\n");
     #endif
 
     uint8  *DataToAuth    = SecOCIntermediate->DataToAuth;
@@ -273,7 +273,7 @@ static void constructDataToAuthenticatorTx(const PduIdType TxPduId, SecOC_TxInte
 Std_ReturnType SecOC_GetTxFreshness(uint16 SecOCFreshnessValueID, uint8* SecOCFreshnessValue,
 uint32* SecOCFreshnessValueLength) {
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_GetTxFreshness\n");
+        (void)printf("######## in SecOC_GetTxFreshness\n");
     #endif
     SecOC_GetTxFreshnessCalloutType PTR = (SecOC_GetTxFreshnessCalloutType)FVM_GetTxFreshness;
 Std_ReturnType result = PTR(SecOCFreshnessValueID, SecOCFreshnessValue, SecOCFreshnessValueLength);
@@ -285,7 +285,7 @@ Std_ReturnType SecOC_GetTxFreshnessTruncData (uint16 SecOCFreshnessValueID,uint8
 uint32* SecOCFreshnessValueLength,uint8* SecOCTruncatedFreshnessValue,uint32* SecOCTruncatedFreshnessValueLength) 
 {
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_GetTxFreshnessTruncData\n");
+        (void)printf("######## in SecOC_GetTxFreshnessTruncData\n");
     #endif
     Std_ReturnType result = FVM_GetTxFreshnessTruncData(SecOCFreshnessValueID, SecOCFreshnessValue , SecOCFreshnessValueLength,
     SecOCTruncatedFreshnessValue, SecOCTruncatedFreshnessValueLength);
@@ -309,7 +309,7 @@ uint32* SecOCFreshnessValueLength,uint8* SecOCTruncatedFreshnessValue,uint32* Se
 static Std_ReturnType prepareFreshnessTx(const PduIdType TxPduId, SecOC_TxIntermediateType *SecOCIntermediate)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in prepareFreshnessTx \n");
+        (void)printf("######## in prepareFreshnessTx \n");
     #endif
     Std_ReturnType result = E_OK;
 
@@ -368,7 +368,7 @@ static Std_ReturnType prepareFreshnessTx(const PduIdType TxPduId, SecOC_TxInterm
 STATIC Std_ReturnType authenticate(const PduIdType TxPduId, PduInfoType* AuthPdu, PduInfoType* SecPdu)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in authenticate \n");
+        (void)printf("######## in authenticate \n");
     #endif
     /* [SWS_SecOC_00031] authentication steps */
     Std_ReturnType result = E_NOT_OK;
@@ -444,47 +444,47 @@ STATIC Std_ReturnType authenticate(const PduIdType TxPduId, PduInfoType* AuthPdu
 
 
     #ifdef SECOC_DEBUG
-        printf("result of authenticate is %d\n", result);
+        (void)printf("result of authenticate is %d\n", result);
 
         /* ===== PDU STRUCTURE VISUALIZATION (Classical MAC Mode) ===== */
-        printf("\n");
-        printf("╔══════════════════════════════════════════════════════════════════════════════════╗\n");
-        printf("║                    SECURED I-PDU STRUCTURE (TX) - Classical Mode                 ║\n");
-        printf("╠═══════════════╦═══════════════════════╦═════════════════╦════════════════════════╣\n");
-        printf("║    Header     ║    Authentic PDU      ║   Freshness     ║   Authenticator (MAC)  ║\n");
-        printf("║   %2u bytes    ║      %3lu bytes        ║    %2u bytes     ║      %4u bytes        ║\n",
+        (void)printf("\n");
+        (void)printf("╔══════════════════════════════════════════════════════════════════════════════════╗\n");
+        (void)printf("║                    SECURED I-PDU STRUCTURE (TX) - Classical Mode                 ║\n");
+        (void)printf("╠═══════════════╦═══════════════════════╦═════════════════╦════════════════════════╣\n");
+        (void)printf("║    Header     ║    Authentic PDU      ║   Freshness     ║   Authenticator (MAC)  ║\n");
+        (void)printf("║   %2u bytes    ║      %3lu bytes        ║    %2u bytes     ║      %4u bytes        ║\n",
                headerLen, (unsigned long)(SecPduLen - headerLen - FreshnesslenBytes - SecOCIntermediate.AuthenticatorLen),
                FreshnesslenBytes, SecOCIntermediate.AuthenticatorLen);
-        printf("╠═══════════════╬═══════════════════════╬═════════════════╬════════════════════════╣\n");
+        (void)printf("╠═══════════════╬═══════════════════════╬═════════════════╬════════════════════════╣\n");
 
         /* Print Header bytes */
-        printf("║ ");
+        (void)printf("║ ");
         if(headerLen > 0) {
             for(uint32 i = 0; i < headerLen && i < 4; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[i]); }
         } else {
-            printf("(none)       ");
+            (void)printf("(none)       ");
         }
-        printf("║ ");
+        (void)printf("║ ");
 
         /* Print first few AuthPdu bytes */
         uint32 authStart = headerLen;
         uint32 authLen = SecPduLen - headerLen - FreshnesslenBytes - SecOCIntermediate.AuthenticatorLen;
         for(uint32 i = 0; i < authLen && i < 4; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[authStart + i]); }
         if(authLen > 4) { (void)printf("..."); }
-        printf("    ║ ");
+        (void)printf("    ║ ");
 
         /* Print Freshness bytes */
         uint32 freshStart = headerLen + authLen;
         for(uint32 i = 0; i < FreshnesslenBytes && i < 2; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[freshStart + i]); }
-        printf("        ║ ");
+        (void)printf("        ║ ");
 
         /* Print first few MAC bytes */
         uint32 macStart = freshStart + FreshnesslenBytes;
         for(uint32 i = 0; i < SecOCIntermediate.AuthenticatorLen && i < 4; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[macStart + i]); }
-        printf("  ║\n");
+        (void)printf("  ║\n");
 
-        printf("╚═══════════════╩═══════════════════════╩═════════════════╩════════════════════════╝\n");
-        printf("Total Secured PDU: %lu bytes\n\n", (unsigned long)SecPduLen);
+        (void)printf("╚═══════════════╩═══════════════════════╩═════════════════╩════════════════════════╝\n");
+        (void)printf("Total Secured PDU: %lu bytes\n\n", (unsigned long)SecPduLen);
     #endif
 
     return result;
@@ -546,7 +546,7 @@ STATIC Std_ReturnType seperatePduCollectionTx(const PduIdType TxPduId,uint32 Aut
 void SecOC_MainFunctionTx(void) 
 {
     #ifdef SECOC_DEBUG
-        printf("######## in SecOCMainFunctionTx \n");
+        (void)printf("######## in SecOCMainFunctionTx \n");
     #endif
     /* [SWS_SecOC_00177] */
     if(SecOCState == SECOC_UNINIT)
@@ -572,12 +572,12 @@ void SecOC_MainFunctionTx(void)
         {
             uint32 AuthPduLen = authPdu->SduLength;
             #ifdef SECOC_DEBUG
-                printf("send data to ID %d and data is ",idx);
+                (void)printf("send data to ID %d and data is ",idx);
                 for(int k = 0; k < authPdu->SduLength; k++)
                 {
-                    printf("%d ", authPdu->SduDataPtr[k] );
+                    (void)printf("%d ", authPdu->SduDataPtr[k] );
                 }
-                printf("\n");
+                (void)printf("\n");
             #endif
             /* [SWS_SecOC_00060], [SWS_SecOC_00061] */
 #if (SECOC_USE_PQC_MODE == TRUE)
@@ -589,12 +589,12 @@ void SecOC_MainFunctionTx(void)
             if(result == E_OK )
             {
                 #ifdef PDU_COLLECTION_DEBUG  
-                    printf("Secured data in pdu collection %d ",idx);
+                    (void)printf("Secured data in pdu collection %d ",idx);
                     for(int k = 0; k < securedPdu->SduLength; k++)
                     {
-                        printf("%d ", securedPdu->SduDataPtr[k] );
+                        (void)printf("%d ", securedPdu->SduDataPtr[k] );
                     }
-                    printf("\n");
+                    (void)printf("\n");
                 #endif
                 /* Using Freshness Value Based on Single Freshness Counter we need to keep it synchronise 
                     increase counter before Broadcast as require */
@@ -626,8 +626,8 @@ void SecOC_MainFunctionTx(void)
                 SecOC_TxCounters[idx].AuthenticationCounter++;
 
                 #ifdef COUNTERS_DEBUG
-                printf("SecOC_TxCounters[%d].AuthenticationCounter = %d\n",idx,SecOC_TxCounters[idx].AuthenticationCounter);
-                printf("SecOCTxPduProcessing[%d].SecOCAuthenticationBuildAttempts = %d\n",idx,SecOCTxPduProcessing[idx].SecOCAuthenticationBuildAttempts);
+                (void)printf("SecOC_TxCounters[%d].AuthenticationCounter = %d\n",idx,SecOC_TxCounters[idx].AuthenticationCounter);
+                (void)printf("SecOCTxPduProcessing[%d].SecOCAuthenticationBuildAttempts = %d\n",idx,SecOCTxPduProcessing[idx].SecOCAuthenticationBuildAttempts);
                 #endif
 
                 /* [SWS_SecOC_00228] */
@@ -649,7 +649,7 @@ BufReq_ReturnType SecOC_CopyTxData (PduIdType id,const PduInfoType* info,
 const RetryInfoType* retry, PduLengthType* availableDataPtr)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_CopyTxData \n");
+        (void)printf("######## in SecOC_CopyTxData \n");
     #endif
     if ((SecOCState != SECOC_INIT) || (SecOC_IsValidTxPduId(id) == FALSE) || (info == NULL) || (availableDataPtr == NULL))
     {
@@ -725,12 +725,12 @@ const RetryInfoType* retry, PduLengthType* availableDataPtr)
         result = BUFREQ_E_NOT_OK;
     }
     #ifdef SECOC_DEBUG
-        printf("The result of SecOC_CopyTxData is %d \n and the info have : ",result );
+        (void)printf("The result of SecOC_CopyTxData is %d \n and the info have : ",result );
         for(int h = 0; h < info->SduLength; h++)
         {
-            printf("%d ", info->SduDataPtr[h]);
+            (void)printf("%d ", info->SduDataPtr[h]);
         }
-        printf("\n");
+        (void)printf("\n");
     #endif
     return result;
 }
@@ -739,7 +739,7 @@ const RetryInfoType* retry, PduLengthType* availableDataPtr)
 void SecOC_TxConfirmation(PduIdType TxPduId, Std_ReturnType result) 
 {
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_TxConfirmation \n");
+        (void)printf("######## in SecOC_TxConfirmation \n");
     #endif
     
     if ((SecOCState != SECOC_INIT) || (SecOC_IsValidCollectionPduId(TxPduId) == FALSE))
@@ -826,7 +826,7 @@ void SecOC_TpTxConfirmation(PduIdType TxPduId,Std_ReturnType result)
 
     PduInfoType *securedPdu = &(SecOCTxPduProcessing[TxPduId].SecOCTxSecuredPduLayer->SecOCTxSecuredPdu->SecOCTxSecuredLayerPduRef);
     #ifdef SECOC_DEBUG
-        printf("########  In SecOC_TpTxConfirmation \n result of SecOC_TpTxConfirmation is %d \n" , result);
+        (void)printf("########  In SecOC_TpTxConfirmation \n result of SecOC_TpTxConfirmation is %d \n" , result);
     #endif
     if (result == E_OK) {
         /* Clear buffer */
@@ -856,7 +856,7 @@ void SecOC_TpTxConfirmation(PduIdType TxPduId,Std_ReturnType result)
 Std_ReturnType SecOC_IfCancelTransmit(PduIdType TxPduId)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_IfCancelTransmit \n");
+        (void)printf("######## in SecOC_IfCancelTransmit \n");
     #endif
     Std_ReturnType result = E_OK;
 
@@ -876,7 +876,7 @@ Std_ReturnType SecOC_IfCancelTransmit(PduIdType TxPduId)
 void SecOC_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
 {   
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_RxIndication \n");
+        (void)printf("######## in SecOC_RxIndication \n");
     #endif
     if ((SecOCState != SECOC_INIT) || (PduInfoPtr == NULL) || (PduInfoPtr->SduDataPtr == NULL))
     {
@@ -946,13 +946,13 @@ void SecOC_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
             AuthPduCollection->SduLength = 0;
             CryptoPduCollection->SduLength = 0;
             #ifdef PDU_COLLECTION_DEBUG
-                printf("########  both received and secured length = %lu\n" , securedPdu->SduLength);
-                printf("Data Recieve in secured pdu : ");
+                (void)printf("########  both received and secured length = %lu\n" , securedPdu->SduLength);
+                (void)printf("Data Recieve in secured pdu : ");
                 for(uint8 i = 0; i < securedPdu->SduLength; i++)
                 {
-                    printf("%d ",securedPdu->SduDataPtr[i]);
+                    (void)printf("%d ",securedPdu->SduDataPtr[i]);
                 }
-                printf("\n");
+                (void)printf("\n");
             #endif
         }
     }
@@ -976,7 +976,7 @@ void SecOC_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
             /* PQC Mode: Use actual received length (ML-DSA signature is 3309 bytes, not 4) */
             securedPdu->SduLength = MIN(PduInfoPtr->SduLength, SECOC_SECPDU_MAX_LENGTH);
             #ifdef SECOC_DEBUG
-                printf("PQC Mode: Setting securedPdu->SduLength = %u (from PduInfoPtr->SduLength = %u)\n",
+                (void)printf("PQC Mode: Setting securedPdu->SduLength = %u (from PduInfoPtr->SduLength = %u)\n",
                        securedPdu->SduLength, PduInfoPtr->SduLength);
             #endif
 #else
@@ -984,7 +984,7 @@ void SecOC_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
             PduLengthType securePduLength = headerLen + authRecieveLength[RxPduId] + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueTruncLength) + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCAuthInfoTruncLength);
             securedPdu->SduLength = securePduLength;
             #ifdef SECOC_DEBUG
-                printf("Classical Mode: Setting securedPdu->SduLength = %u (calculated)\n", securedPdu->SduLength);
+                (void)printf("Classical Mode: Setting securedPdu->SduLength = %u (calculated)\n", securedPdu->SduLength);
             #endif
 #endif
         }
@@ -1004,7 +1004,7 @@ BufReq_ReturnType SecOC_StartOfReception ( PduIdType id, const PduInfoType* info
 {
     /* [SWS_SecOC_00130] */
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_StartOfReception \n");
+        (void)printf("######## in SecOC_StartOfReception \n");
     #endif
     if ((SecOCState != SECOC_INIT) || (SecOC_IsValidRxPduId(id) == FALSE) || (bufferSizePtr == NULL))
     {
@@ -1070,7 +1070,7 @@ BufReq_ReturnType SecOC_StartOfReception ( PduIdType id, const PduInfoType* info
 		/*result = PduR_SecOCTpStartOfReception();*/
 	}
     #ifdef SECOC_DEBUG
-        printf("result of SecOC_StartOfReception is %d\n", result);
+        (void)printf("result of SecOC_StartOfReception is %d\n", result);
     #endif
 	return result;
 }
@@ -1080,7 +1080,7 @@ BufReq_ReturnType SecOC_CopyRxData (PduIdType id, const PduInfoType* info, PduLe
 {
     /* [SWS_SecOC_00128] */
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_CopyRxData \n");
+        (void)printf("######## in SecOC_CopyRxData \n");
     #endif
     if ((SecOCState != SECOC_INIT) || (SecOC_IsValidRxPduId(id) == FALSE) || (bufferSizePtr == NULL) || (info == NULL))
     {
@@ -1128,7 +1128,7 @@ BufReq_ReturnType SecOC_CopyRxData (PduIdType id, const PduInfoType* info, PduLe
 void SecOC_TpRxIndication(PduIdType Id,Std_ReturnType result)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_TpRxIndication \n");
+        (void)printf("######## in SecOC_TpRxIndication \n");
     #endif
     /* [SWS_SecOC_00125] */
     PduInfoType *securedPdu = &(SecOCRxPduProcessing[Id].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCRxSecuredLayerPduRef);
@@ -1150,7 +1150,7 @@ Std_ReturnType SecOC_GetRxFreshness(uint16 SecOCFreshnessValueID,const uint8* Se
     uint16 SecOCAuthVerifyAttempts,uint8* SecOCFreshnessValue,uint32* SecOCFreshnessValueLength)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_GetRxFreshness \n");
+        (void)printf("######## in SecOC_GetRxFreshness \n");
     #endif
     return FVM_GetRxFreshness(SecOCFreshnessValueID,SecOCTruncatedFreshnessValue,SecOCTruncatedFreshnessValueLength,
     SecOCAuthVerifyAttempts,SecOCFreshnessValue,SecOCFreshnessValueLength);
@@ -1160,7 +1160,7 @@ Std_ReturnType SecOC_GetRxFreshness(uint16 SecOCFreshnessValueID,const uint8* Se
 static void parseSecuredPdu(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_RxIntermediateType *SecOCIntermediate)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in parseSecuredPdu \n");
+        (void)printf("######## in parseSecuredPdu \n");
     #endif
     /* Track the current byte of secured to be parsed */
     uint32 SecCursor = 0;  
@@ -1212,7 +1212,7 @@ static void parseSecuredPdu(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_RxInte
     (void)memcpy(SecOCIntermediate->mac, &SecPdu->SduDataPtr[SecCursor], actualSignatureLen);
     SecCursor += actualSignatureLen;
     #ifdef SECOC_DEBUG
-        printf("PQC Mode: Extracted signature, actualSignatureLen = %lu bytes (SecPdu->SduLength=%u, SecCursor was=%lu)\n",
+        (void)printf("PQC Mode: Extracted signature, actualSignatureLen = %lu bytes (SecPdu->SduLength=%u, SecCursor was=%lu)\n",
                actualSignatureLen, SecPdu->SduLength, SecPdu->SduLength - actualSignatureLen);
     #endif
 #else
@@ -1226,55 +1226,55 @@ static void parseSecuredPdu(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_RxInte
         uint32 freshLenBytes = BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueTruncLength);
         uint32 macLenBytes = BIT_TO_BYTES(SecOCIntermediate->macLenBits);
 
-        printf("\n");
+        (void)printf("\n");
 #if SECOC_USE_PQC_MODE == TRUE
-        printf("╔════════════════════════════════════════════════════════════════════════════════════════════╗\n");
-        printf("║                      SECURED I-PDU STRUCTURE (RX) - PQC Mode (ML-DSA-65)                   ║\n");
-        printf("╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣\n");
-        printf("║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║\n");
-        printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║        %4u bytes                ║\n",
+        (void)printf("╔════════════════════════════════════════════════════════════════════════════════════════════╗\n");
+        (void)printf("║                      SECURED I-PDU STRUCTURE (RX) - PQC Mode (ML-DSA-65)                   ║\n");
+        (void)printf("╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣\n");
+        (void)printf("║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║\n");
+        (void)printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║        %4u bytes                ║\n",
                headerLen, SecOCIntermediate->authenticPduLen, freshLenBytes, macLenBytes);
-        printf("╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣\n");
+        (void)printf("╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣\n");
 #else
-        printf("╔══════════════════════════════════════════════════════════════════════════════════╗\n");
-        printf("║                    SECURED I-PDU STRUCTURE (RX) - Classical Mode                 ║\n");
-        printf("╠═══════════════╦═══════════════════════╦═════════════════╦════════════════════════╣\n");
-        printf("║    Header     ║    Authentic PDU      ║   Freshness     ║   Authenticator (MAC)  ║\n");
-        printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║      %4u bytes        ║\n",
+        (void)printf("╔══════════════════════════════════════════════════════════════════════════════════╗\n");
+        (void)printf("║                    SECURED I-PDU STRUCTURE (RX) - Classical Mode                 ║\n");
+        (void)printf("╠═══════════════╦═══════════════════════╦═════════════════╦════════════════════════╣\n");
+        (void)printf("║    Header     ║    Authentic PDU      ║   Freshness     ║   Authenticator (MAC)  ║\n");
+        (void)printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║      %4u bytes        ║\n",
                headerLen, SecOCIntermediate->authenticPduLen, freshLenBytes, macLenBytes);
-        printf("╠═══════════════╬═══════════════════════╬═════════════════╬════════════════════════╣\n");
+        (void)printf("╠═══════════════╬═══════════════════════╬═════════════════╬════════════════════════╣\n");
 #endif
 
         /* Print Header indicator */
-        printf("║ ");
+        (void)printf("║ ");
         if(headerLen > 0) {
-            printf("0x%02X         ", SecOCIntermediate->authenticPduLen);
+            (void)printf("0x%02X         ", SecOCIntermediate->authenticPduLen);
         } else {
-            printf("(none)       ");
+            (void)printf("(none)       ");
         }
-        printf("║ ");
+        (void)printf("║ ");
 
         /* Print first few AuthPdu bytes */
         for(uint32 i = 0; i < SecOCIntermediate->authenticPduLen && i < 4; i++) { (void)printf("0x%02X ", SecOCIntermediate->authenticPdu[i]); }
         if(SecOCIntermediate->authenticPduLen > 4) { (void)printf("..."); }
-        printf("    ║ ");
+        (void)printf("    ║ ");
 
         /* Print Freshness bytes */
         for(uint32 i = 0; i < freshLenBytes && i < 2; i++) { (void)printf("0x%02X ", SecOCIntermediate->freshness[i]); }
-        printf("        ║ ");
+        (void)printf("        ║ ");
 
         /* Print first few MAC/Signature bytes */
         for(uint32 i = 0; i < macLenBytes && i < 4; i++) { (void)printf("0x%02X ", SecOCIntermediate->mac[i]); }
         if(macLenBytes > 4) { (void)printf("..."); }
-        printf("  ║\n");
+        (void)printf("  ║\n");
 
 #if SECOC_USE_PQC_MODE == TRUE
-        printf("╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝\n");
+        (void)printf("╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝\n");
 #else
-        printf("╚═══════════════╩═══════════════════════╩═════════════════╩════════════════════════════════════╝\n");
+        (void)printf("╚═══════════════╩═══════════════════════╩═════════════════╩════════════════════════════════════╝\n");
 #endif
-        printf("Total Received PDU: %u bytes\n", SecPdu->SduLength);
-        printf("Parsed: Header=%u + Auth=%u + Fresh=%u + MAC/Sig=%u\n\n",
+        (void)printf("Total Received PDU: %u bytes\n", SecPdu->SduLength);
+        (void)printf("Parsed: Header=%u + Auth=%u + Fresh=%u + MAC/Sig=%u\n\n",
                headerLen, SecOCIntermediate->authenticPduLen, freshLenBytes, macLenBytes);
     #endif
     return;
@@ -1284,7 +1284,7 @@ static void parseSecuredPdu(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_RxInte
 static void constructDataToAuthenticatorRx(PduIdType RxPduId, SecOC_RxIntermediateType *SecOCIntermediate)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in constructDataToAuthenticatorRx \n");
+        (void)printf("######## in constructDataToAuthenticatorRx \n");
     #endif
 
     uint8  *DataToAuth    = SecOCIntermediate->DataToAuth;
@@ -1310,7 +1310,7 @@ static void constructDataToAuthenticatorRx(PduIdType RxPduId, SecOC_RxIntermedia
 STATIC Std_ReturnType verify(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_VerificationResultType *verification_result)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in verify \n");
+        (void)printf("######## in verify \n");
     #endif
     /* [SWS_SecOC_00040] verifcation steps */
 
@@ -1408,7 +1408,7 @@ STATIC Std_ReturnType verify(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_Verif
     FVM_UpdateCounter(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueId, SecOCIntermediate.freshness, SecOCIntermediate.freshnessLenBits);
 
     #ifdef SECOC_DEBUG
-    printf("%d\n",*verification_result);
+    (void)printf("%d\n",*verification_result);
     #endif
 
     return E_OK;
@@ -1425,7 +1425,7 @@ STATIC Std_ReturnType verify(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_Verif
 STATIC Std_ReturnType authenticate_PQC(const PduIdType TxPduId, PduInfoType* AuthPdu, PduInfoType* SecPdu)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in authenticate_PQC (ML-DSA-65)\n");
+        (void)printf("######## in authenticate_PQC (ML-DSA-65)\n");
     #endif
 
     Std_ReturnType result = E_NOT_OK;
@@ -1462,7 +1462,7 @@ STATIC Std_ReturnType authenticate_PQC(const PduIdType TxPduId, PduInfoType* Aut
     SecOCIntermediate.AuthenticatorLen = signatureLen;
 
     #ifdef SECOC_DEBUG
-        printf("PQC Signature generated: %u bytes (vs ~4 bytes for MAC)\n", signatureLen);
+        (void)printf("PQC Signature generated: %u bytes (vs ~4 bytes for MAC)\n", signatureLen);
     #endif
 
     /* Build Secured PDU: HEADER(OPT) + AuthPdu + TruncatedFreshness(OPT) + Signature */
@@ -1503,41 +1503,41 @@ STATIC Std_ReturnType authenticate_PQC(const PduIdType TxPduId, PduInfoType* Aut
 
     #ifdef SECOC_DEBUG
         /* ===== PDU STRUCTURE VISUALIZATION (PQC ML-DSA-65 Mode) ===== */
-        printf("\n");
-        printf("╔════════════════════════════════════════════════════════════════════════════════════════════╗\n");
-        printf("║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║\n");
-        printf("╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣\n");
-        printf("║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║\n");
+        (void)printf("\n");
+        (void)printf("╔════════════════════════════════════════════════════════════════════════════════════════════╗\n");
+        (void)printf("║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║\n");
+        (void)printf("╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣\n");
+        (void)printf("║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║\n");
         printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║        %4u bytes                ║\n",
                headerLen, authLen, FreshnesslenBytes, SecOCIntermediate.AuthenticatorLen);
-        printf("╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣\n");
+        (void)printf("╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣\n");
 
         /* Print Header bytes */
-        printf("║ ");
+        (void)printf("║ ");
         if(headerLen > 0) {
             for(uint32 i = 0; i < headerLen && i < 4; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[i]); }
         } else {
-            printf("(none)       ");
+            (void)printf("(none)       ");
         }
-        printf("║ ");
+        (void)printf("║ ");
 
         /* Print first few AuthPdu bytes */
         uint32 authStart = headerLen;
         for(uint32 i = 0; i < authLen && i < 4; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[authStart + i]); }
         if(authLen > 4) { (void)printf("..."); }
-        printf("    ║ ");
+        (void)printf("    ║ ");
 
         /* Print Freshness bytes */
         uint32 freshStart = headerLen + authLen;
         for(uint32 i = 0; i < FreshnesslenBytes && i < 2; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[freshStart + i]); }
-        printf("        ║ ");
+        (void)printf("        ║ ");
 
         /* Print first few Signature bytes */
         uint32 sigStart = freshStart + FreshnesslenBytes;
         for(uint32 i = 0; i < 4; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[sigStart + i]); }
-        printf("...   ║\n");
+        (void)printf("...   ║\n");
 
-        printf("╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝\n");
+        (void)printf("╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝\n");
         printf("Total Secured PDU: %u bytes (Header=%u + Auth=%u + Fresh=%u + Signature=%u)\n\n",
                SecPduLen, headerLen, authLen, FreshnesslenBytes, SecOCIntermediate.AuthenticatorLen);
     #endif
@@ -1552,7 +1552,7 @@ STATIC Std_ReturnType authenticate_PQC(const PduIdType TxPduId, PduInfoType* Aut
 STATIC Std_ReturnType verify_PQC(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_VerificationResultType *verification_result)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in verify_PQC (ML-DSA-65)\n");
+        (void)printf("######## in verify_PQC (ML-DSA-65)\n");
     #endif
 
     SecOC_RxIntermediateType SecOCIntermediate;
@@ -1608,7 +1608,7 @@ STATIC Std_ReturnType verify_PQC(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_V
         );
 
         #ifdef SECOC_DEBUG
-            printf("PQC Signature verification: sig_len=%u bytes, result=%d\n", signatureLen, Sig_verify);
+            (void)printf("PQC Signature verification: sig_len=%u bytes, result=%d\n", signatureLen, Sig_verify);
         #endif
 
         if((Sig_verify == E_BUSY) || (Sig_verify == QUEUE_FULL) || (Sig_verify == E_NOT_OK))
@@ -1659,7 +1659,7 @@ STATIC Std_ReturnType verify_PQC(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_V
 void SecOC_MainFunctionRx(void)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in SecOCMainFunctionRx \n");
+        (void)printf("######## in SecOCMainFunctionRx \n");
     #endif
     /* [SWS_SecOC_00172] */
     if(SecOCState == SECOC_UNINIT)
@@ -1777,8 +1777,8 @@ void SecOC_MainFunctionRx(void)
             else /* result == E_NOT_OK */
             {
                 #ifdef SECOC_DEBUG
-                printf("Verify failed for id: %d\n", idx);
-                printf("Reason: %s\n", (result_ver == SECOC_FRESHNESSFAILURE) ? "FV" : "MAC");
+                (void)printf("Verify failed for id: %d\n", idx);
+                (void)printf("Reason: %s\n", (result_ver == SECOC_FRESHNESSFAILURE) ? "FV" : "MAC");
                 #endif
                 /* [SWS_SecOC_00256] */
                 securedPdu->SduLength = 0;
@@ -1816,7 +1816,7 @@ void SecOC_MainFunctionRx(void)
 Std_ReturnType SecOC_TpTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_TpTransmit \n");
+        (void)printf("######## in SecOC_TpTransmit \n");
     #endif
 
     if(SecOCState != SECOC_INIT)
@@ -1853,7 +1853,7 @@ Std_ReturnType SecOC_TpTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr
 Std_ReturnType SecOC_TpCancelTransmit(PduIdType TxPduId)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_TpCancelTransmit \n");
+        (void)printf("######## in SecOC_TpCancelTransmit \n");
     #endif
 
     if(SecOCState != SECOC_INIT)
@@ -1898,7 +1898,7 @@ Std_ReturnType SecOC_VerifyStatusOverride(
     uint8 numberOfMessagesToOverride)
 {
     #ifdef SECOC_DEBUG
-        printf("######## in SecOC_VerifyStatusOverride \n");
+        (void)printf("######## in SecOC_VerifyStatusOverride \n");
     #endif
 
     if(SecOCState != SECOC_INIT)
@@ -1929,13 +1929,13 @@ Std_ReturnType SecOC_VerifyStatusOverride(
 /********************************************************************************************************/
 
 #ifdef DEBUG_ALL
-void SecOC_test()
+void SecOC_test(void)
 {
     SecOC_Init(&SecOC_Config);
     while (1)
     {
         #ifdef SECOC_DEBUG
-            printf("############### Starting Receive ###############\n");
+            (void)printf("############### Starting Receive ###############\n");
         #endif
         #ifdef LINUX
         EthDrv_ReceiveMainFunction();

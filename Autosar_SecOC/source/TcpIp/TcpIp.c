@@ -40,14 +40,14 @@
 /* MISRA C:2012 Rule 17.3 - Platform socket prototypes (system headers may be unavailable to static analysis) */
 #if !defined(_SYS_SOCKET_H) && !defined(_WINSOCK2API_) && !defined(__SYS_SOCKET_H__)
 struct sockaddr;
-extern int bind(int, const struct sockaddr*, unsigned int);
-extern int listen(int, int);
-extern int connect(int, const struct sockaddr*, unsigned int);
-extern int getsockname(int, struct sockaddr*, unsigned int*);
-extern int setsockopt(int, int, int, const void*, unsigned int);
+extern int bind(int sockfd, const struct sockaddr* addr, unsigned int addrlen);
+extern int listen(int sockfd, int backlog);
+extern int connect(int sockfd, const struct sockaddr* addr, unsigned int addrlen);
+extern int getsockname(int sockfd, struct sockaddr* addr, unsigned int* addrlen);
+extern int setsockopt(int sockfd, int level, int optname, const void* optval, unsigned int optlen);
 #endif
 #if !defined(_FCNTL_H) && !defined(__FCNTL_H__)
-extern int fcntl(int, int, ...);
+extern int fcntl(int fd, int cmd, ...);
 #endif
 
 /* MISRA C:2012 Rule 8.4 - Forward declarations for external linkage functions */

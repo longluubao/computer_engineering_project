@@ -16,6 +16,7 @@
 #define DEBUG_ALL                   /*Comment this line if you want to Release your code*/
 
 #ifdef DEBUG_ALL
+/* cppcheck-suppress misra-c2012-20.5 */
 #undef RELEASE
 #define SECOC_DEBUG                 /* Debug for SecOC */
 #define FV_DEBUG                    /* Debug for FreshnessValueManger */

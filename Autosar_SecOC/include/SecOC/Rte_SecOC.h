@@ -17,7 +17,8 @@ typedef enum
 }SecOC_VerificationResultType;
 
 
-typedef struct 
+/* cppcheck-suppress misra-c2012-2.4 */
+typedef struct
 {
     uint16 freshnessValueID;
     SecOC_VerificationResultType verificationStatus;

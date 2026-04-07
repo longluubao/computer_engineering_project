@@ -9,10 +9,7 @@
 /************************************************Defines*************************************************/
 /********************************************************************************************************/
 
-#define COM_PB_NUM_OF_TX_IPDU              ((PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING)
-#define COM_PB_NUM_OF_RX_IPDU              ((PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING)
-#define COM_PB_NUM_OF_SIGNALS              ((uint16)SECOC_NUM_OF_TX_PDU_PROCESSING)
-#define COM_PB_NUM_OF_SIGNAL_GROUPS        ((uint16)2U)
+/* COM_PB_NUM_OF_TX_IPDU, COM_PB_NUM_OF_RX_IPDU, COM_PB_NUM_OF_SIGNALS, COM_PB_NUM_OF_SIGNAL_GROUPS defined in Com_PBcfg.h */
 #define COM_PB_SIGNAL_MAX_LENGTH           ((uint16)SECOC_AUTHPDU_MAX_LENGTH)
 #define COM_PB_DEFAULT_TX_TIMEOUT_TICKS    ((uint16)20U)
 #define COM_PB_DEFAULT_RX_TIMEOUT_TICKS    ((uint16)20U)

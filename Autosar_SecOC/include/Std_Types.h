@@ -12,7 +12,7 @@
 /********************************************************************************************************/
 
 /* Convert the bits to nearst byte */
-#define BIT_TO_BYTES(NUMBITS) ((NUMBITS  % 8 == 0) ? (NUMBITS/8) :  (((NUMBITS / 8) + 1)))
+#define BIT_TO_BYTES(NUMBITS) (((NUMBITS) % 8U == 0U) ? ((NUMBITS)/8U) : (((NUMBITS) / 8U) + 1U))
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
@@ -37,15 +37,19 @@ typedef unsigned long           uint32;         /*           0 .. 4294967295    
 typedef signed char             sint8;          /*        -128 .. +127            */
 typedef signed short            sint16;         /*      -32768 .. +32767          */
 typedef signed long             sint32;         /* -2147483648 .. +2147483647     */
+/* cppcheck-suppress misra-c2012-2.3 */
 typedef signed long long        sint64;
+/* cppcheck-suppress misra-c2012-2.3 */
 typedef unsigned long long      uint64;         /*       0..18446744073709551615  */
+/* cppcheck-suppress misra-c2012-2.3 */
 typedef float                   float32;
 typedef double                  float64;
 
 
 
+#include <stddef.h>
 #ifndef NULL
-#define NULL ((void*)0)
+/* NULL is defined in stddef.h */
 #endif
 
 typedef uint8 Std_ReturnType;

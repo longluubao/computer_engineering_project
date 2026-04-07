@@ -31,8 +31,9 @@ extern void EthDrv_ReceiveMainFunction(void);
 /******************************************GlobalVaribles************************************************/
 /********************************************************************************************************/
 
+/* cppcheck-suppress misra-c2012-7.4 */
 static char ip_address_send[15] = "127.0.0.1";
-extern SecOC_PduCollection PdusCollections[SECOC_NUM_OF_PDU_COLLECTION];
+/* PdusCollections declared in SecOC_Lcfg.h */
 
 #ifdef WINDOWS
 static WSADATA wsa_data;

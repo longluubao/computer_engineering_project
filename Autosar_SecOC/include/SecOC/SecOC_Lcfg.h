@@ -30,7 +30,7 @@
 // Use 8192 bytes to support PQC signatures (ML-DSA-65 = 3309 bytes)
 #define SECOC_SECPDU_MAX_LENGTH                                     8192U
 
-#define SECOC_RX_DATA_TO_AUTHENTICATOR_LENGTH                       (sizeof(PduIdType) + SECOC_AUTHPDU_MAX_LENGTH + (SECOC_FRESHNESS_MAX_LENGTH/8 + 1))
+#define SECOC_RX_DATA_TO_AUTHENTICATOR_LENGTH                       (sizeof(PduIdType) + SECOC_AUTHPDU_MAX_LENGTH + (SECOC_FRESHNESS_MAX_LENGTH/8U + 1U))
 
 
 
@@ -50,10 +50,10 @@
 typedef struct
 {
 
-   uint8                   Freshness[SECOC_FRESHNESS_MAX_LENGTH/8];  /* Complete Freshness Value */
+   uint8                   Freshness[SECOC_FRESHNESS_MAX_LENGTH/8U];  /* Complete Freshness Value */
    uint32                  FreshnessLenBits;
 
-   uint8                   FreshnessTrunc[SECOC_FRESHNESS_MAX_LENGTH/8];   /* Truncated freshness value */
+   uint8                   FreshnessTrunc[SECOC_FRESHNESS_MAX_LENGTH/8U];   /* Truncated freshness value */
    uint32                  FreshnessTruncLenBits;
 
    uint8                   DataToAuth[SECOC_TX_DATA_TO_AUTHENTICATOR_LENGTH];
@@ -123,11 +123,11 @@ typedef struct
    uint8                   authenticPdu[SECOC_AUTHPDU_MAX_LENGTH];
    uint32                  authenticPduLen;
 
-   uint8                   freshness[SECOC_FRESHNESS_MAX_LENGTH / 8];
+   uint8                   freshness[SECOC_FRESHNESS_MAX_LENGTH / 8U];
    uint32                  freshnessLenBits;
    Std_ReturnType          freshnessResult;
    
-   uint8                   mac[SECOC_AUTHENTICATOR_MAX_LENGTH / 8];
+   uint8                   mac[SECOC_AUTHENTICATOR_MAX_LENGTH / 8U];
    uint32                  macLenBits;
 
    uint8                   DataToAuth[SECOC_RX_DATA_TO_AUTHENTICATOR_LENGTH];
@@ -147,6 +147,7 @@ typedef SecOC_StatusPropagationMode_Type SecOC_VerificationStatusPropagationMode
 
 
 /* callout function --> what should i do */
+/* cppcheck-suppress misra-c2012-2.3 */
 typedef void (SecOC_VerificationStatusCalloutType) (SecOC_VerificationStatusType verificationStatus);
 
 
@@ -182,6 +183,7 @@ typedef struct
  * Parent_Container_Name : SecOC_TxPduProcessing    *
  * Container_Index       : 10.1.21                  *
  ***************************************************/
+/* cppcheck-suppress misra-c2012-2.4 */
 typedef struct
 {
     uint32                  SecOCSecuredTxPduLength;
@@ -449,6 +451,7 @@ typedef struct
 
 struct SecOC_TxAuthServiceConfigRefTypeTag
 {
+   /* cppcheck-suppress misra-c2012-5.8 */
    Csm_JobType    *CsmJob;
 };
 
@@ -561,13 +564,13 @@ extern SecOC_MainFunctionTxType SecOC_MainFunctionTxConf;
 extern SecOC_MainFunctionRxType SecOCMainFunctionRx;
 // cppcheck-suppress misra-c2012-8.4
 extern SecOC_GeneralType SecOC_General;
-extern SecOC_RxCryptographicPduType SecOC_RxCryptographicPdu[];
-extern SecOC_RxAuthenticPduType SecOC_RxAuthenticPdu[];
-extern SecOC_UseMessageLinkType SecOC_UseMessageLink[];
-extern SecOC_RxSecuredPduCollectionType SecOC_RxSecuredPduCollection[];
-extern SecOC_RxAuthenticPduLayerType SecOC_RxAuthenticPduLayer[];
-extern SecOC_RxSecuredPduType SecOC_RxSecuredPdu[];
-extern SecOC_RxSecuredPduLayerType SecOC_RxSecuredPduLayer[];
+extern SecOC_RxCryptographicPduType SecOC_RxCryptographicPdu[1U];
+extern SecOC_RxAuthenticPduType SecOC_RxAuthenticPdu[1U];
+extern SecOC_UseMessageLinkType SecOC_UseMessageLink[1U];
+extern SecOC_RxSecuredPduCollectionType SecOC_RxSecuredPduCollection[1U];
+extern SecOC_RxAuthenticPduLayerType SecOC_RxAuthenticPduLayer[SECOC_NUM_OF_RX_PDU_PROCESSING];
+extern SecOC_RxSecuredPduType SecOC_RxSecuredPdu[SECOC_NUM_OF_RX_PDU_PROCESSING];
+extern SecOC_RxSecuredPduLayerType SecOC_RxSecuredPduLayer[SECOC_NUM_OF_RX_PDU_PROCESSING];
 // cppcheck-suppress misra-c2012-8.4
 extern Csm_JobType CsmJob;
 // cppcheck-suppress misra-c2012-8.4
@@ -576,17 +579,17 @@ extern SecOC_TxAuthServiceConfigRefType SecOC_TxAuthServiceConfigRef;
 extern SecOC_RxAuthServiceConfigRefType SecOC_RxAuthServiceConfigRef;
 // cppcheck-suppress misra-c2012-8.4
 extern SecOC_SameBufferPduCollectionType SecOC_SameBufferPduRef;
-extern SecOC_TxAuthenticPduLayerType SecOC_TxAuthenticPduLayer[];
-extern SecOC_TxSecuredPduType SecOC_TxSecuredPdu[];
-extern SecOC_TxCryptographicPduType SecOC_TxCryptographicPdu[];
-extern SecOC_TxAuthenticPduType SecOC_TxAuthenticPdu[];
-extern SecOC_TxSecuredPduCollectionType SecOC_TxSecuredPduCollection[];
-extern SecOC_TxSecuredPduLayerType SecOC_TxSecuredPduLayer[];
-extern SecOC_TxPduProcessingType SecOC_TxPduProcessing[];
-extern SecOC_RxPduProcessingType SecOC_RxPduProcessing[];
+extern SecOC_TxAuthenticPduLayerType SecOC_TxAuthenticPduLayer[SECOC_NUM_OF_TX_PDU_PROCESSING];
+extern SecOC_TxSecuredPduType SecOC_TxSecuredPdu[SECOC_NUM_OF_TX_PDU_PROCESSING];
+extern SecOC_TxCryptographicPduType SecOC_TxCryptographicPdu[1U];
+extern SecOC_TxAuthenticPduType SecOC_TxAuthenticPdu[1U];
+extern SecOC_TxSecuredPduCollectionType SecOC_TxSecuredPduCollection[1U];
+extern SecOC_TxSecuredPduLayerType SecOC_TxSecuredPduLayer[SECOC_NUM_OF_TX_PDU_PROCESSING];
+extern SecOC_TxPduProcessingType SecOC_TxPduProcessing[SECOC_NUM_OF_TX_PDU_PROCESSING];
+extern SecOC_RxPduProcessingType SecOC_RxPduProcessing[SECOC_NUM_OF_RX_PDU_PROCESSING];
 // cppcheck-suppress misra-c2012-8.4
 extern SecOC_ConfigType SecOC_Config;
-extern SecOC_TxCountersType SecOC_TxCounters[];
-extern SecOC_RxCountersType SecOC_RxCounters[];
+extern SecOC_TxCountersType SecOC_TxCounters[SECOC_NUM_OF_TX_PDU_PROCESSING];
+extern SecOC_RxCountersType SecOC_RxCounters[SECOC_NUM_OF_RX_PDU_PROCESSING];
 
 #endif
