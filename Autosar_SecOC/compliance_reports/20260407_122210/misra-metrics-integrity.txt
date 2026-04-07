@@ -1,8 +1,0 @@
-MISRA metrics integrity
-=======================
-- integrity_ok: true
-- total_diagnostics_all: 555
-- total_from_rule_counts: 555
-- total_misra_findings: 464
-- total_from_misra_rule_counts: 464
-- unique_misra_findings: 464

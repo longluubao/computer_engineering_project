@@ -1,8 +1,0 @@
-MISRA addon (misra.py) not found for cppcheck.
-Checked common locations:
-- /usr/share/cppcheck/addons/misra.py
-- C:/MinGW/mingw64/share/cppcheck/addons/misra.py
-- /c/MinGW/mingw64/share/cppcheck/addons/misra.py
-- /mnt/c/MinGW/mingw64/share/cppcheck/addons/misra.py
-- /usr/share/cppcheck/addons/misra.py
-- /mingw64/share/cppcheck/addons/misra.py
