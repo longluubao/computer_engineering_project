@@ -1,0 +1,2220 @@
+[x1] source/ApBridge/ApBridge.c:73:28: style: The scope of the variable 'TargetState' can be reduced. [variableScope]
+    SoAd_ApBridgeStateType TargetState;
+                           ^
+
+[x1] source/ApBridge/ApBridge.c:75:13: style: The scope of the variable 'IsForced' can be reduced. [variableScope]
+    boolean IsForced = FALSE;
+            ^
+
+[x1] include/Std_Types.h:15:0: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-20.7]
+#define BIT_TO_BYTES(NUMBITS) ((NUMBITS  % 8 == 0) ? (NUMBITS/8) :  (((NUMBITS / 8) + 1)))
+^
+
+[x1] include/Std_Types.h:48:0: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-21.1]
+#define NULL ((void*)0)
+^
+
+[x1] source/BswM/BswM.c:104:11: style: The scope of the variable 'idx' can be reduced. [variableScope]
+    uint8 idx;
+          ^
+
+[x1] source/BswM/BswM.c:663:11: style: The scope of the variable 'ActionIdx' can be reduced. [variableScope]
+    uint8 ActionIdx;
+          ^
+
+[x1] source/BswM/BswM.c:664:32: style: The scope of the variable 'ActionListPtr' can be reduced. [variableScope]
+    const BswM_ActionListType *ActionListPtr;
+                               ^
+
+[x1] source/BswM/BswM.c:736:11: style: The scope of the variable 'idx' can be reduced. [variableScope]
+    uint8 idx;
+          ^
+
+[x1] source/BswM/BswM.c:774:11: style: The scope of the variable 'idx' can be reduced. [variableScope]
+    uint8 idx;
+          ^
+
+[x1] source/BswM/BswM.c:776:13: style: The scope of the variable 'Updated' can be reduced. [variableScope]
+    boolean Updated = FALSE;
+            ^
+
+[x1] source/BswM/BswM.c:777:13: style: The scope of the variable 'Added' can be reduced. [variableScope]
+    boolean Added = FALSE;
+            ^
+
+[x1] source/BswM/BswM.c:844:11: style: The scope of the variable 'idx' can be reduced. [variableScope]
+    uint8 idx;
+          ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:564:37: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_RxCryptographicPduType SecOC_RxCryptographicPdu[];
+                                    ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:565:33: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_RxAuthenticPduType SecOC_RxAuthenticPdu[];
+                                ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:567:41: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_RxSecuredPduCollectionType SecOC_RxSecuredPduCollection[];
+                                        ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:566:33: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_UseMessageLinkType SecOC_UseMessageLink[];
+                                ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:568:38: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_RxAuthenticPduLayerType SecOC_RxAuthenticPduLayer[];
+                                     ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:569:31: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_RxSecuredPduType SecOC_RxSecuredPdu[];
+                              ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:570:36: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_RxSecuredPduLayerType SecOC_RxSecuredPduLayer[];
+                                   ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:579:38: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_TxAuthenticPduLayerType SecOC_TxAuthenticPduLayer[];
+                                     ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:580:31: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_TxSecuredPduType SecOC_TxSecuredPdu[];
+                              ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:581:37: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_TxCryptographicPduType SecOC_TxCryptographicPdu[];
+                                    ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:582:33: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_TxAuthenticPduType SecOC_TxAuthenticPdu[];
+                                ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:583:41: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_TxSecuredPduCollectionType SecOC_TxSecuredPduCollection[];
+                                        ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:584:36: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_TxSecuredPduLayerType SecOC_TxSecuredPduLayer[];
+                                   ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:585:34: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_TxPduProcessingType SecOC_TxPduProcessing[];
+                                 ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:586:34: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_RxPduProcessingType SecOC_RxPduProcessing[];
+                                 ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:589:29: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_TxCountersType SecOC_TxCounters[];
+                            ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:590:29: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern SecOC_RxCountersType SecOC_RxCounters[];
+                            ^
+
+[x1] include/SecOC/SecOC.h:368:22: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern PduLengthType authRecieveLength[];
+                     ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:53:64: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+   uint8                   Freshness[SECOC_FRESHNESS_MAX_LENGTH/8];  /* Complete Freshness Value */
+                                                               ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:56:69: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+   uint8                   FreshnessTrunc[SECOC_FRESHNESS_MAX_LENGTH/8];   /* Truncated freshness value */
+                                                                    ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:126:65: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+   uint8                   freshness[SECOC_FRESHNESS_MAX_LENGTH / 8];
+                                                                ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:130:63: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+   uint8                   mac[SECOC_AUTHENTICATOR_MAX_LENGTH / 8];
+                                                              ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:133:39: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+   uint8                   DataToAuth[SECOC_RX_DATA_TO_AUTHENTICATOR_LENGTH];
+                                      ^
+
+[x1] source/BswM/BswM.c:668:22: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if (ActionListId >= BSWM_MAX_ACTION_LISTS)
+                     ^
+
+[x1] source/Can/Can.c:147:29: warning: Either the condition 'Controller>=((unsigned char)1)' is redundant or the array 'Can_ControllerStates[1]' is accessed at index 1, which is out of bounds. [arrayIndexOutOfBoundsCond]
+        Can_ControllerStates[Controller] = Transition;
+                            ^
+
+[x1] source/Can/Can.c:104:42: style: Variable 'CurrentState' is assigned a value that is never used. [unreadVariable]
+    Can_ControllerStateType CurrentState = CAN_CS_UNINIT;
+                                         ^
+
+[x1] source/Can/Can.c:225:29: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    while (Can_TxQueueCount > 0)
+                            ^
+
+[x1] source/Can/Can.c:245:29: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    while (Can_RxQueueCount > 0)
+                            ^
+
+[x1] include/SecOC/SecOC_Debug.h:19:0: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-20.5]
+#undef RELEASE
+^
+
+[x1] source/Can/CanIF.c:180:32: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if ((PduInfoPtr->SduLength > 0) && (PduInfoPtr->SduDataPtr == NULL))
+                               ^
+
+[x1] source/Can/CanIF.c:194:30: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+            for(int i = 0; i < PduInfoPtr->SduLength; i++)
+                             ^
+
+[x1] source/Can/CanIF.c:162:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in CanIf_Transmit \n");
+              ^
+
+[x1] source/Can/CanIF.c:193:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("Secure PDU -->\n");
+              ^
+
+[x1] source/Can/CanIF.c:196:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("%d ", PduInfoPtr->SduDataPtr[i]);
+                      ^
+
+[x1] source/Can/CanIF.c:198:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("\n");
+              ^
+
+[x1] include/PduR/PduR_CanIf.h:9:0: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-20.13]
+#include"Std_Types.h"
+^
+
+[x1] source/Can/CanTP.c:262:17: warning: %ld in format string (no. 1) requires 'long' but the argument type is 'unsigned long'. [invalidPrintfArgType_sint]
+                printf("PDU length = %ld\n" , CanTp_Buffer[TxPduId].SduLength);
+                ^
+
+[x1] source/Can/CanTP.c:276:21: warning: %ld in format string (no. 1) requires 'long' but the argument type is 'unsigned long'. [invalidPrintfArgType_sint]
+                    printf("last frame PDU length = %ld\n" , CanTp_Buffer[TxPduId].SduLength);
+                    ^
+
+[x1] source/Can/CanTP.c:360:34: style: Variable 'result' is assigned a value that is never used. [unreadVariable]
+        BufReq_ReturnType result = BUFREQ_OK;
+                                 ^
+
+[x1] source/Can/CanTP.c:379:28: style: Variable 'result' is assigned a value that is never used. [unreadVariable]
+                    result = PduR_CanTpCopyRxData(RxPduId, &CanTp_Buffer_Rx[RxPduId], &bufferSizePtr);
+                           ^
+
+[x1] source/Can/CanTP.c:399:24: style: Variable 'result' is assigned a value that is never used. [unreadVariable]
+                result = PduR_CanTpCopyRxData(RxPduId, &CanTp_Buffer_Rx[RxPduId], &bufferSizePtr);
+                       ^
+
+[x1] source/Can/CanTP.c:64:29: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    for (PduIdType i = 0; i < SECOC_NUM_OF_TX_PDU_PROCESSING; i++)
+                            ^
+
+[x1] source/Can/CanTP.c:73:29: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    for (PduIdType i = 0; i < SECOC_NUM_OF_RX_PDU_PROCESSING; i++)
+                            ^
+
+[x1] source/Can/CanTP.c:117:22: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if (CanTpTxSduId >= SECOC_NUM_OF_TX_PDU_PROCESSING)
+                     ^
+
+[x1] source/Can/CanTP.c:132:65: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if (CanTpTxInfoPtr->SduLength <= (PduLengthType)(BUS_LENGTH - 1U))
+                                                                ^
+
+[x1] source/Can/CanTP.c:168:17: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if (RxPduId >= SECOC_NUM_OF_RX_PDU_PROCESSING)
+                ^
+
+[x1] source/Can/CanTP.c:187:39: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if(CanTp_Recieve_Counter[RxPduId] == 0)
+                                      ^
+
+[x1] source/Can/CanTP.c:190:53: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        PduLengthType SecureDataframe = AuthHeadlen + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueTruncLength) + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCAuthInfoTruncLength);
+                                                    ^
+
+[x1] source/Can/CanTP.c:198:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        if(AuthHeadlen > 0)
+                       ^
+
+[x1] source/Can/CanTP.c:239:41: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    for(PduIdType TxPduId = 0 ; TxPduId < SECOC_NUM_OF_TX_PDU_PROCESSING ; TxPduId++)
+                                        ^
+
+[x1] source/Can/CanTP.c:257:45: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        if( CanTp_Buffer[TxPduId].SduLength > 0)
+                                            ^
+
+[x1] source/Can/CanTP.c:259:70: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+            uint8 lastFrameIndex = ((CanTp_Buffer[TxPduId].SduLength % BUS_LENGTH) == 0)  ? (CanTp_Buffer[TxPduId].SduLength / BUS_LENGTH) : ((CanTp_Buffer[TxPduId].SduLength / BUS_LENGTH) + 1);
+                                                                     ^
+
+[x1] source/Can/CanTP.c:264:35: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+                for(int i = 0 ; i < CanTp_Buffer[TxPduId].SduLength; i++)
+                                  ^
+
+[x1] source/Can/CanTP.c:270:48: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+            for(int frameIndex = 0; frameIndex < lastFrameIndex ; frameIndex++)
+                                               ^
+
+[x1] source/Can/CanTP.c:272:31: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+                if(frameIndex == (lastFrameIndex - 1))
+                              ^
+
+[x1] source/Can/CanTP.c:274:72: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+                    info.SduLength = ((CanTp_Buffer[TxPduId].SduLength % BUS_LENGTH) == 0)  ? (BUS_LENGTH) : (CanTp_Buffer[TxPduId].SduLength % BUS_LENGTH);
+                                                                       ^
+
+[x1] source/Can/CanTP.c:278:39: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+                    for(int i = 0 ; i < info.SduLength; i++)
+                                      ^
+
+[x1] source/Can/CanTP.c:344:41: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    for(PduIdType RxPduId = 0 ; RxPduId < SECOC_NUM_OF_RX_PDU_PROCESSING ; RxPduId++)
+                                        ^
+
+[x1] source/Can/CanTP.c:361:44: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        if((CanTp_Recieve_Counter[RxPduId] > 0) && (CanTp_Buffer_Rx[RxPduId].SduLength > 0))
+                                           ^
+
+[x1] source/Can/CanTP.c:363:74: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+            uint8 lastFrameIndex = ((CanTp_secureLength_Recieve[RxPduId] % BUS_LENGTH) == 0)  ? (CanTp_secureLength_Recieve[RxPduId] / BUS_LENGTH) : ((CanTp_secureLength_Recieve[RxPduId] / BUS_LENGTH) + 1);
+                                                                         ^
+
+[x1] source/Can/CanTP.c:368:34: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+                for(int l = 0; l < CanTp_Buffer_Rx[RxPduId].SduLength; l++)
+                                 ^
+
+[x1] source/Can/CanTP.c:374:47: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+            if(CanTp_Recieve_Counter[RxPduId] == 1)
+                                              ^
+
+[x1] source/Can/CanTP.c:390:92: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+                CanTp_Buffer_Rx[RxPduId].SduLength = ((CanTp_secureLength_Recieve[RxPduId] % BUS_LENGTH) == 0) ? (BUS_LENGTH) : (CanTp_secureLength_Recieve[RxPduId] % BUS_LENGTH);
+                                                                                           ^
+
+[x1] source/Can/CanTP.c:101:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in CanTp_Transmit\n");
+              ^
+
+[x1] source/Can/CanTP.c:148:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in CanTp_RxIndication\n");
+              ^
+
+[x1] source/Can/CanTP.c:221:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in CanTp_MainFunction\n");
+              ^
+
+[x1] source/Can/CanTP.c:261:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("Start sending id = %d\n" , TxPduId);
+                      ^
+
+[x1] source/Can/CanTP.c:262:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("PDU length = %ld\n" , CanTp_Buffer[TxPduId].SduLength);
+                      ^
+
+[x1] source/Can/CanTP.c:263:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("All Data to be Sent: \n");
+                      ^
+
+[x1] source/Can/CanTP.c:266:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    printf("%d  " , CanTp_Buffer[TxPduId].SduDataPtr[i]);
+                          ^
+
+[x1] source/Can/CanTP.c:268:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("\n\n\n");
+                      ^
+
+[x1] source/Can/CanTP.c:276:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    printf("last frame PDU length = %ld\n" , CanTp_Buffer[TxPduId].SduLength);
+                          ^
+
+[x1] source/Can/CanTP.c:277:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    printf("All Data to be Sent: \n");
+                          ^
+
+[x1] source/Can/CanTP.c:280:31: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                        printf("%d  " , info.SduDataPtr[i]);
+                              ^
+
+[x1] source/Can/CanTP.c:282:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    printf("\n");
+                          ^
+
+[x1] source/Can/CanTP.c:302:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    printf("Transmit Result = %d\n" , resultTrasmit);
+                          ^
+
+[x1] source/Can/CanTP.c:320:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in CanTp_TxConfirmation \n");
+              ^
+
+[x1] source/Can/CanTP.c:336:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in CanTP_MainFunctionRx\n");
+              ^
+
+[x1] source/Can/CanTP.c:366:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("######## in main tp Rx  in id : %d\n", RxPduId);
+                      ^
+
+[x1] source/Can/CanTP.c:367:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("for id %d :",RxPduId);
+                      ^
+
+[x1] source/Can/CanTP.c:370:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    printf("%d ", CanTp_Buffer_Rx[RxPduId].SduDataPtr[l]);
+                          ^
+
+[x1] source/Can/CanTP.c:372:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("\n");
+                      ^
+
+[x1] source/Com/Com.c:199:22: style: The scope of the variable 'FirstId' can be reduced. [variableScope]
+    Com_SignalIdType FirstId;
+                     ^
+
+[x1] source/Com/Com.c:200:12: style: The scope of the variable 'Count' can be reduced. [variableScope]
+    uint16 Count;
+           ^
+
+[x1] source/Com/Com.c:945:15: style: The scope of the variable 'pduId' can be reduced. [variableScope]
+    PduIdType pduId;
+              ^
+
+[x1] include/Com/Com_PBcfg.h:51:35: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern const Com_SignalConfigType Com_PbSignalConfig[];
+                                  ^
+
+[x1] include/Com/Com_PBcfg.h:53:35: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern const Com_TxIpduConfigType Com_PbTxIpduConfig[];
+                                  ^
+
+[x1] include/Com/Com_PBcfg.h:54:35: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern const Com_RxIpduConfigType Com_PbRxIpduConfig[];
+                                  ^
+
+[x1] include/Com/Com_PBcfg.h:52:40: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.11]
+extern const Com_SignalGroupConfigType Com_PbSignalGroupConfig[];
+                                       ^
+
+[x1] source/Com/Com.c:149:12: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.5]
+    return (boolean)(SignalId < Com_ConfigPtr->ComNumOfSignals);
+           ^
+
+[x1] source/Com/Com.c:158:12: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.5]
+    return (boolean)(SignalGroupId < Com_ConfigPtr->ComNumOfSignalGroups);
+           ^
+
+[x1] source/Com/Com.c:167:12: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.5]
+    return (boolean)(TxPduId < Com_ConfigPtr->ComNumOfTxIpdu);
+           ^
+
+[x1] source/Com/Com.c:176:12: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.5]
+    return (boolean)(RxPduId < Com_ConfigPtr->ComNumOfRxIpdu);
+           ^
+
+[x1] source/Com/Com.c:1015:11: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+    printf("######## in Com_TxConfirmation\n");
+          ^
+
+[x1] source/Com/Com.c:1039:11: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+    printf("######## in Com_RxIndication\n");
+          ^
+
+[x1] source/Com/Com.c:1234:11: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+    printf("######## in Com_MainTx\n");
+          ^
+
+[x1] source/Csm/Csm.c:587:25: style: The scope of the variable 'contextPtr' can be reduced. [variableScope]
+    Csm_JobContextType* contextPtr;
+                        ^
+
+[x1] source/Csm/Csm.c:588:20: style: The scope of the variable 'operationResult' can be reduced. [variableScope]
+    Std_ReturnType operationResult;
+                   ^
+
+[x1] source/Csm/Csm.c:953:11: style: The scope of the variable 'peerId' can be reduced. [variableScope]
+    uint8 peerId;
+          ^
+
+[x1] source/Csm/Csm.c:1015:11: style: The scope of the variable 'peerId' can be reduced. [variableScope]
+    uint8 peerId;
+          ^
+
+[x1] source/Csm/Csm.c:1016:25: style: The scope of the variable 'sessionKeys' can be reduced. [variableScope]
+    PQC_SessionKeysType sessionKeys;
+                        ^
+
+[x1] source/Csm/Csm.c:639:25: style: Variable 'contextPtr' can be declared as pointer to const [constVariablePointer]
+    Csm_JobContextType* contextPtr;
+                        ^
+
+[x1] source/Csm/Csm.c:751:33: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    uint32 generatedMacLength = BIT_TO_BYTES(macLength);
+                                ^
+
+[x1] source/Csm/Csm.c:774:32: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if ((generatedMacLength == BIT_TO_BYTES(macLength)) &&
+                               ^
+
+[x1] source/Csm/Csm.c:979:9: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.5]
+    if ((uint32)CSM_KEYID_IS_SESSION(keyId) == (uint32)TRUE)
+        ^
+
+[x1] source/Csm/Csm.c:1030:9: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.5]
+    if ((uint32)CSM_KEYID_IS_SESSION(keyId) == (uint32)TRUE)
+        ^
+
+[x1] source/Dcm/Dcm.c:71:11: style: The scope of the variable 'subFunction' can be reduced. [variableScope]
+    uint8 subFunction;
+          ^
+
+[x1] source/Dcm/Dcm.c:317:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.8]
+    *RxBufferSizePtr = (PduLengthType)((uint16)DCM_RESPONSE_BUFFER_SIZE - Dcm_RxTpLength);
+                       ^
+
+[x1] source/EcuM/EcuM.c:270:55: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.8]
+    EcuM_ShutdownTargetType PersistedShutdownTarget = (EcuM_ShutdownTargetType)(PackedState & 0xFFUL);
+                                                      ^
+
+[x1] source/EcuM/EcuM.c:271:47: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.8]
+    EcuM_BootTargetType PersistedBootTarget = (EcuM_BootTargetType)((PackedState >> 8U) & 0xFFUL);
+                                              ^
+
+[x1] source/EcuM/EcuM.c:272:45: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.8]
+    EcuM_SleepModeType PersistedSleepMode = (EcuM_SleepModeType)((PackedState >> 16U) & 0xFFUL);
+                                            ^
+
+[x1] source/EcuM/EcuM.c:309:35: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.8]
+        EcuM_LastShutdownTarget = (EcuM_ShutdownTargetType)(PersistedHistoryWord & 0xFFUL);
+                                  ^
+
+[x1] source/EcuM/EcuM.c:49:50: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.4]
+static EcuM_ResetCalloutType EcuM_ResetCallout = (EcuM_ResetCalloutType)0;
+                                                 ^
+
+[x1] source/EcuM/EcuM.c:50:46: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.4]
+static EcuM_OffCalloutType EcuM_OffCallout = (EcuM_OffCalloutType)0;
+                                             ^
+
+[x1] source/EcuM/EcuM.c:51:72: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.4]
+static EcuM_WakeupValidationCalloutType EcuM_WakeupValidationCallout = (EcuM_WakeupValidationCalloutType)0;
+                                                                       ^
+
+[x1] source/EcuM/EcuM.c:147:30: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.4]
+    if (EcuM_ResetCallout != (EcuM_ResetCalloutType)0)
+                             ^
+
+[x1] source/EcuM/EcuM.c:157:28: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.4]
+    if (EcuM_OffCallout != (EcuM_OffCalloutType)0)
+                           ^
+
+[x1] source/EcuM/EcuM.c:167:41: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.4]
+    if (EcuM_WakeupValidationCallout != (EcuM_WakeupValidationCalloutType)0)
+                                        ^
+
+[x1] source/EcuM/EcuM.c:358:22: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.4]
+    if (ConfigPtr != (const EcuM_ConfigType*)0)
+                     ^
+
+[x1] source/EcuM/EcuM.c:347:10: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-21.16]
+        (memcmp(&CurrentGatewayHealth, &EcuM_LastGatewayHealthSnapshot, sizeof(BswM_GatewayHealthType)) != 0))
+         ^
+
+[x1] source/Encrypt/encrypt.c:134:33: style: Parameter 'inputKey' can be declared as const array [constParameter]
+void KeyExpansion(unsigned char inputKey[16], unsigned char expandedKeys[176]) {
+                                ^
+
+[x1] source/Encrypt/encrypt.c:162:57: style: Parameter 'roundKey' can be declared as pointer to const [constParameterPointer]
+void AddRoundKey(unsigned char * state, unsigned char * roundKey) {
+                                                        ^
+
+[x1] source/Encrypt/encrypt.c:262:24: style: Parameter 'message' can be declared as pointer to const [constParameterPointer]
+void AESEncrypt(uint8* message, unsigned char * expandedKey, uint8* encryptedMessage) {
+                       ^
+
+[x1] include/Ethernet/ethernet.h:18:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+extern int setsockopt(int, int, int, const void*, unsigned int);
+                      ^
+
+[x1] include/Ethernet/ethernet.h:19:17: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+extern int bind(int, const struct sockaddr*, unsigned int);
+                ^
+
+[x1] include/Ethernet/ethernet.h:20:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+extern int listen(int, int);
+                  ^
+
+[x1] include/Ethernet/ethernet.h:21:20: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+extern int connect(int, const struct sockaddr*, unsigned int);
+                   ^
+
+[x1] include/Ethernet/ethernet.h:22:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+extern int getsockname(int, struct sockaddr*, unsigned int*);
+                       ^
+
+[x1] source/Ethernet/ethernet.c:232:30: portability: Undefined behaviour, when 'actualPduSize' is -2 the pointer arithmetic 'recData+actualPduSize' is out of bounds. [pointerOutOfBoundsCond]
+    (void)memcpy(id, recData + actualPduSize, sizeof(unsigned short));
+                             ^
+
+[x1] source/Ethernet/ethernet.c:233:33: warning: Either the condition 'recv_result<0' is redundant or memcpy() argument nr 3 can have invalid value. The value is -2 but the valid values are '0:'. [invalidFunctionArg]
+    (void)memcpy(data, recData, actualPduSize);
+                                ^
+
+[x1] source/Ethernet/ethernet.c:113:9: portability: %d in format string (no. 1) requires 'int' but the argument type is 'size_t {aka unsigned long}'. [invalidPrintfArgType_sint]
+        printf("Sending %d bytes\n", dataLen + sizeof(id));
+        ^
+
+[x1] source/Ethernet/ethernet.c:72:62: style: Parameter 'data' can be declared as pointer to const [constParameterPointer]
+Std_ReturnType EthDrv_Send(unsigned short id, unsigned char* data , uint16 dataLen) {
+                                                             ^
+
+[x1] source/Ethernet/ethernet.c:28:35: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-7.4]
+static char ip_address_send[15] = "127.0.0.1";
+                                  ^
+
+[x1] source/Ethernet/ethernet.c:108:38: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.1]
+        sendData[dataLen+indx] = (id >> (8 * indx));
+                                     ^
+
+[x1] source/Ethernet/ethernet.c:104:39: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    uint8 sendData[BUS_LENGTH_RECEIVE + sizeof(id)];
+                                      ^
+
+[x1] source/Ethernet/ethernet.c:114:26: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        for(int j = 0; j < dataLen + sizeof(id) && j < 20 ; j++)
+                         ^
+
+[x1] source/Ethernet/ethernet.c:218:42: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-12.1]
+        for(int j  = 0 ; j < recv_result && j < 20 ; j++)
+                                         ^
+
+[x1] source/Ethernet/ethernet.c:159:8: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-14.4]
+    if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
+       ^
+
+[x1] source/Ethernet/ethernet.c:48:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Error opening file\n");
+                  ^
+
+[x1] source/Ethernet/ethernet.c:60:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("IP is %s\n", ip_address_read);
+              ^
+
+[x1] source/Ethernet/ethernet.c:74:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in Sent Ethernet\n");
+              ^
+
+[x1] source/Ethernet/ethernet.c:82:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Create Socket Error\n");
+                  ^
+
+[x1] source/Ethernet/ethernet.c:97:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Connection Error\n");
+                  ^
+
+[x1] source/Ethernet/ethernet.c:113:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("Sending %d bytes\n", dataLen + sizeof(id));
+              ^
+
+[x1] source/Ethernet/ethernet.c:116:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("%d\t",sendData[j]);
+                  ^
+
+[x1] source/Ethernet/ethernet.c:118:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("\n");
+              ^
+
+[x1] source/Ethernet/ethernet.c:136:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in Recieve Ethernet\n");
+              ^
+
+[x1] source/Ethernet/ethernet.c:145:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Create Socket Error\n");
+                  ^
+
+[x1] source/Ethernet/ethernet.c:162:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("connect setsockopt Error \n");
+                  ^
+
+[x1] source/Ethernet/ethernet.c:173:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Bind Error\n");
+                  ^
+
+[x1] source/Ethernet/ethernet.c:184:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Listen Error\n");
+                  ^
+
+[x1] source/Ethernet/ethernet.c:194:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Accept Error\n");
+                  ^
+
+[x1] source/Ethernet/ethernet.c:205:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Receive Error\n");
+                  ^
+
+[x1] source/Ethernet/ethernet.c:215:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("in Recieve Ethernet \t");
+              ^
+
+[x1] source/Ethernet/ethernet.c:216:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("Received %d bytes total, PDU size = %d\n", recv_result, actualPduSize);
+              ^
+
+[x1] source/Ethernet/ethernet.c:217:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("Info Received (first 20 bytes): \n");
+              ^
+
+[x1] source/Ethernet/ethernet.c:220:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("%d ",recData[j]);
+                  ^
+
+[x1] source/Ethernet/ethernet.c:222:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("\n\n\n");
+              ^
+
+[x1] source/Ethernet/ethernet.c:242:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("id = %d \n",*id);
+              ^
+
+[x1] source/Ethernet/ethernet.c:232:11: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-21.15]
+    (void)memcpy(id, recData + actualPduSize, sizeof(unsigned short));
+          ^
+
+[x1] source/Ethernet/ethernet_windows.c:165:9: portability: %d in format string (no. 1) requires 'int' but the argument type is 'size_t {aka unsigned long}'. [invalidPrintfArgType_sint]
+        printf("Sending %d bytes\n", dataLen + sizeof(id));
+        ^
+
+[x1] source/Ethernet/ethernet_windows.c:114:62: style: Parameter 'data' can be declared as pointer to const [constParameterPointer]
+Std_ReturnType EthDrv_Send(unsigned short id, unsigned char* data, uint16 dataLen)
+                                                             ^
+
+[x1] source/Ethernet/ethernet_windows.c:34:35: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-7.4]
+static char ip_address_send[15] = "127.0.0.1";
+                                  ^
+
+[x1] source/Ethernet/ethernet_windows.c:161:40: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.1]
+        sendData[dataLen + indx] = (id >> (8 * indx));
+                                       ^
+
+[x1] source/Ethernet/ethernet_windows.c:157:39: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    uint8 sendData[BUS_LENGTH_RECEIVE + sizeof(id)];
+                                      ^
+
+[x1] source/Ethernet/ethernet_windows.c:166:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        for (int j = 0; j < dataLen + sizeof(id) && j < 20; j++)
+                          ^
+
+[x1] source/Ethernet/ethernet_windows.c:274:41: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-12.1]
+        for (int j = 0; j < recv_result && j < 20; j++)
+                                        ^
+
+[x1] source/Ethernet/ethernet_windows.c:90:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Error opening file, using default IP: %s\n", ip_address_send);
+                  ^
+
+[x1] source/Ethernet/ethernet_windows.c:102:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("IP is %s\n", ip_address_read);
+              ^
+
+[x1] source/Ethernet/ethernet_windows.c:117:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in Sent Ethernet\n");
+              ^
+
+[x1] source/Ethernet/ethernet_windows.c:134:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Create Socket Error: %d\n", WSAGetLastError());
+                  ^
+
+[x1] source/Ethernet/ethernet_windows.c:150:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Connection Error: %d\n", WSAGetLastError());
+                  ^
+
+[x1] source/Ethernet/ethernet_windows.c:165:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("Sending %d bytes\n", dataLen + sizeof(id));
+              ^
+
+[x1] source/Ethernet/ethernet_windows.c:168:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("%d\t", sendData[j]);
+                  ^
+
+[x1] source/Ethernet/ethernet_windows.c:170:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("\n");
+              ^
+
+[x1] source/Ethernet/ethernet_windows.c:184:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in Receive Ethernet\n");
+              ^
+
+[x1] source/Ethernet/ethernet_windows.c:202:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Create Socket Error: %d\n", WSAGetLastError());
+                  ^
+
+[x1] source/Ethernet/ethernet_windows.c:218:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("setsockopt Error: %d\n", WSAGetLastError());
+                  ^
+
+[x1] source/Ethernet/ethernet_windows.c:228:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Bind Error: %d\n", WSAGetLastError());
+                  ^
+
+[x1] source/Ethernet/ethernet_windows.c:237:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Listen Error: %d\n", WSAGetLastError());
+                  ^
+
+[x1] source/Ethernet/ethernet_windows.c:247:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Accept Error: %d\n", WSAGetLastError());
+                  ^
+
+[x1] source/Ethernet/ethernet_windows.c:260:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("Receive Error: %d\n", WSAGetLastError());
+                  ^
+
+[x1] source/Ethernet/ethernet_windows.c:271:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("in Receive Ethernet \t");
+              ^
+
+[x1] source/Ethernet/ethernet_windows.c:272:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("Received %d bytes total, PDU size = %d\n", recv_result, actualPduSize);
+              ^
+
+[x1] source/Ethernet/ethernet_windows.c:273:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("Info Received (first 20 bytes): \n");
+              ^
+
+[x1] source/Ethernet/ethernet_windows.c:276:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("%d ", recData[j]);
+                  ^
+
+[x1] source/Ethernet/ethernet_windows.c:278:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("\n\n\n");
+              ^
+
+[x1] source/Ethernet/ethernet_windows.c:293:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("id = %d \n", *id);
+              ^
+
+[x1] source/Ethernet/ethernet_windows.c:283:11: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-21.15]
+    (void)memcpy(id, recData + actualPduSize, sizeof(unsigned short));
+          ^
+
+[x1] source/MemIf/MemIf.c:168:35: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.1]
+        Fee_SetJobEndNotification((Fee_JobNotificationType)JobEndNotificationPtr);
+                                  ^
+
+[x1] source/MemIf/MemIf.c:169:37: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.1]
+        Fee_SetJobErrorNotification((Fee_JobNotificationType)JobErrorNotificationPtr);
+                                    ^
+
+[x1] source/MemIf/MemIf.c:173:34: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.1]
+        Ea_SetJobEndNotification((Ea_JobNotificationType)JobEndNotificationPtr);
+                                 ^
+
+[x1] source/MemIf/MemIf.c:174:36: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.1]
+        Ea_SetJobErrorNotification((Ea_JobNotificationType)JobErrorNotificationPtr);
+                                   ^
+
+[x1] source/NvM/NvM.c:477:18: style: The scope of the variable 'SourcePtr' can be reduced. [variableScope]
+    const uint8* SourcePtr;
+                 ^
+
+[x1] source/NvM/NvM.c:868:12: style: The scope of the variable 'ReadTargetPtr' can be reduced. [variableScope]
+    uint8* ReadTargetPtr;
+           ^
+
+[x1] source/NvM/NvM.c:869:13: style: The scope of the variable 'BlockSucceeded' can be reduced. [variableScope]
+    boolean BlockSucceeded = FALSE;
+            ^
+
+[x1] source/NvM/NvM.c:110:20: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-9.3]
+static const uint8 NvM_EcuMDataDatasetDefaults[sizeof(uint32)] = {0U, 0U, 0U, 0U};
+                   ^
+
+[x1] source/NvM/NvM.c:628:75: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.5]
+        if (NvM_EnqueueRequest((uint16)BlockIndex, NVM_INT_OP_READ_BLOCK, (uint8*)NvM_DstPtr, NULL) != E_OK)
+                                                                          ^
+
+[x1] source/NvM/NvM.c:639:25: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.5]
+    NvM_CurrentDstPtr = (uint8*)NvM_DstPtr;
+                        ^
+
+[x1] source/NvM/NvM.c:658:82: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.5]
+        if (NvM_EnqueueRequest((uint16)BlockIndex, NVM_INT_OP_WRITE_BLOCK, NULL, (const uint8*)NvM_SrcPtr) != E_OK)
+                                                                                 ^
+
+[x1] source/NvM/NvM.c:671:25: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.5]
+    NvM_CurrentSrcPtr = (const uint8*)NvM_SrcPtr;
+                        ^
+
+[x1] source/NvM/NvM.c:696:40: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.5]
+    TargetPtr = (NvM_DstPtr != NULL) ? (uint8*)NvM_DstPtr : DescriptorPtr->RamBlockDataAddress;
+                                       ^
+
+[x1] source/Os/Os.c:328:29: style: The scope of the variable 'nextCtr' can be reduced. [variableScope]
+                CounterType nextCtr = 0U;
+                            ^
+
+[x1] source/Os/Os.c:328:37: style: Variable 'nextCtr' is assigned a value that is never used. [unreadVariable]
+                CounterType nextCtr = 0U;
+                                    ^
+
+[x1] source/PQC/PQC_KeyDerivation.c:92:38: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    (void)memcpy(okm, hash, (okm_len < 32) ? okm_len : 32);
+                                     ^
+
+[x1] source/PQC/PQC_KeyDerivation.c:85:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-13.3]
+    input[input_len++] = 0x01;  /* Counter byte */
+                       ^
+
+[x1] source/PQC/PQC_KeyDerivation.c:56:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-18.4]
+    (void)memcpy(input + input_len, ikm, ikm_len);
+                       ^
+
+[x1] source/PQC/PQC_KeyDerivation.c:83:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-18.4]
+    (void)memcpy(input + input_len, info, info_len);
+                       ^
+
+[x1] source/PQC/PQC_KeyExchange.c:233:33: style: Variable 'session' can be declared as pointer to const [constVariablePointer]
+    PQC_KeyExchangeSessionType* session = &PQC_Sessions[PeerId];
+                                ^
+
+[x1] source/PduR/PduR_Com.c:32:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in PduR_ComTransmit \n");
+              ^
+
+[x1] include/PduR/PduR_SoAd.h:9:0: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-20.13]
+#include"Std_Types.h"
+^
+
+[x1] source/PduR/Pdur_CanTP.c:37:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in PduR_CanTpCopyTxData \n");
+              ^
+
+[x1] source/PduR/Pdur_CanTP.c:49:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in PduR_CanTpTxConfirmation \n");
+              ^
+
+[x1] source/PduR/Pdur_CanTP.c:63:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in PduR_CanTpCopyRxData \n");
+              ^
+
+[x1] source/PduR/Pdur_CanTP.c:78:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in PduR_CanTpStartOfReception \n");
+              ^
+
+[x1] source/PduR/Pdur_CanTP.c:90:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in PduR_CanTpRxIndication \n");
+              ^
+
+[x1] source/PduR/Pdur_Canif.c:34:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in PduR_CanIfTxConfirmation \n");
+              ^
+
+[x1] source/PduR/Pdur_Canif.c:46:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in PduR_CanIfRxIndication\n");
+              ^
+
+[x1] source/Scheduler/scheduler.c:97:28: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-2.7]
+void scheduler_handler(int signum) {
+                           ^
+
+[x1] include/Scheduler/scheduler.h:14:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+extern int pthread_create(pthread_t*, const void*, void*(*)(void*), void*);
+                          ^
+
+[x1] include/Scheduler/scheduler.h:30:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+void EthernetRecieveFn(void);
+                      ^
+
+[x1] include/Scheduler/scheduler.h:31:26: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+void RecieveMainFunctions(void);
+                         ^
+
+[x1] include/Scheduler/scheduler.h:32:21: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+void TxMainFunctions(void);
+                    ^
+
+[x1] include/Scheduler/scheduler.h:35:21: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+void Scheduler_Start(void);
+                    ^
+
+[x1] source/Scheduler/scheduler.c:54:16: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.3]
+            if(pthread_create(&t , NULL, (void *)&ethernet_RecieveMainFunction, NULL) != 0)
+               ^
+
+[x1] source/Scheduler/scheduler.c:57:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("error create thread");
+                      ^
+
+[x1] source/Scheduler/scheduler.c:17:0: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-21.5]
+#include <signal.h>
+^
+
+[x1] source/SecOC/FVM.c:204:13: style: Parameter 'SecOCTruncatedFreshnessValueLength' can be declared as pointer to const [constParameterPointer]
+    uint32* SecOCTruncatedFreshnessValueLength
+            ^
+
+[x1] source/SecOC/FVM.c:220:71: style: Parameter 'SecOCFreshnessValue' can be declared as pointer to const [constParameterPointer]
+Std_ReturnType FVM_UpdateCounter(uint16 SecOCFreshnessValueID, uint8* SecOCFreshnessValue, uint32 SecOCFreshnessValueLength) {
+                                                                      ^
+
+[x1] source/SecOC/FVM.c:59:31: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if (SecOCFreshnessValueID >= SecOC_FreshnessValue_ID_MAX) {
+                              ^
+
+[x1] source/SecOC/FVM.c:67:57: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        if (Freshness_Counter[SecOCFreshnessValueID][i] != 0) {
+                                                        ^
+
+[x1] source/SecOC/FVM.c:77:31: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if (SecOCFreshnessValueID >= SecOC_FreshnessValue_ID_MAX) {
+                              ^
+
+[x1] source/SecOC/FVM.c:83:20: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if (currentLen == 0) {
+                   ^
+
+[x1] source/SecOC/FVM.c:87:81: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    (void)memcpy(SecOCFreshnessValue, Freshness_Counter[SecOCFreshnessValueID], BIT_TO_BYTES(currentLen));
+                                                                                ^
+
+[x1] source/SecOC/FVM.c:102:31: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if (SecOCFreshnessValueID >= SecOC_FreshnessValue_ID_MAX) {
+                              ^
+
+[x1] source/SecOC/FVM.c:107:26: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if (configFullLength == 0) {
+                         ^
+
+[x1] source/SecOC/FVM.c:113:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    uint32 fullBytes = BIT_TO_BYTES(configFullLength);
+                       ^
+
+[x1] source/SecOC/FVM.c:114:25: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    uint32 truncBytes = BIT_TO_BYTES(truncLen);
+                        ^
+
+[x1] source/SecOC/FVM.c:140:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        uint32 msbBytes = BIT_TO_BYTES(msbLen);
+                          ^
+
+[x1] source/SecOC/FVM.c:210:28: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        uint32 fullBytes = BIT_TO_BYTES(*SecOCFreshnessValueLength);
+                           ^
+
+[x1] source/SecOC/FVM.c:211:29: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        uint32 truncBytes = BIT_TO_BYTES(truncBits);
+                            ^
+
+[x1] source/SecOC/FVM.c:221:31: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if (SecOCFreshnessValueID >= SecOC_FreshnessValue_ID_MAX) {
+                              ^
+
+[x1] source/SecOC/FVM.c:224:26: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    uint32 lengthBytes = BIT_TO_BYTES(SecOCFreshnessValueLength);
+                         ^
+
+[x1] source/SecOC/FVM.c:63:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-12.1]
+    uint32 maxBytes = BIT_TO_BYTES(SECOC_MAX_FRESHNESS_SIZE);
+                      ^
+
+[x1] source/SecOC/FVM.c:141:32: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-12.1]
+        uint8 candidateCurrent[BIT_TO_BYTES(SECOC_MAX_FRESHNESS_SIZE)] = {0};
+                               ^
+
+[x1] source/SecOC/FVM.c:142:31: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-12.1]
+        uint8 candidateRolled[BIT_TO_BYTES(SECOC_MAX_FRESHNESS_SIZE)] = {0};
+                              ^
+
+[x1] source/SecOC/SecOC.c:1110:30: style: Condition 'info->SduLength>0' is always true [knownConditionTrueFalse]
+    else if((info->SduLength > 0) && (info->SduDataPtr != NULL))
+                             ^
+
+[x1] source/SecOC/SecOC.c:455:9: warning: %u in format string (no. 1) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("║   %2u bytes    ║      %3lu bytes        ║    %2u bytes     ║      %4u bytes        ║\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:455:9: warning: %u in format string (no. 3) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("║   %2u bytes    ║      %3lu bytes        ║    %2u bytes     ║      %4u bytes        ║\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:455:9: warning: %u in format string (no. 4) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("║   %2u bytes    ║      %3lu bytes        ║    %2u bytes     ║      %4u bytes        ║\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:979:17: warning: %u in format string (no. 1) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+                printf("PQC Mode: Setting securedPdu->SduLength = %u (from PduInfoPtr->SduLength = %u)\n",
+                ^
+
+[x1] source/SecOC/SecOC.c:979:17: warning: %u in format string (no. 2) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+                printf("PQC Mode: Setting securedPdu->SduLength = %u (from PduInfoPtr->SduLength = %u)\n",
+                ^
+
+[x1] source/SecOC/SecOC.c:1215:9: warning: %u in format string (no. 2) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("PQC Mode: Extracted signature, actualSignatureLen = %lu bytes (SecPdu->SduLength=%u, SecCursor was=%lu)\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1235:9: warning: %u in format string (no. 1) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║        %4u bytes                ║\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1235:9: warning: %u in format string (no. 2) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║        %4u bytes                ║\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1235:9: warning: %u in format string (no. 3) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║        %4u bytes                ║\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1235:9: warning: %u in format string (no. 4) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║        %4u bytes                ║\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1251:13: warning: %X in format string (no. 1) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+            printf("0x%02X         ", SecOCIntermediate->authenticPduLen);
+            ^
+
+[x1] source/SecOC/SecOC.c:1276:9: warning: %u in format string (no. 1) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("Total Received PDU: %u bytes\n", SecPdu->SduLength);
+        ^
+
+[x1] source/SecOC/SecOC.c:1277:9: warning: %u in format string (no. 1) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("Parsed: Header=%u + Auth=%u + Fresh=%u + MAC/Sig=%u\n\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1277:9: warning: %u in format string (no. 2) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("Parsed: Header=%u + Auth=%u + Fresh=%u + MAC/Sig=%u\n\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1277:9: warning: %u in format string (no. 3) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("Parsed: Header=%u + Auth=%u + Fresh=%u + MAC/Sig=%u\n\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1277:9: warning: %u in format string (no. 4) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("Parsed: Header=%u + Auth=%u + Fresh=%u + MAC/Sig=%u\n\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1465:9: warning: %u in format string (no. 1) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("PQC Signature generated: %u bytes (vs ~4 bytes for MAC)\n", signatureLen);
+        ^
+
+[x1] source/SecOC/SecOC.c:1511:9: warning: %u in format string (no. 1) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║        %4u bytes                ║\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1511:9: warning: %u in format string (no. 2) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║        %4u bytes                ║\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1511:9: warning: %u in format string (no. 3) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║        %4u bytes                ║\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1511:9: warning: %u in format string (no. 4) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║        %4u bytes                ║\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1541:9: warning: %u in format string (no. 1) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("Total Secured PDU: %u bytes (Header=%u + Auth=%u + Fresh=%u + Signature=%u)\n\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1541:9: warning: %u in format string (no. 2) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("Total Secured PDU: %u bytes (Header=%u + Auth=%u + Fresh=%u + Signature=%u)\n\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1541:9: warning: %u in format string (no. 3) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("Total Secured PDU: %u bytes (Header=%u + Auth=%u + Fresh=%u + Signature=%u)\n\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1541:9: warning: %u in format string (no. 4) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("Total Secured PDU: %u bytes (Header=%u + Auth=%u + Fresh=%u + Signature=%u)\n\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1541:9: warning: %u in format string (no. 5) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+        printf("Total Secured PDU: %u bytes (Header=%u + Auth=%u + Fresh=%u + Signature=%u)\n\n",
+        ^
+
+[x1] source/SecOC/SecOC.c:1611:13: warning: %u in format string (no. 1) requires 'unsigned int' but the argument type is 'unsigned long'. [invalidPrintfArgType_uint]
+            printf("PQC Signature verification: sig_len=%u bytes, result=%d\n", signatureLen, Sig_verify);
+            ^
+
+[x1] source/SecOC/SecOC.c:751:18: style: The scope of the variable 'AuthPduCollection' can be reduced. [variableScope]
+    PduInfoType *AuthPduCollection;
+                 ^
+
+[x1] source/SecOC/SecOC.c:752:18: style: The scope of the variable 'CryptoPduCollection' can be reduced. [variableScope]
+    PduInfoType *CryptoPduCollection;
+                 ^
+
+[x1] source/SecOC/SecOC.c:753:15: style: The scope of the variable 'pduCollectionId' can be reduced. [variableScope]
+    PduIdType pduCollectionId;
+              ^
+
+[x1] source/SecOC/SecOC.c:754:15: style: The scope of the variable 'authCollectionId' can be reduced. [variableScope]
+    PduIdType authCollectionId;
+              ^
+
+[x1] source/SecOC/SecOC.c:755:15: style: The scope of the variable 'cryptoCollectionId' can be reduced. [variableScope]
+    PduIdType cryptoCollectionId;
+              ^
+
+[x1] source/SecOC/SecOC.c:963:16: style: Local variable 'headerLen' shadows outer variable [shadowVariable]
+        uint32 headerLen = SecOCRxPduProcessing[RxPduId].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCAuthPduHeaderLength;
+               ^
+
+[x1] source/SecOC/SecOC.c:426:12: style: Variable 'MsgFreshness' can be declared as pointer to const [constVariablePointer]
+    uint8 *MsgFreshness = (IsFreshnessTruncated) ? SecOCIntermediate.FreshnessTrunc : SecOCIntermediate.Freshness;
+           ^
+
+[x1] source/SecOC/SecOC.c:565:44: style: Variable 'securePduCollection' can be declared as pointer to const [constVariablePointer]
+        SecOC_TxSecuredPduCollectionType * securePduCollection = (SecOCTxPduProcessing[idx].SecOCTxSecuredPduLayer->SecOCTxSecuredPduCollection);
+                                           ^
+
+[x1] source/SecOC/SecOC.c:665:18: style: Variable 'securedPdu' can be declared as pointer to const [constVariablePointer]
+    PduInfoType *securedPdu = &(SecOCTxPduProcessing[id].SecOCTxSecuredPduLayer->SecOCTxSecuredPdu->SecOCTxSecuredLayerPduRef);
+                 ^
+
+[x1] source/SecOC/SecOC.c:1485:12: style: Variable 'MsgFreshness' can be declared as pointer to const [constVariablePointer]
+    uint8 *MsgFreshness = (IsFreshnessTruncated) ? SecOCIntermediate.FreshnessTrunc : SecOCIntermediate.Freshness;
+           ^
+
+[x1] source/SecOC/SecOC.c:1677:22: style: Variable 'authPdu' can be declared as pointer to const [constVariablePointer]
+        PduInfoType *authPdu = &(SecOCRxPduProcessing[idx].SecOCRxAuthenticPduLayer->SecOCRxAuthenticLayerPduRef);
+                     ^
+
+[x1] source/SecOC/SecOC.c:936:35: style: Variable 'messageLinkPos' is assigned a value that is never used. [unreadVariable]
+            uint16 messageLinkPos = SecOCRxPduProcessing[pduCollectionId].SecOCRxSecuredPduLayer->SecOCRxSecuredPduCollection->SecOCUseMessageLink->SecOCMessageLinkPos;
+                                  ^
+
+[x1] source/SecOC/SecOC.c:1213:15: style: Variable 'SecCursor' is assigned a value that is never used. [unreadVariable]
+    SecCursor += actualSignatureLen;
+              ^
+
+[x1] source/SecOC/SecOC.c:1932:16: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+void SecOC_test()
+               ^
+
+[x1] source/SecOC/SecOC.c:425:34: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.3]
+    boolean IsFreshnessTruncated = (SecOCTxPduProcessing[TxPduId].SecOCProvideTxTruncatedFreshnessValue == TRUE);
+                                 ^
+
+[x1] source/SecOC/SecOC.c:1484:34: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.3]
+    boolean IsFreshnessTruncated = (SecOCTxPduProcessing[TxPduId].SecOCProvideTxTruncatedFreshnessValue == TRUE);
+                                 ^
+
+[x1] source/SecOC/SecOC.c:133:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    for (idx = 0 ; idx < SECOC_NUM_OF_TX_PDU_PROCESSING ; idx++)
+                       ^
+
+[x1] source/SecOC/SecOC.c:159:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    for (idx = 0 ; idx < SECOC_NUM_OF_TX_PDU_PROCESSING; idx++)
+                       ^
+
+[x1] source/SecOC/SecOC.c:166:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    for (idx = 0 ; idx < SECOC_NUM_OF_RX_PDU_PROCESSING; idx++)
+                       ^
+
+[x1] source/SecOC/SecOC.c:224:26: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        for(int i = 0; i < authpdu->SduLength; i++)
+                         ^
+
+[x1] source/SecOC/SecOC.c:267:32: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    uint32 FreshnesslenBytes = BIT_TO_BYTES(SecOCIntermediate->FreshnessLenBits);
+                               ^
+
+[x1] source/SecOC/SecOC.c:390:42: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    SecOCIntermediate.AuthenticatorLen = BIT_TO_BYTES(SecOCTxPduProcessing[TxPduId].SecOCAuthInfoTruncLength);
+                                         ^
+
+[x1] source/SecOC/SecOC.c:413:18: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if(headerLen > 0)
+                 ^
+
+[x1] source/SecOC/SecOC.c:427:32: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    uint32 FreshnesslenBytes = BIT_TO_BYTES(SecOCTxPduProcessing[TxPduId].SecOCFreshnessValueTruncLength);
+                               ^
+
+[x1] source/SecOC/SecOC.c:462:22: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        if(headerLen > 0) {
+                     ^
+
+[x1] source/SecOC/SecOC.c:463:50: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+            for(uint32 i = 0; i < headerLen && i < 4; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[i]); }
+                                                 ^
+
+[x1] source/SecOC/SecOC.c:472:44: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        for(uint32 i = 0; i < authLen && i < 4; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[authStart + i]); }
+                                           ^
+
+[x1] source/SecOC/SecOC.c:473:20: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        if(authLen > 4) { (void)printf("..."); }
+                   ^
+
+[x1] source/SecOC/SecOC.c:478:54: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        for(uint32 i = 0; i < FreshnesslenBytes && i < 2; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[freshStart + i]); }
+                                                     ^
+
+[x1] source/SecOC/SecOC.c:483:71: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        for(uint32 i = 0; i < SecOCIntermediate.AuthenticatorLen && i < 4; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[macStart + i]); }
+                                                                      ^
+
+[x1] source/SecOC/SecOC.c:524:32: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    uint32 FreshnesslenBytes = BIT_TO_BYTES(SecOCTxPduProcessing[TxPduId].SecOCFreshnessValueTruncLength);
+                               ^
+
+[x1] source/SecOC/SecOC.c:525:31: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    uint32 AuthenticatorLen = BIT_TO_BYTES(SecOCTxPduProcessing[TxPduId].SecOCAuthInfoTruncLength);
+                              ^
+
+[x1] source/SecOC/SecOC.c:561:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    for (idx = 0 ; idx < SECOC_NUM_OF_TX_PDU_PROCESSING ; idx++)
+                       ^
+
+[x1] source/SecOC/SecOC.c:571:32: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        if (authPdu->SduLength > 0)
+                               ^
+
+[x1] source/SecOC/SecOC.c:576:34: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+                for(int k = 0; k < authPdu->SduLength; k++)
+                                 ^
+
+[x1] source/SecOC/SecOC.c:593:38: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+                    for(int k = 0; k < securedPdu->SduLength; k++)
+                                     ^
+
+[x1] source/SecOC/SecOC.c:668:30: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if(securedPdu->SduLength > 0)
+                             ^
+
+[x1] source/SecOC/SecOC.c:674:32: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+            if(info->SduLength == 0)
+                               ^
+
+[x1] source/SecOC/SecOC.c:729:26: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        for(int h = 0; h < info->SduLength; h++)
+                         ^
+
+[x1] source/SecOC/SecOC.c:909:98: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        if((PdusCollections[RxPduId].Type == SECOC_AUTH_COLLECTON_PDU) && (securedPdu->SduLength == 0))
+                                                                                                 ^
+
+[x1] source/SecOC/SecOC.c:919:105: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        else if((PdusCollections[RxPduId].Type == SECOC_CRYPTO_COLLECTON_PDU) && (securedPdu->SduLength == 0))
+                                                                                                        ^
+
+[x1] source/SecOC/SecOC.c:933:42: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        if((AuthPduCollection->SduLength > 0) && (CryptoPduCollection->SduLength > 0))
+                                         ^
+
+[x1] source/SecOC/SecOC.c:971:22: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        if(headerLen > 0)
+                     ^
+
+[x1] source/SecOC/SecOC.c:1041:26: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    else if (TpSduLength == 0)
+                         ^
+
+[x1] source/SecOC/SecOC.c:1051:28: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+            if(AuthHeadlen > 0)
+                           ^
+
+[x1] source/SecOC/SecOC.c:1102:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if(info->SduLength == 0)
+                       ^
+
+[x1] source/SecOC/SecOC.c:1110:30: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    else if((info->SduLength > 0) && (info->SduDataPtr != NULL))
+                             ^
+
+[x1] source/SecOC/SecOC.c:1171:18: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if(headerLen > 0)
+                 ^
+
+[x1] source/SecOC/SecOC.c:1205:18: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    SecCursor += BIT_TO_BYTES(SecOCTruncatedFreshnessValueLength);
+                 ^
+
+[x1] source/SecOC/SecOC.c:1211:56: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    SecOCIntermediate->macLenBits = actualSignatureLen * 8;  /* Convert bytes to bits */
+                                                       ^
+
+[x1] source/SecOC/SecOC.c:1226:32: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        uint32 freshLenBytes = BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueTruncLength);
+                               ^
+
+[x1] source/SecOC/SecOC.c:1227:30: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        uint32 macLenBytes = BIT_TO_BYTES(SecOCIntermediate->macLenBits);
+                             ^
+
+[x1] source/SecOC/SecOC.c:1250:22: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        if(headerLen > 0) {
+                     ^
+
+[x1] source/SecOC/SecOC.c:1258:71: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        for(uint32 i = 0; i < SecOCIntermediate->authenticPduLen && i < 4; i++) { (void)printf("0x%02X ", SecOCIntermediate->authenticPdu[i]); }
+                                                                      ^
+
+[x1] source/SecOC/SecOC.c:1259:47: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        if(SecOCIntermediate->authenticPduLen > 4) { (void)printf("..."); }
+                                              ^
+
+[x1] source/SecOC/SecOC.c:1263:50: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        for(uint32 i = 0; i < freshLenBytes && i < 2; i++) { (void)printf("0x%02X ", SecOCIntermediate->freshness[i]); }
+                                                 ^
+
+[x1] source/SecOC/SecOC.c:1267:48: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        for(uint32 i = 0; i < macLenBytes && i < 4; i++) { (void)printf("0x%02X ", SecOCIntermediate->mac[i]); }
+                                               ^
+
+[x1] source/SecOC/SecOC.c:1268:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        if(macLenBytes > 4) { (void)printf("..."); }
+                       ^
+
+[x1] source/SecOC/SecOC.c:1304:77: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    (void)memcpy(&DataToAuth[*DataToAuthLen], SecOCIntermediate->freshness, BIT_TO_BYTES(SecOCIntermediate->freshnessLenBits));
+                                                                            ^
+
+[x1] source/SecOC/SecOC.c:1305:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    *DataToAuthLen += (BIT_TO_BYTES(SecOCIntermediate->freshnessLenBits));
+                       ^
+
+[x1] source/SecOC/SecOC.c:1473:18: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if(headerLen > 0)
+                 ^
+
+[x1] source/SecOC/SecOC.c:1486:32: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    uint32 FreshnesslenBytes = BIT_TO_BYTES(SecOCTxPduProcessing[TxPduId].SecOCFreshnessValueTruncLength);
+                               ^
+
+[x1] source/SecOC/SecOC.c:1517:22: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        if(headerLen > 0) {
+                     ^
+
+[x1] source/SecOC/SecOC.c:1518:50: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+            for(uint32 i = 0; i < headerLen && i < 4; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[i]); }
+                                                 ^
+
+[x1] source/SecOC/SecOC.c:1526:44: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        for(uint32 i = 0; i < authLen && i < 4; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[authStart + i]); }
+                                           ^
+
+[x1] source/SecOC/SecOC.c:1527:20: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        if(authLen > 4) { (void)printf("..."); }
+                   ^
+
+[x1] source/SecOC/SecOC.c:1532:54: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        for(uint32 i = 0; i < FreshnesslenBytes && i < 2; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[freshStart + i]); }
+                                                     ^
+
+[x1] source/SecOC/SecOC.c:1537:29: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        for(uint32 i = 0; i < 4; i++) { (void)printf("0x%02X ", SecPdu->SduDataPtr[sigStart + i]); }
+                            ^
+
+[x1] source/SecOC/SecOC.c:1675:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    for (idx = 0 ; idx < SECOC_NUM_OF_RX_PDU_PROCESSING; idx++)
+                       ^
+
+[x1] source/SecOC/SecOC.c:1688:78: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+        PduLengthType securePduLength = AuthHeadlen + authRecieveLength[idx] + BIT_TO_BYTES(SecOCRxPduProcessing[idx].SecOCFreshnessValueTruncLength) + authInfoLength;
+                                                                             ^
+
+[x1] source/SecOC/SecOC.c:54:12: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.5]
+    return (boolean)(TxPduId < (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING);
+           ^
+
+[x1] source/SecOC/SecOC.c:59:12: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.5]
+    return (boolean)(RxPduId < (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING);
+           ^
+
+[x1] source/SecOC/SecOC.c:64:12: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.5]
+    return (boolean)(PduId < (PduIdType)SECOC_NUM_OF_PDU_COLLECTION);
+           ^
+
+[x1] source/SecOC/SecOC.c:1679:36: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.5]
+        boolean IsTpAuthenticPdu = (boolean)(SecOCRxPduProcessing[idx].SecOCRxAuthenticPduLayer->SecOCPduType == SECOC_TPPDU);
+                                   ^
+
+[x1] source/SecOC/SecOC.c:116:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_Init \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:135:28: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        FVM_IncreaseCounter(SecOCTxPduProcessing[idx].SecOCFreshnessValueId);
+                           ^
+
+[x1] source/SecOC/SecOC.c:147:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_DeInit \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:189:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_IfTransmit \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:223:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("###### Getting The Auth PDU \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:226:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("%d ", authpdu->SduDataPtr[i]);
+                  ^
+
+[x1] source/SecOC/SecOC.c:228:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:251:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in constructDataToAuthenticatorTx\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:276:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_GetTxFreshness\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:288:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_GetTxFreshnessTruncData\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:312:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in prepareFreshnessTx \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:371:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in authenticate \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:447:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("result of authenticate is %d\n", result);
+              ^
+
+[x1] source/SecOC/SecOC.c:450:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:451:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("╔══════════════════════════════════════════════════════════════════════════════════╗\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:452:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("║                    SECURED I-PDU STRUCTURE (TX) - Classical Mode                 ║\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:453:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("╠═══════════════╦═══════════════════════╦═════════════════╦════════════════════════╣\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:454:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("║    Header     ║    Authentic PDU      ║   Freshness     ║   Authenticator (MAC)  ║\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:455:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("║   %2u bytes    ║      %3lu bytes        ║    %2u bytes     ║      %4u bytes        ║\n",
+              ^
+
+[x1] source/SecOC/SecOC.c:458:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("╠═══════════════╬═══════════════════════╬═════════════════╬════════════════════════╣\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:461:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("║ ");
+              ^
+
+[x1] source/SecOC/SecOC.c:465:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("(none)       ");
+                  ^
+
+[x1] source/SecOC/SecOC.c:467:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("║ ");
+              ^
+
+[x1] source/SecOC/SecOC.c:474:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("    ║ ");
+              ^
+
+[x1] source/SecOC/SecOC.c:479:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("        ║ ");
+              ^
+
+[x1] source/SecOC/SecOC.c:484:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("  ║\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:486:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("╚═══════════════╩═══════════════════════╩═════════════════╩════════════════════════╝\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:487:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("Total Secured PDU: %lu bytes\n\n", (unsigned long)SecPduLen);
+              ^
+
+[x1] source/SecOC/SecOC.c:549:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOCMainFunctionTx \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:575:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("send data to ID %d and data is ",idx);
+                      ^
+
+[x1] source/SecOC/SecOC.c:578:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    printf("%d ", authPdu->SduDataPtr[k] );
+                          ^
+
+[x1] source/SecOC/SecOC.c:580:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("\n");
+                      ^
+
+[x1] source/SecOC/SecOC.c:592:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    printf("Secured data in pdu collection %d ",idx);
+                          ^
+
+[x1] source/SecOC/SecOC.c:595:31: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                        printf("%d ", securedPdu->SduDataPtr[k] );
+                              ^
+
+[x1] source/SecOC/SecOC.c:597:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    printf("\n");
+                          ^
+
+[x1] source/SecOC/SecOC.c:602:36: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                FVM_IncreaseCounter(SecOCTxPduProcessing[idx].SecOCFreshnessValueId);
+                                   ^
+
+[x1] source/SecOC/SecOC.c:609:44: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    seperatePduCollectionTx(idx, AuthPduLen , securedPdu , AuthPduCollection , CryptoPduCollection , &authPduId , &cryptoPduId);
+                                           ^
+
+[x1] source/SecOC/SecOC.c:613:39: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    PduR_SecOCTransmit(authPduId , AuthPduCollection);
+                                      ^
+
+[x1] source/SecOC/SecOC.c:614:39: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    PduR_SecOCTransmit(cryptoPduId , CryptoPduCollection);
+                                      ^
+
+[x1] source/SecOC/SecOC.c:620:39: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    PduR_SecOCTransmit(idx , securedPdu);
+                                      ^
+
+[x1] source/SecOC/SecOC.c:629:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("SecOC_TxCounters[%d].AuthenticationCounter = %d\n",idx,SecOC_TxCounters[idx].AuthenticationCounter);
+                      ^
+
+[x1] source/SecOC/SecOC.c:630:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("SecOCTxPduProcessing[%d].SecOCAuthenticationBuildAttempts = %d\n",idx,SecOCTxPduProcessing[idx].SecOCAuthenticationBuildAttempts);
+                      ^
+
+[x1] source/SecOC/SecOC.c:652:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_CopyTxData \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:728:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("The result of SecOC_CopyTxData is %d \n and the info have : ",result );
+              ^
+
+[x1] source/SecOC/SecOC.c:731:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("%d ", info->SduDataPtr[h]);
+                  ^
+
+[x1] source/SecOC/SecOC.c:733:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:742:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_TxConfirmation \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:829:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("########  In SecOC_TpTxConfirmation \n result of SecOC_TpTxConfirmation is %d \n" , result);
+              ^
+
+[x1] source/SecOC/SecOC.c:859:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_IfCancelTransmit \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:879:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_RxIndication \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:949:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("########  both received and secured length = %lu\n" , securedPdu->SduLength);
+                      ^
+
+[x1] source/SecOC/SecOC.c:950:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("Data Recieve in secured pdu : ");
+                      ^
+
+[x1] source/SecOC/SecOC.c:953:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    printf("%d ",securedPdu->SduDataPtr[i]);
+                          ^
+
+[x1] source/SecOC/SecOC.c:955:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("\n");
+                      ^
+
+[x1] source/SecOC/SecOC.c:979:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("PQC Mode: Setting securedPdu->SduLength = %u (from PduInfoPtr->SduLength = %u)\n",
+                      ^
+
+[x1] source/SecOC/SecOC.c:1007:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_StartOfReception \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1073:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("result of SecOC_StartOfReception is %d\n", result);
+              ^
+
+[x1] source/SecOC/SecOC.c:1083:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_CopyRxData \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1131:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_TpRxIndication \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1153:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_GetRxFreshness \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1163:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in parseSecuredPdu \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1215:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("PQC Mode: Extracted signature, actualSignatureLen = %lu bytes (SecPdu->SduLength=%u, SecCursor was=%lu)\n",
+              ^
+
+[x1] source/SecOC/SecOC.c:1229:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1231:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("╔════════════════════════════════════════════════════════════════════════════════════════════╗\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1232:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("║                      SECURED I-PDU STRUCTURE (RX) - PQC Mode (ML-DSA-65)                   ║\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1233:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1234:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1235:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║        %4u bytes                ║\n",
+              ^
+
+[x1] source/SecOC/SecOC.c:1237:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1249:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("║ ");
+              ^
+
+[x1] source/SecOC/SecOC.c:1251:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("0x%02X         ", SecOCIntermediate->authenticPduLen);
+                  ^
+
+[x1] source/SecOC/SecOC.c:1253:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("(none)       ");
+                  ^
+
+[x1] source/SecOC/SecOC.c:1255:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("║ ");
+              ^
+
+[x1] source/SecOC/SecOC.c:1260:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("    ║ ");
+              ^
+
+[x1] source/SecOC/SecOC.c:1264:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("        ║ ");
+              ^
+
+[x1] source/SecOC/SecOC.c:1269:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("  ║\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1272:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1276:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("Total Received PDU: %u bytes\n", SecPdu->SduLength);
+              ^
+
+[x1] source/SecOC/SecOC.c:1277:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("Parsed: Header=%u + Auth=%u + Fresh=%u + MAC/Sig=%u\n\n",
+              ^
+
+[x1] source/SecOC/SecOC.c:1287:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in constructDataToAuthenticatorRx \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1313:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in verify \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1408:22: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+    FVM_UpdateCounter(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueId, SecOCIntermediate.freshness, SecOCIntermediate.freshnessLenBits);
+                     ^
+
+[x1] source/SecOC/SecOC.c:1411:11: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+    printf("%d\n",*verification_result);
+          ^
+
+[x1] source/SecOC/SecOC.c:1428:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in authenticate_PQC (ML-DSA-65)\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1465:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("PQC Signature generated: %u bytes (vs ~4 bytes for MAC)\n", signatureLen);
+              ^
+
+[x1] source/SecOC/SecOC.c:1506:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1507:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("╔════════════════════════════════════════════════════════════════════════════════════════════╗\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1508:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("║                      SECURED I-PDU STRUCTURE (TX) - PQC Mode (ML-DSA-65)                   ║\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1509:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("╠═══════════════╦═══════════════════════╦═════════════════╦══════════════════════════════════╣\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1510:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("║    Header     ║    Authentic PDU      ║   Freshness     ║  Authenticator (ML-DSA-65 Sig)   ║\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1511:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("║   %2u bytes    ║      %3u bytes        ║    %2u bytes     ║        %4u bytes                ║\n",
+              ^
+
+[x1] source/SecOC/SecOC.c:1513:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("╠═══════════════╬═══════════════════════╬═════════════════╬══════════════════════════════════╣\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1516:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("║ ");
+              ^
+
+[x1] source/SecOC/SecOC.c:1520:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("(none)       ");
+                  ^
+
+[x1] source/SecOC/SecOC.c:1522:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("║ ");
+              ^
+
+[x1] source/SecOC/SecOC.c:1528:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("    ║ ");
+              ^
+
+[x1] source/SecOC/SecOC.c:1533:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("        ║ ");
+              ^
+
+[x1] source/SecOC/SecOC.c:1538:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("...   ║\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1540:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("╚═══════════════╩═══════════════════════╩═════════════════╩══════════════════════════════════╝\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1541:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("Total Secured PDU: %u bytes (Header=%u + Auth=%u + Fresh=%u + Signature=%u)\n\n",
+              ^
+
+[x1] source/SecOC/SecOC.c:1555:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in verify_PQC (ML-DSA-65)\n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1611:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("PQC Signature verification: sig_len=%u bytes, result=%d\n", signatureLen, Sig_verify);
+                  ^
+
+[x1] source/SecOC/SecOC.c:1653:22: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+    FVM_UpdateCounter(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueId, SecOCIntermediate.freshness, SecOCIntermediate.freshnessLenBits);
+                     ^
+
+[x1] source/SecOC/SecOC.c:1662:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOCMainFunctionRx \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1780:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("Verify failed for id: %d\n", idx);
+                      ^
+
+[x1] source/SecOC/SecOC.c:1781:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("Reason: %s\n", (result_ver == SECOC_FRESHNESSFAILURE) ? "FV" : "MAC");
+                      ^
+
+[x1] source/SecOC/SecOC.c:1819:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_TpTransmit \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1856:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_TpCancelTransmit \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1901:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SecOC_VerifyStatusOverride \n");
+              ^
+
+[x1] source/SecOC/SecOC.c:1938:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("############### Starting Receive ###############\n");
+                  ^
+
+[x1] source/SecOC/SecOC.c:689:83: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-18.4]
+                            (void)memcpy(info->SduDataPtr, securedPdu->SduDataPtr + bufferRemainIndex[id], info->SduLength);
+                                                                                  ^
+
+[x1] source/SecOC/SecOC.c:696:83: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-18.4]
+                            (void)memcpy(info->SduDataPtr, securedPdu->SduDataPtr + bufferRemainIndex[id] - info->SduLength, info->SduLength);
+                                                                                  ^
+
+[x1] source/SecOC/SecOC.c:701:83: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-18.4]
+                            (void)memcpy(info->SduDataPtr, securedPdu->SduDataPtr + bufferRemainIndex[id] - retry->TxTpDataCnt, info->SduLength);
+                                                                                  ^
+
+[x1] source/SecOC/SecOC.c:711:75: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-18.4]
+                    (void)memcpy(info->SduDataPtr, securedPdu->SduDataPtr + bufferRemainIndex[id], info->SduLength);
+                                                                          ^
+
+[x1] source/SecOC/SecOC.c:1113:45: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-18.4]
+        (void)memcpy(securedPdu->SduDataPtr + securedPdu->SduLength, info->SduDataPtr, info->SduLength);
+                                            ^
+
+[x1] source/SecOC/SecOC.c:260:11: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-21.15]
+    (void)memcpy(&DataToAuth[*DataToAuthLen], &SecOCTxPduProcessing[TxPduId].SecOCDataId, sizeof(SecOCTxPduProcessing[TxPduId].SecOCDataId));
+          ^
+
+[x1] source/SecOC/SecOC.c:416:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-21.15]
+        (void)memcpy(&SecPdu->SduDataPtr[SecPduLen], &AuthPdu->SduLength, headerLen);
+              ^
+
+[x1] source/SecOC/SecOC.c:1174:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-21.15]
+        (void)memcpy(&SecOCIntermediate->authenticPduLen, &SecPdu->SduDataPtr[SecCursor], headerLen);
+              ^
+
+[x1] source/SecOC/SecOC.c:1295:11: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-21.15]
+    (void)memcpy(&DataToAuth[*DataToAuthLen], &SecOCRxPduProcessing[RxPduId].SecOCDataId, sizeof(SecOCRxPduProcessing[RxPduId].SecOCDataId));
+          ^
+
+[x1] source/SecOC/SecOC.c:1475:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-21.15]
+        (void)memcpy(&SecPdu->SduDataPtr[SecPduLen], &AuthPdu->SduLength, headerLen);
+              ^
+
+[x1] source/SecOC/SecOC_Lcfg.c:232:7: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-3.1]
+    { /*for /* for RxSecuredPduCollection" */
+      ^
+
+[x1] source/SecOC/SecOC_Lcfg.c:121:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-9.2]
+SecOC_GeneralType SecOC_General =
+                  ^
+
+[x1] source/SecOC/SecOC_Lcfg.c:105:5: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.5]
+    SECOC_MAIN_FUNCTION_TX_PARTITION_REF, /* NOT SURE ABOUT THAT TYPE */
+    ^
+
+[x1] source/SecOC/SecOC_Lcfg.c:114:5: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.5]
+    SECOC_MAIN_FUNCTION_RX_PARTITION_REF, /* NOT SURE ABOUT THAT TYPE */
+    ^
+
+[x1] source/SoAd/SoAd.c:1492:50: style: Condition 'result==BUFREQ_OK' is always true [knownConditionTrueFalse]
+            ApBridge_ReportServiceStatus((result == BUFREQ_OK) ? TRUE : FALSE);
+                                                 ^
+
+[x1] source/SoAd/SoAd.c:1313:17: warning: %ld in format string (no. 1) requires 'long' but the argument type is 'unsigned long'. [invalidPrintfArgType_sint]
+                printf("PDU length = %ld\n", SoAdTp_Buffer[TxPduId].SduLength);
+                ^
+
+[x1] source/SoAd/SoAd.c:1337:25: warning: %ld in format string (no. 1) requires 'long' but the argument type is 'unsigned long'. [invalidPrintfArgType_sint]
+                        printf("last frame PDU length = %ld\n", SoAdTp_Buffer[TxPduId].SduLength);
+                        ^
+
+[x1] source/SoAd/SoAd.c:1416:34: style: Variable 'result' is assigned a value that is never used. [unreadVariable]
+        BufReq_ReturnType result = BUFREQ_OK;
+                                 ^
+
+[x1] source/SoAd/SoAd.c:448:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if (PduId >= SOAD_MAX_PDU_PROCESSING)
+              ^
+
+[x1] source/SoAd/SoAd.c:674:17: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if (TxPduId >= SECOC_NUM_OF_TX_PDU_PROCESSING)
+                ^
+
+[x1] source/SoAd/SoAd.c:766:21: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if (SoAdTxSduId >= SECOC_NUM_OF_TX_PDU_PROCESSING)
+                    ^
+
+[x1] source/SoAd/SoAd.c:1143:17: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if (rxPduId >= SECOC_NUM_OF_RX_PDU_PROCESSING)
+                ^
+
+[x1] source/SoAd/SoAd.c:1183:42: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    if ((PduInfoPtr == NULL) || (RxPduId >= SECOC_NUM_OF_RX_PDU_PROCESSING))
+                                         ^
+
+[x1] source/SoAd/SoAd.c:1266:13: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+            + BIT_TO_BYTES(RouteCfgPtr->SoAdFreshnessValueTruncLength)
+            ^
+
+[x1] source/SoAd/SoAd.c:1267:13: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+            + authInfoLength;
+            ^
+
+[x1] source/SoAd/SoAd.c:1303:32: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    for (TxPduId = 0U; TxPduId < SECOC_NUM_OF_TX_PDU_PROCESSING; TxPduId++)
+                               ^
+
+[x1] source/SoAd/SoAd.c:1328:45: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+            for (frameIndex = 0; frameIndex < lastFrameIndex; frameIndex++)
+                                            ^
+
+[x1] source/SoAd/SoAd.c:1330:32: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+                if (frameIndex == (lastFrameIndex - 1))
+                               ^
+
+[x1] source/SoAd/SoAd.c:1414:32: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.4]
+    for (RxPduId = 0U; RxPduId < SECOC_NUM_OF_RX_PDU_PROCESSING; RxPduId++)
+                               ^
+
+[x1] source/SoAd/SoAd.c:1441:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-10.5]
+            IsLastFrame = (boolean)(SoAdTp_Buffer_Rx[RxPduId].SduLength == RemainingBytes);
+                          ^
+
+[x1] source/SoAd/SoAd.c:1159:26: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-11.8]
+    pduInfo.SduDataPtr = (uint8*)BufPtr;
+                         ^
+
+[x1] source/SoAd/SoAd.c:1418:9: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-15.4]
+        {
+        ^
+
+[x1] source/SoAd/SoAd.c:613:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## SoAd_Init completed\n");
+              ^
+
+[x1] source/SoAd/SoAd.c:657:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SoAd_IfTransmit \n");
+              ^
+
+[x1] source/SoAd/SoAd.c:712:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("Secure PDU -->\n");
+              ^
+
+[x1] source/SoAd/SoAd.c:717:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("%d ", PduInfoPtr->SduDataPtr[i]);
+                      ^
+
+[x1] source/SoAd/SoAd.c:719:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+            printf("\n");
+                  ^
+
+[x1] source/SoAd/SoAd.c:752:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SoAd_TpTransmit\n");
+              ^
+
+[x1] source/SoAd/SoAd.c:862:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## SoAd_OpenSoCon: SoConId=%u now ONLINE\n", SoConId);
+              ^
+
+[x1] source/SoAd/SoAd.c:904:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## SoAd_CloseSoCon: SoConId=%u now OFFLINE\n", SoConId);
+              ^
+
+[x1] source/SoAd/SoAd.c:1180:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SoAdTp_RxIndication\n");
+              ^
+
+[x1] source/SoAd/SoAd.c:1288:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SoAd_MainFunctionTx\n");
+              ^
+
+[x1] source/SoAd/SoAd.c:1312:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("Start sending id = %d\n", TxPduId);
+                      ^
+
+[x1] source/SoAd/SoAd.c:1313:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("PDU length = %ld\n", SoAdTp_Buffer[TxPduId].SduLength);
+                      ^
+
+[x1] source/SoAd/SoAd.c:1314:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("All Data to be Sent: \n");
+                      ^
+
+[x1] source/SoAd/SoAd.c:1319:31: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                        printf("%d  ", SoAdTp_Buffer[TxPduId].SduDataPtr[i]);
+                              ^
+
+[x1] source/SoAd/SoAd.c:1321:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    printf("\n\n\n");
+                          ^
+
+[x1] source/SoAd/SoAd.c:1337:31: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                        printf("last frame PDU length = %ld\n", SoAdTp_Buffer[TxPduId].SduLength);
+                              ^
+
+[x1] source/SoAd/SoAd.c:1338:31: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                        printf("All Data to be Sent: \n");
+                              ^
+
+[x1] source/SoAd/SoAd.c:1343:39: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                                printf("%d  ", info.SduDataPtr[i]);
+                                      ^
+
+[x1] source/SoAd/SoAd.c:1345:35: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                            printf("\n");
+                                  ^
+
+[x1] source/SoAd/SoAd.c:1371:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    printf("Transmit Result = %d\n", resultTransmit);
+                          ^
+
+[x1] source/SoAd/SoAd.c:1396:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SoAd_TxConfirmation \n");
+              ^
+
+[x1] source/SoAd/SoAd.c:1403:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+        printf("######## in SoAd_MainFunctionRx\n");
+              ^
+
+[x1] source/SoAd/SoAd.c:1444:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("######## in main Soad Rx  in id : %d\n", RxPduId);
+                      ^
+
+[x1] source/SoAd/SoAd.c:1445:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                printf("for id %d :", RxPduId);
+                      ^
+
+[x1] source/SoAd/SoAd.c:1450:31: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                        printf("%d ", SoAdTp_Buffer_Rx[RxPduId].SduDataPtr[l]);
+                              ^
+
+[x1] source/SoAd/SoAd.c:1452:27: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-17.7]
+                    printf("\n");
+                          ^
+
+[x1] source/SoAd/SoAd_PQC.c:222:8: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-14.4]
+    if (IsInitiator)
+       ^
+
+[x1] source/TcpIp/TcpIp.c:400:13: style: Variable 'newSock' is reassigned a value before the old one has been used. [redundantAssignment]
+    newSock = socket(AF_INET, sockType, sockProto);
+            ^
+
+[x1] source/TcpIp/TcpIp.c:913:20: style: The scope of the variable 'freeSlot' can be reduced. [variableScope]
+            uint16 freeSlot;
+                   ^
+
+[x1] source/TcpIp/TcpIp.c:43:17: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+extern int bind(int, const struct sockaddr*, unsigned int);
+                ^
+
+[x1] source/TcpIp/TcpIp.c:44:19: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+extern int listen(int, int);
+                  ^
+
+[x1] source/TcpIp/TcpIp.c:45:20: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+extern int connect(int, const struct sockaddr*, unsigned int);
+                   ^
+
+[x1] source/TcpIp/TcpIp.c:46:24: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+extern int getsockname(int, struct sockaddr*, unsigned int*);
+                       ^
+
+[x1] source/TcpIp/TcpIp.c:47:23: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+extern int setsockopt(int, int, int, const void*, unsigned int);
+                      ^
+
+[x1] source/TcpIp/TcpIp.c:50:18: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.2]
+extern int fcntl(int, int, ...);
+                 ^
+
+[x1] include/Com/ComStack_Types.h:74:1: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-5.6]
+typedef uint8 NetworkHandleType;
+^
+
+[x1] include/EthSM/EthSM.h:60:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-5.6]
+typedef uint8 NetworkHandleType;
+              ^
+
+[x1] source/Ethernet/ethernet.c:29:28: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.5]
+extern SecOC_PduCollection PdusCollections[SECOC_NUM_OF_PDU_COLLECTION];
+                           ^
+
+[x1] include/SecOC/SecOC_Lcfg.h:77:28: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.5]
+extern SecOC_PduCollection PdusCollections[SECOC_NUM_OF_PDU_COLLECTION];
+                           ^
+
+[x1] source/Ethernet/ethernet_windows.c:35:28: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.5]
+extern SecOC_PduCollection PdusCollections[SECOC_NUM_OF_PDU_COLLECTION];
+                           ^
+
+[x1] source/PduR/Pdur_SecOC.c:17:28: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-8.5]
+extern SecOC_PduCollection PdusCollections[SECOC_NUM_OF_PDU_COLLECTION];
+                           ^
+
+[x1] include/Com/ComStack_Types.h:63:1: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-2.3]
+typedef uint8 BusTrcvErrorType;
+^
+
+[x1] include/Com/ComStack_Types.h:54:1: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-2.3]
+typedef uint8 NotifResultType;
+^
+
+[x1] include/Com/ComStack_Types.h:20:1: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-2.3]
+typedef uint32 TPParameterType ;
+^
+
+[x1] include/Std_Types.h:42:1: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-2.3]
+typedef float                   float32;
+^
+
+[x1] include/Std_Types.h:40:1: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-2.3]
+typedef signed long long        sint64;
+^
+
+[x1] include/Std_Types.h:41:1: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-2.3]
+typedef unsigned long long      uint64;         /*       0..18446744073709551615  */
+^
+
+[x1] include/SecOC/SecOC_Lcfg.h:185:1: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-2.3]
+typedef struct
+^
+
+[x1] include/SecOC/SecOC_Lcfg.h:150:15: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-2.3]
+typedef void (SecOC_VerificationStatusCalloutType) (SecOC_VerificationStatusType verificationStatus);
+              ^
+
+[x1] include/SecOC/Rte_SecOC.h:21:1: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-2.4]
+{
+^
+
+[x1] include/SecOC/SecOC_Lcfg.h:186:1: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-2.4]
+{
+^
+
+[x1] include/SecOC/SecOC_Lcfg.h:452:20: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-5.8]
+   Csm_JobType    *CsmJob;
+                   ^
+
+[x1] source/SecOC/SecOC_Lcfg.c:340:13: style: misra violation (use --rule-texts=<file> to get proper output) [misra-c2012-5.8]
+Csm_JobType CsmJob =
+            ^
+

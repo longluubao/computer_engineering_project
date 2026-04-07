@@ -1,0 +1,121 @@
+MISRA Main Violations (Top 20)
+===========================================
+
+Totals
+- Raw MISRA findings: 464
+- Unique MISRA diagnostics: 464
+- Duplicate MISRA diagnostics removed: 0
+- Raw all diagnostics (MISRA + cppcheck): 555
+- Unique all diagnostics (MISRA + cppcheck): 555
+
+Top MISRA rules
+- misra-c2012-17.7: 213
+- misra-c2012-10.4: 118
+- misra-c2012-8.11: 22
+- misra-c2012-8.2: 17
+- misra-c2012-10.5: 11
+- misra-c2012-2.3: 8
+- misra-c2012-21.15: 7
+- misra-c2012-18.4: 7
+- misra-c2012-11.5: 7
+- misra-c2012-11.4: 7
+- misra-c2012-12.1: 5
+- misra-c2012-10.8: 5
+- misra-c2012-8.5: 4
+- misra-c2012-11.1: 4
+- misra-c2012-7.4: 2
+- misra-c2012-5.8: 2
+- misra-c2012-5.6: 2
+- misra-c2012-20.13: 2
+- misra-c2012-2.4: 2
+- misra-c2012-14.4: 2
+
+Top rules (all diagnostics)
+- misra-c2012-17.7: 213
+- misra-c2012-10.4: 118
+- variableScope: 29
+- invalidPrintfArgType_uint: 27
+- misra-c2012-8.11: 22
+- misra-c2012-8.2: 17
+- misra-c2012-10.5: 11
+- unreadVariable: 8
+- misra-c2012-2.3: 8
+- misra-c2012-21.15: 7
+- misra-c2012-18.4: 7
+- misra-c2012-11.5: 7
+- misra-c2012-11.4: 7
+- constVariablePointer: 7
+- invalidPrintfArgType_sint: 6
+- constParameterPointer: 6
+- misra-c2012-12.1: 5
+- misra-c2012-10.8: 5
+- misra-c2012-8.5: 4
+- misra-c2012-11.1: 4
+
+Top MISRA files
+- source/SecOC/SecOC.c: 181
+- source/Can/CanTP.c: 41
+- source/SoAd/SoAd.c: 40
+- source/Ethernet/ethernet.c: 29
+- source/Ethernet/ethernet_windows.c: 28
+- include/SecOC/SecOC_Lcfg.h: 27
+- source/SecOC/FVM.c: 17
+- source/EcuM/EcuM.c: 12
+- source/Com/Com.c: 7
+- source/TcpIp/TcpIp.c: 6
+- source/NvM/NvM.c: 6
+- source/Can/CanIF.c: 6
+- source/SecOC/SecOC_Lcfg.c: 5
+- source/PduR/Pdur_CanTP.c: 5
+- include/Std_Types.h: 5
+- include/Scheduler/scheduler.h: 5
+- include/Ethernet/ethernet.h: 5
+- source/Scheduler/scheduler.c: 4
+- source/PQC/PQC_KeyDerivation.c: 4
+- source/MemIf/MemIf.c: 4
+
+Top files (all diagnostics)
+- source/SecOC/SecOC.c: 222
+- source/Can/CanTP.c: 46
+- source/SoAd/SoAd.c: 44
+- source/Ethernet/ethernet.c: 33
+- source/Ethernet/ethernet_windows.c: 30
+- include/SecOC/SecOC_Lcfg.h: 27
+- source/SecOC/FVM.c: 19
+- source/EcuM/EcuM.c: 12
+- source/Csm/Csm.c: 10
+- source/Com/Com.c: 10
+- source/NvM/NvM.c: 9
+- source/BswM/BswM.c: 9
+- source/TcpIp/TcpIp.c: 8
+- source/Can/CanIF.c: 6
+- source/SecOC/SecOC_Lcfg.c: 5
+- source/PduR/Pdur_CanTP.c: 5
+- include/Std_Types.h: 5
+- include/Scheduler/scheduler.h: 5
+- include/Ethernet/ethernet.h: 5
+- source/Scheduler/scheduler.c: 4
+
+Top rule+file pairs
+- misra-c2012-17.7 | source/SecOC/SecOC.c: 110
+- misra-c2012-10.4 | source/SecOC/SecOC.c: 54
+- invalidPrintfArgType_uint | source/SecOC/SecOC.c: 27
+- misra-c2012-17.7 | source/SoAd/SoAd.c: 26
+- misra-c2012-10.4 | source/Can/CanTP.c: 22
+- misra-c2012-17.7 | source/Ethernet/ethernet_windows.c: 21
+- misra-c2012-17.7 | source/Ethernet/ethernet.c: 21
+- misra-c2012-17.7 | source/Can/CanTP.c: 19
+- misra-c2012-8.11 | include/SecOC/SecOC_Lcfg.h: 17
+- misra-c2012-10.4 | source/SecOC/FVM.c: 14
+- misra-c2012-10.4 | source/SoAd/SoAd.c: 11
+- variableScope | source/BswM/BswM.c: 8
+- misra-c2012-11.4 | source/EcuM/EcuM.c: 7
+- misra-c2012-8.2 | source/TcpIp/TcpIp.c: 6
+- variableScope | source/SecOC/SecOC.c: 5
+- variableScope | source/Csm/Csm.c: 5
+- misra-c2012-8.2 | include/Scheduler/scheduler.h: 5
+- misra-c2012-8.2 | include/Ethernet/ethernet.h: 5
+- misra-c2012-21.15 | source/SecOC/SecOC.c: 5
+- misra-c2012-18.4 | source/SecOC/SecOC.c: 5
+
+Most duplicated exact diagnostics

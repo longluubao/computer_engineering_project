@@ -1,0 +1,17 @@
+{
+  "tool": "cppcheck-misra-addon",
+  "output": "misra-cppcheck.txt",
+  "deduplicated_output": "misra-cppcheck-clean.txt",
+  "main_violations_output": "misra-main-violations.txt",
+  "total_misra_findings": 464,
+  "unique_misra_findings": 464,
+  "duplicate_misra_findings": 0,
+  "total_diagnostics_all": 555,
+  "unique_diagnostics_all": 555,
+  "top_rule": "misra-c2012-17.7",
+  "top_file": "source/SecOC/SecOC.c",
+  "top_any_rule": "misra-c2012-17.7",
+  "top_any_file": "source/SecOC/SecOC.c",
+  "integrity_file": "misra-metrics-integrity.txt",
+  "key_rule_family_hits_10_11_14": 159
+}
