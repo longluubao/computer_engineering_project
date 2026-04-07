@@ -12,7 +12,7 @@
 /********************************************************************************************************/
 
 /* Convert the bits to nearst byte */
-#define BIT_TO_BYTES(NUMBITS) (((NUMBITS) % 8U == 0U) ? ((NUMBITS)/8U) : (((NUMBITS) / 8U) + 1U))
+#define BIT_TO_BYTES(NUMBITS) (((NUMBITS) % 8UL == 0UL) ? ((NUMBITS)/8UL) : (((NUMBITS) / 8UL) + 1UL))
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))

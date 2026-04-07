@@ -29,7 +29,7 @@ extern Std_ReturnType PduR_ComTransmit(PduIdType PduID, const PduInfoType *PduIn
 Std_ReturnType PduR_ComTransmit(PduIdType PduID, const PduInfoType *PduInfo)
 {
     #ifdef PDUR_DEBUG
-        printf("######## in PduR_ComTransmit \n");
+        (void)printf("######## in PduR_ComTransmit \n");
     #endif
     if ((PduInfo == NULL) || (PduID >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING))
     {

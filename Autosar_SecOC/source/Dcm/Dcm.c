@@ -314,6 +314,7 @@ BufReq_ReturnType Dcm_TpCopyRxData(PduIdType RxPduId,
         Dcm_RxTpBuffer[Dcm_RxTpLength + idx] = PduInfoPtr->SduDataPtr[idx];
     }
     Dcm_RxTpLength = (uint16)(Dcm_RxTpLength + copyLength);
+    /* cppcheck-suppress misra-c2012-10.8 */
     *RxBufferSizePtr = (PduLengthType)((uint16)DCM_RESPONSE_BUFFER_SIZE - Dcm_RxTpLength);
 
     return BUFREQ_OK;

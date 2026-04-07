@@ -28,7 +28,7 @@
 #endif
 
 #define CANTP_BUFFER_SIZE       255
-#define BUS_LENGTH              8
+#define BUS_LENGTH              8U
 
 #define CANTP_MODULE_ID                     ((uint16)35)
 #define CANTP_INSTANCE_ID                   ((uint8)0)

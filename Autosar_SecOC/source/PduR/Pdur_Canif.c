@@ -31,7 +31,7 @@ extern void PduR_CanIfRxIndication(PduIdType RxPduId, const PduInfoType* PduInfo
 void PduR_CanIfTxConfirmation(PduIdType TxPduId, Std_ReturnType result)
 {
     #ifdef PDUR_DEBUG
-        printf("######## in PduR_CanIfTxConfirmation \n");
+        (void)printf("######## in PduR_CanIfTxConfirmation \n");
     #endif
     if (TxPduId >= (PduIdType)SECOC_NUM_OF_PDU_COLLECTION)
     {
@@ -43,7 +43,7 @@ void PduR_CanIfTxConfirmation(PduIdType TxPduId, Std_ReturnType result)
 void PduR_CanIfRxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
 {
     #ifdef PDUR_DEBUG
-        printf("######## in PduR_CanIfRxIndication\n");
+        (void)printf("######## in PduR_CanIfRxIndication\n");
     #endif
     if ((PduInfoPtr == NULL) || (RxPduId >= (PduIdType)SECOC_NUM_OF_PDU_COLLECTION))
     {

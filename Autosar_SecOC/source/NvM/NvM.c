@@ -107,6 +107,7 @@ static uint8 NvM_NormalPrioQueueCount = 0U;
 static uint8 NvM_GatewayHealthRamBlock[16] = {0};
 static const uint8 NvM_GatewayHealthDefaults[16] = {0};
 static uint32 NvM_EcuMDataDatasetRam = 0UL;
+/* cppcheck-suppress misra-c2012-9.3 */
 static const uint8 NvM_EcuMDataDatasetDefaults[sizeof(uint32)] = {0U, 0U, 0U, 0U};
 
 static uint8 NvM_WriteBuffer[NVM_MAX_NV_BLOCK_LENGTH];
@@ -625,6 +626,7 @@ Std_ReturnType NvM_ReadBlock(NvM_BlockIdType BlockId, void* NvM_DstPtr)
 
     if (NvM_InternalState != NVM_INT_STATE_IDLE)
     {
+        /* cppcheck-suppress misra-c2012-11.5 */
         if (NvM_EnqueueRequest((uint16)BlockIndex, NVM_INT_OP_READ_BLOCK, (uint8*)NvM_DstPtr, NULL) != E_OK)
         {
             (void)Det_ReportError(NVM_MODULE_ID, NVM_INSTANCE_ID, NVM_SID_READ_BLOCK, NVM_E_BUSY);
@@ -636,6 +638,7 @@ Std_ReturnType NvM_ReadBlock(NvM_BlockIdType BlockId, void* NvM_DstPtr)
     NvM_BlockAdmin[(uint16)BlockIndex].RequestResult = NVM_REQ_PENDING;
     NvM_InternalOperation = NVM_INT_OP_READ_BLOCK;
     NvM_InternalState = NVM_INT_STATE_ISSUE;
+    /* cppcheck-suppress misra-c2012-11.5 */
     NvM_CurrentDstPtr = (uint8*)NvM_DstPtr;
     NvM_CurrentSrcPtr = NULL;
     NvM_CurrentBlockIndex = (uint16)BlockIndex;
@@ -655,6 +658,7 @@ Std_ReturnType NvM_WriteBlock(NvM_BlockIdType BlockId, const void* NvM_SrcPtr)
 
     if (NvM_InternalState != NVM_INT_STATE_IDLE)
     {
+        /* cppcheck-suppress misra-c2012-11.5 */
         if (NvM_EnqueueRequest((uint16)BlockIndex, NVM_INT_OP_WRITE_BLOCK, NULL, (const uint8*)NvM_SrcPtr) != E_OK)
         {
             (void)Det_ReportError(NVM_MODULE_ID, NVM_INSTANCE_ID, NVM_SID_WRITE_BLOCK, NVM_E_BUSY);
@@ -668,6 +672,7 @@ Std_ReturnType NvM_WriteBlock(NvM_BlockIdType BlockId, const void* NvM_SrcPtr)
     NvM_InternalOperation = NVM_INT_OP_WRITE_BLOCK;
     NvM_InternalState = NVM_INT_STATE_ISSUE;
     NvM_CurrentDstPtr = NULL;
+    /* cppcheck-suppress misra-c2012-11.5 */
     NvM_CurrentSrcPtr = (const uint8*)NvM_SrcPtr;
     NvM_CurrentBlockIndex = (uint16)BlockIndex;
     NvM_TargetIsMultiBlock = FALSE;
@@ -693,6 +698,7 @@ Std_ReturnType NvM_RestoreBlockDefaults(NvM_BlockIdType BlockId, void* NvM_DstPt
     }
 
     DescriptorPtr = &NvM_BlockDescriptors[(uint16)BlockIndex];
+    /* cppcheck-suppress misra-c2012-11.5 */
     TargetPtr = (NvM_DstPtr != NULL) ? (uint8*)NvM_DstPtr : DescriptorPtr->RamBlockDataAddress;
     if (TargetPtr == NULL)
     {
