@@ -7,13 +7,12 @@
 
 #include "Std_Types.h"
 #include "ComStack_Types.h"
-#include "SecOC/SecOC_Cfg.h"
 
 /* Array size macros for Com post-build configuration */
-#define COM_PB_NUM_OF_SIGNALS              ((uint16)SECOC_NUM_OF_TX_PDU_PROCESSING)
+#define COM_PB_NUM_OF_SIGNALS              ((uint16)6U)
 #define COM_PB_NUM_OF_SIGNAL_GROUPS        ((uint16)2U)
-#define COM_PB_NUM_OF_TX_IPDU              ((PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING)
-#define COM_PB_NUM_OF_RX_IPDU              ((PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING)
+#define COM_PB_NUM_OF_TX_IPDU              ((PduIdType)6U)
+#define COM_PB_NUM_OF_RX_IPDU              ((PduIdType)6U)
 
 /********************************************************************************************************/
 /*******************************************TypeDefinitions**********************************************/

@@ -33,6 +33,7 @@ endif()
 project(SecOC)
 
 find_package(Threads REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 # Add liboqs library path
 set(LIBOQS_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/external/liboqs/build/include")
@@ -50,8 +51,8 @@ add_executable(SecOC ${SCR_FILES})
 # Add liboqs include directory
 target_include_directories(SecOC PUBLIC ${LIBOQS_INCLUDE_DIR})
 
-# Link liboqs library
-target_link_libraries(SecOC ${LIBOQS_LIBRARY})
+# Link liboqs library (requires OpenSSL)
+target_link_libraries(SecOC ${LIBOQS_LIBRARY} OpenSSL::Crypto OpenSSL::SSL)
 
 if(THREADS_HAVE_PTHREAD_ARG)
   target_compile_options(SecOC PUBLIC "-pthread")
@@ -99,12 +100,12 @@ file(WRITE "${CMAKE_SOURCE_DIR}/build/cppcheck_includes.txt" ${cppincludes})
 # Create static library for linking with gtest
 add_library(SecOCLib STATIC ${SCR_FILES} ${HDR_FILES})
 target_include_directories(SecOCLib PUBLIC ${headerDirs} ${LIBOQS_INCLUDE_DIR})
-target_link_libraries(SecOCLib ${LIBOQS_LIBRARY})
+target_link_libraries(SecOCLib ${LIBOQS_LIBRARY} OpenSSL::Crypto OpenSSL::SSL)
 
 # Create shared library for linking with the GUI
 add_library(SecOCLibShared SHARED ${SCR_FILES} ${HDR_FILES})
 target_include_directories(SecOCLibShared PUBLIC ${headerDirs} ${LIBOQS_INCLUDE_DIR})
-target_link_libraries(SecOCLibShared ${LIBOQS_LIBRARY})
+target_link_libraries(SecOCLibShared ${LIBOQS_LIBRARY} OpenSSL::Crypto OpenSSL::SSL)
 
 # Platform-specific configurations for libraries
 if(WIN32)
@@ -120,7 +121,7 @@ endif()
 # Add Phase 3: Complete Ethernet Gateway Integration Test
 add_executable(Phase3_Complete_Test test/test_phase3_complete_ethernet_gateway.c)
 target_include_directories(Phase3_Complete_Test PUBLIC ${headerDirs} ${LIBOQS_INCLUDE_DIR})
-target_link_libraries(Phase3_Complete_Test SecOCLib ${LIBOQS_LIBRARY})
+target_link_libraries(Phase3_Complete_Test SecOCLib ${LIBOQS_LIBRARY} OpenSSL::Crypto OpenSSL::SSL)
 if(WIN32)
     target_compile_definitions(Phase3_Complete_Test PUBLIC WINDOWS)
     target_link_libraries(Phase3_Complete_Test ws2_32)

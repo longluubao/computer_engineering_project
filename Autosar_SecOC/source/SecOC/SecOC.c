@@ -16,7 +16,7 @@
 #include "Csm.h"
 #include "Rte_SecOC_Type.h"
 #include "PduR_Com.h"
-#include "PduR_CanTp.h"
+#include "Pdur_CanTP.h"
 #include "PduR_CanIf.h"
 #include "CanTP.h"
 #include "SecOC_Debug.h"
