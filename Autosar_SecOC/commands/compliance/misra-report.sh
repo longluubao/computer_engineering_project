@@ -45,7 +45,9 @@ for candidate in \
     "/c/MinGW/mingw64/share/cppcheck/addons/misra.py" \
     "/mnt/c/MinGW/mingw64/share/cppcheck/addons/misra.py" \
     "/usr/share/cppcheck/addons/misra.py" \
-    "/mingw64/share/cppcheck/addons/misra.py"; do
+    "/mingw64/share/cppcheck/addons/misra.py" \
+    "/usr/lib/x86_64-linux-gnu/cppcheck/addons/misra.py" \
+    "/usr/lib/cppcheck/addons/misra.py"; do
     [[ -z "${candidate}" ]] && continue
     if [[ -f "${candidate}" ]]; then
         MISRA_ADDON="${candidate}"
