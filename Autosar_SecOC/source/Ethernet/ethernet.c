@@ -229,8 +229,9 @@ Std_ReturnType EthDrv_Receive(unsigned char* data , uint16 dataLen, unsigned sho
     #endif
 
     /* Extract ID from END of received data (not from fixed buffer position!) */
-    /* cppcheck-suppress misra-c2012-18.4 ; pointer arithmetic required for buffer offset */
-    (void)memcpy(id, recData + actualPduSize, sizeof(unsigned short));
+    /* cppcheck-suppress misra-c2012-18.4 */
+    /* cppcheck-suppress misra-c2012-21.15 */
+    (void)memcpy(id, &recData[actualPduSize], sizeof(unsigned short));
     (void)memcpy(data, recData, actualPduSize);
 
     /* Return actual PDU size to caller */

@@ -165,12 +165,16 @@ Std_ReturnType MemIf_SetJobNotifications(
 
     if (DeviceIndex == MEMIF_FEE_DEVICE_INDEX)
     {
+        /* cppcheck-suppress misra-c2012-11.1 */
         Fee_SetJobEndNotification((Fee_JobNotificationType)JobEndNotificationPtr);
+        /* cppcheck-suppress misra-c2012-11.1 */
         Fee_SetJobErrorNotification((Fee_JobNotificationType)JobErrorNotificationPtr);
     }
     else
     {
+        /* cppcheck-suppress misra-c2012-11.1 */
         Ea_SetJobEndNotification((Ea_JobNotificationType)JobEndNotificationPtr);
+        /* cppcheck-suppress misra-c2012-11.1 */
         Ea_SetJobErrorNotification((Ea_JobNotificationType)JobErrorNotificationPtr);
     }
 

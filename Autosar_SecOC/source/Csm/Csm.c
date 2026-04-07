@@ -976,7 +976,7 @@ Std_ReturnType Csm_KeyElementSet(
         return CRYPTO_E_KEY_SIZE_MISMATCH;
     }
 
-    if ((uint32)CSM_KEYID_IS_SESSION(keyId) == (uint32)TRUE)
+    if (CSM_KEYID_IS_SESSION(keyId) == TRUE)
     {
         peerId = CSM_SESSION_PEER_FROM_KEYID(keyId);
         if (peerId >= CSM_MAX_PEERS)
@@ -1027,7 +1027,7 @@ Std_ReturnType Csm_KeySetValid(uint32 keyId)
         return E_OK;
     }
 
-    if ((uint32)CSM_KEYID_IS_SESSION(keyId) == (uint32)TRUE)
+    if (CSM_KEYID_IS_SESSION(keyId) == TRUE)
     {
         peerId = CSM_SESSION_PEER_FROM_KEYID(keyId);
         if (peerId >= CSM_MAX_PEERS)
