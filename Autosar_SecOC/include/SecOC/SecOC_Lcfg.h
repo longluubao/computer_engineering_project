@@ -34,10 +34,10 @@
 
 
 
-#define SECOC_NUM_OF_TX_PDU_PROCESSING                               (6)
-#define SECOC_NUM_OF_RX_PDU_PROCESSING                               (6)
+#define SECOC_NUM_OF_TX_PDU_PROCESSING                               (6U)
+#define SECOC_NUM_OF_RX_PDU_PROCESSING                               (6U)
 /* Secure gateway collection map size (includes split auth/crypto PDUs). */
-#define SECOC_NUM_OF_PDU_COLLECTION                                  (8)
+#define SECOC_NUM_OF_PDU_COLLECTION                                  (8U)
 
 
 
