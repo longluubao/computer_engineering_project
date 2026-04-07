@@ -7,7 +7,7 @@
 
 #include "Std_Types.h"
 #include "SecOC/SecOC_Debug.h"
-#include "CryIf.h"
+#include "CryIf/CryIf.h"
 
 
 /********************************************************************************************************/

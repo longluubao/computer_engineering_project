@@ -239,6 +239,7 @@ typedef struct
     uint8                               NumScheduleTables;
 } Os_ConfigType;
 
+// cppcheck-suppress misra-c2012-8.4
 extern const Os_ConfigType Os_Config;
 
 /********************************************************************************************************/

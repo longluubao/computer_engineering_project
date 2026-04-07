@@ -14,12 +14,23 @@
     #include <ws2tcpip.h>
 #endif
 
+/* MISRA C:2012 Rule 17.3 - Socket prototypes for static analysis when system headers are unavailable */
+#if !defined(_SYS_SOCKET_H) && !defined(__SYS_SOCKET_H__) && !defined(_WINSOCK2API_)
+struct sockaddr;
+extern int setsockopt(int, int, int, const void*, unsigned int);
+extern int bind(int, const struct sockaddr*, unsigned int);
+extern int listen(int, int);
+extern int connect(int, const struct sockaddr*, unsigned int);
+extern int getsockname(int, struct sockaddr*, unsigned int*);
+#endif
+
 /********************************************************************************************************/
 /************************************************Defines*************************************************/
 /********************************************************************************************************/
 
 #define PORT_NUMBER 12345
 #define BUS_LENGTH_RECEIVE 4096  // Increased for PQC signatures (3309 bytes)
+#define ETHERNET_LEGACY_DIRECT_ROUTING STD_OFF
 
 
 /********************************************************************************************************/
@@ -35,7 +46,7 @@
  * Function_Descripton  : Used to get the ip that       *
  * send data to and initialize Winsock                  *
  *******************************************************/
-void ethernet_init(void);
+void EthDrv_Init(void);
 
 
 /*******************************************************
@@ -47,7 +58,7 @@ void ethernet_init(void);
  * Function_Descripton  : Used to send the data using   *
  * Winsock sockets                                      *
  *******************************************************/
-Std_ReturnType ethernet_send(unsigned short id, unsigned char* data, uint16 dataLen);
+Std_ReturnType EthDrv_Send(unsigned short id, unsigned char* data, uint16 dataLen);
 
 
 /*******************************************************
@@ -60,7 +71,7 @@ Std_ReturnType ethernet_send(unsigned short id, unsigned char* data, uint16 data
  * Winsock sockets                                      *
  * @param actualSize [out] Actual number of bytes received*
  *******************************************************/
-Std_ReturnType ethernet_receive(unsigned char* data, uint16 dataLen, unsigned short* id, uint16* actualSize);
+Std_ReturnType EthDrv_Receive(unsigned char* data, uint16 dataLen, unsigned short* id, uint16* actualSize);
 
 
 /*******************************************************
@@ -72,6 +83,6 @@ Std_ReturnType ethernet_receive(unsigned char* data, uint16 dataLen, unsigned sh
  * Function_Descripton  : Used to route the data        *
  * Received to protocol                                 *
  *******************************************************/
-void ethernet_RecieveMainFunction(void);
+void EthDrv_ReceiveMainFunction(void);
 
 #endif

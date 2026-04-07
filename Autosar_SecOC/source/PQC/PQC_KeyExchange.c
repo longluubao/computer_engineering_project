@@ -44,14 +44,14 @@ Std_ReturnType PQC_KeyExchange_Init(void)
         PQC_Sessions[i].Timestamp = 0;
 
         /* Clear sensitive data */
-        memset(&PQC_Sessions[i].LocalKeyPair, 0, sizeof(PQC_MLKEM_KeyPairType));
-        memset(PQC_Sessions[i].PeerPublicKey, 0, PQC_MLKEM_PUBLIC_KEY_BYTES);
-        memset(PQC_Sessions[i].SharedSecret, 0, PQC_MLKEM_SHARED_SECRET_BYTES);
-        memset(PQC_Sessions[i].Ciphertext, 0, PQC_MLKEM_CIPHERTEXT_BYTES);
+        (void)memset(&PQC_Sessions[i].LocalKeyPair, 0, sizeof(PQC_MLKEM_KeyPairType));
+        (void)memset(PQC_Sessions[i].PeerPublicKey, 0, PQC_MLKEM_PUBLIC_KEY_BYTES);
+        (void)memset(PQC_Sessions[i].SharedSecret, 0, PQC_MLKEM_SHARED_SECRET_BYTES);
+        (void)memset(PQC_Sessions[i].Ciphertext, 0, PQC_MLKEM_CIPHERTEXT_BYTES);
     }
 
     PQC_KeyExchange_Initialized = TRUE;
-    printf("PQC Key Exchange Manager initialized (%u peer slots)\n", PQC_MAX_PEERS);
+    (void)printf("PQC Key Exchange Manager initialized (%u peer slots)\n", PQC_MAX_PEERS);
 
     return E_OK;
 }
@@ -67,13 +67,13 @@ Std_ReturnType PQC_KeyExchange_Initiate(
 
     if (PQC_KeyExchange_Initialized == FALSE)
     {
-        printf("ERROR: Key Exchange Manager not initialized\n");
+        (void)printf("ERROR: Key Exchange Manager not initialized\n");
         return E_NOT_OK;
     }
 
     if (PeerId >= PQC_MAX_PEERS)
     {
-        printf("ERROR: Invalid peer ID %u\n", PeerId);
+        (void)printf("ERROR: Invalid peer ID %u\n", PeerId);
         return E_NOT_OK;
     }
 
@@ -88,20 +88,20 @@ Std_ReturnType PQC_KeyExchange_Initiate(
     result = PQC_MLKEM_KeyGen(&session->LocalKeyPair);
     if (result != PQC_E_OK)
     {
-        printf("ERROR: Failed to generate ML-KEM keypair for peer %u\n", PeerId);
+        (void)printf("ERROR: Failed to generate ML-KEM keypair for peer %u\n", PeerId);
         session->State = PQC_KE_STATE_FAILED;
         return E_NOT_OK;
     }
 
     /* Copy public key to output */
-    memcpy(PublicKey, session->LocalKeyPair.PublicKey, PQC_MLKEM_PUBLIC_KEY_BYTES);
+    (void)memcpy(PublicKey, session->LocalKeyPair.PublicKey, PQC_MLKEM_PUBLIC_KEY_BYTES);
 
     /* Update session state */
     session->State = PQC_KE_STATE_INITIATED;
     session->IsInitiator = TRUE;
 
-    printf("KE: Initiated key exchange with peer %u (sent %u byte public key)\n",
-           PeerId, PQC_MLKEM_PUBLIC_KEY_BYTES);
+    (void)printf("KE: Initiated key exchange with peer %u (sent %u byte public key)\n",
+                 PeerId, PQC_MLKEM_PUBLIC_KEY_BYTES);
 
     return E_OK;
 }
@@ -122,7 +122,7 @@ Std_ReturnType PQC_KeyExchange_Respond(
         return E_NOT_OK;
     }
 
-    if (PeerId >= PQC_MAX_PEERS || PeerPublicKey == NULL || Ciphertext == NULL)
+    if ((PeerId >= PQC_MAX_PEERS) || (PeerPublicKey == NULL) || (Ciphertext == NULL))
     {
         return E_NOT_OK;
     }
@@ -130,28 +130,28 @@ Std_ReturnType PQC_KeyExchange_Respond(
     PQC_KeyExchangeSessionType* session = &PQC_Sessions[PeerId];
 
     /* Store peer's public key */
-    memcpy(session->PeerPublicKey, PeerPublicKey, PQC_MLKEM_PUBLIC_KEY_BYTES);
+    (void)memcpy(session->PeerPublicKey, PeerPublicKey, PQC_MLKEM_PUBLIC_KEY_BYTES);
 
     /* Encapsulate to create shared secret and ciphertext */
     result = PQC_MLKEM_Encapsulate(PeerPublicKey, &shared_secret_data);
     if (result != PQC_E_OK)
     {
-        printf("ERROR: Failed to encapsulate for peer %u\n", PeerId);
+        (void)printf("ERROR: Failed to encapsulate for peer %u\n", PeerId);
         session->State = PQC_KE_STATE_FAILED;
         return E_NOT_OK;
     }
 
     /* Store shared secret and ciphertext */
-    memcpy(session->SharedSecret, shared_secret_data.SharedSecret, PQC_MLKEM_SHARED_SECRET_BYTES);
-    memcpy(session->Ciphertext, shared_secret_data.Ciphertext, PQC_MLKEM_CIPHERTEXT_BYTES);
-    memcpy(Ciphertext, shared_secret_data.Ciphertext, PQC_MLKEM_CIPHERTEXT_BYTES);
+    (void)memcpy(session->SharedSecret, shared_secret_data.SharedSecret, PQC_MLKEM_SHARED_SECRET_BYTES);
+    (void)memcpy(session->Ciphertext, shared_secret_data.Ciphertext, PQC_MLKEM_CIPHERTEXT_BYTES);
+    (void)memcpy(Ciphertext, shared_secret_data.Ciphertext, PQC_MLKEM_CIPHERTEXT_BYTES);
 
     /* Update session state */
     session->State = PQC_KE_STATE_ESTABLISHED;
     session->IsInitiator = FALSE;
 
-    printf("KE: Responded to peer %u (sent %u byte ciphertext, established %u byte shared secret)\n",
-           PeerId, PQC_MLKEM_CIPHERTEXT_BYTES, PQC_MLKEM_SHARED_SECRET_BYTES);
+    (void)printf("KE: Responded to peer %u (sent %u byte ciphertext, established %u byte shared secret)\n",
+                 PeerId, PQC_MLKEM_CIPHERTEXT_BYTES, PQC_MLKEM_SHARED_SECRET_BYTES);
 
     return E_OK;
 }
@@ -170,7 +170,7 @@ Std_ReturnType PQC_KeyExchange_Complete(
         return E_NOT_OK;
     }
 
-    if (PeerId >= PQC_MAX_PEERS || Ciphertext == NULL)
+    if ((PeerId >= PQC_MAX_PEERS) || (Ciphertext == NULL))
     {
         return E_NOT_OK;
     }
@@ -178,9 +178,9 @@ Std_ReturnType PQC_KeyExchange_Complete(
     PQC_KeyExchangeSessionType* session = &PQC_Sessions[PeerId];
 
     /* Verify we initiated this exchange */
-    if (session->State != PQC_KE_STATE_INITIATED || session->IsInitiator == FALSE)
+    if ((session->State != PQC_KE_STATE_INITIATED) || (session->IsInitiator == FALSE))
     {
-        printf("ERROR: Invalid state for completing key exchange with peer %u\n", PeerId);
+        (void)printf("ERROR: Invalid state for completing key exchange with peer %u\n", PeerId);
         return E_NOT_OK;
     }
 
@@ -193,22 +193,22 @@ Std_ReturnType PQC_KeyExchange_Complete(
 
     if (result != PQC_E_OK)
     {
-        printf("ERROR: Failed to decapsulate for peer %u\n", PeerId);
+        (void)printf("ERROR: Failed to decapsulate for peer %u\n", PeerId);
         session->State = PQC_KE_STATE_FAILED;
         return E_NOT_OK;
     }
 
     /* Store ciphertext for reference */
-    memcpy(session->Ciphertext, Ciphertext, PQC_MLKEM_CIPHERTEXT_BYTES);
+    (void)memcpy(session->Ciphertext, Ciphertext, PQC_MLKEM_CIPHERTEXT_BYTES);
 
     /* Update session state */
     session->State = PQC_KE_STATE_ESTABLISHED;
 
-    printf("KE: Completed key exchange with peer %u (established %u byte shared secret)\n",
-           PeerId, PQC_MLKEM_SHARED_SECRET_BYTES);
+    (void)printf("KE: Completed key exchange with peer %u (established %u byte shared secret)\n",
+                 PeerId, PQC_MLKEM_SHARED_SECRET_BYTES);
 
     /* Clear local secret key for security */
-    memset(session->LocalKeyPair.SecretKey, 0, PQC_MLKEM_SECRET_KEY_BYTES);
+    (void)memset(session->LocalKeyPair.SecretKey, 0, PQC_MLKEM_SECRET_KEY_BYTES);
 
     return E_OK;
 }
@@ -225,7 +225,7 @@ Std_ReturnType PQC_KeyExchange_GetSharedSecret(
         return E_NOT_OK;
     }
 
-    if (PeerId >= PQC_MAX_PEERS || SharedSecret == NULL)
+    if ((PeerId >= PQC_MAX_PEERS) || (SharedSecret == NULL))
     {
         return E_NOT_OK;
     }
@@ -235,12 +235,12 @@ Std_ReturnType PQC_KeyExchange_GetSharedSecret(
     /* Verify key is established */
     if (session->State != PQC_KE_STATE_ESTABLISHED)
     {
-        printf("ERROR: No established key with peer %u (state=%u)\n", PeerId, session->State);
+        (void)printf("ERROR: No established key with peer %u (state=%u)\n", PeerId, session->State);
         return E_NOT_OK;
     }
 
     /* Copy shared secret */
-    memcpy(SharedSecret, session->SharedSecret, PQC_MLKEM_SHARED_SECRET_BYTES);
+    (void)memcpy(SharedSecret, session->SharedSecret, PQC_MLKEM_SHARED_SECRET_BYTES);
 
     return E_OK;
 }
@@ -271,16 +271,16 @@ Std_ReturnType PQC_KeyExchange_Reset(PQC_PeerIdType PeerId)
     PQC_KeyExchangeSessionType* session = &PQC_Sessions[PeerId];
 
     /* Clear all sensitive data */
-    memset(&session->LocalKeyPair, 0, sizeof(PQC_MLKEM_KeyPairType));
-    memset(session->PeerPublicKey, 0, PQC_MLKEM_PUBLIC_KEY_BYTES);
-    memset(session->SharedSecret, 0, PQC_MLKEM_SHARED_SECRET_BYTES);
-    memset(session->Ciphertext, 0, PQC_MLKEM_CIPHERTEXT_BYTES);
+    (void)memset(&session->LocalKeyPair, 0, sizeof(PQC_MLKEM_KeyPairType));
+    (void)memset(session->PeerPublicKey, 0, PQC_MLKEM_PUBLIC_KEY_BYTES);
+    (void)memset(session->SharedSecret, 0, PQC_MLKEM_SHARED_SECRET_BYTES);
+    (void)memset(session->Ciphertext, 0, PQC_MLKEM_CIPHERTEXT_BYTES);
 
     session->State = PQC_KE_STATE_IDLE;
     session->IsInitiator = FALSE;
     session->Timestamp = 0;
 
-    printf("KE: Reset session with peer %u\n", PeerId);
+    (void)printf("KE: Reset session with peer %u\n", PeerId);
 
     return E_OK;
 }

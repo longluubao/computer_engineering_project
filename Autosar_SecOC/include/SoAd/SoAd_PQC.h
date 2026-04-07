@@ -15,7 +15,7 @@
 /************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 #include "Std_Types.h"
-#include "Csm.h"
+#include "Csm/Csm.h"
 
 /********************************************************************************************************/
 /***********************************************DEFINES***************************************************/
@@ -81,5 +81,13 @@ SoAd_PQC_StateType SoAd_PQC_GetState(Csm_PeerIdType PeerId);
  * @return E_OK if successful, E_NOT_OK otherwise
  */
 Std_ReturnType SoAd_PQC_ResetSession(Csm_PeerIdType PeerId);
+
+/**
+ * @brief Handle incoming PQC control-plane message.
+ * @param[in] BufPtr  Received payload buffer.
+ * @param[in] Length  Payload length.
+ * @return TRUE if payload was a valid PQC control message and consumed.
+ */
+boolean SoAd_PQC_HandleControlMessage(const uint8* BufPtr, uint16 Length);
 
 #endif /* SOAD_PQC_H */

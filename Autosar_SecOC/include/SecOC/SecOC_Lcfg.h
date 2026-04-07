@@ -74,6 +74,37 @@ typedef struct
    Std_ReturnType             status;
 } SecOC_PduCollection;
 
+extern SecOC_PduCollection PdusCollections[SECOC_NUM_OF_PDU_COLLECTION];
+
+extern uint8_t AuthPdu0BufferTx[SECOC_AUTHPDU_MAX_LENGTH];
+extern uint8_t SecPdu0BufferTx[SECOC_SECPDU_MAX_LENGTH];
+extern uint8_t AuthPdu0BufferRx[SECOC_AUTHPDU_MAX_LENGTH];
+extern uint8_t SecPdu0BufferRx[SECOC_SECPDU_MAX_LENGTH];
+extern uint8_t AuthPdu1BufferTx[SECOC_AUTHPDU_MAX_LENGTH];
+extern uint8_t SecPdu1BufferTx[SECOC_SECPDU_MAX_LENGTH];
+extern uint8_t AuthPdu1BufferRx[SECOC_AUTHPDU_MAX_LENGTH];
+extern uint8_t SecPdu1BufferRx[SECOC_SECPDU_MAX_LENGTH];
+extern uint8_t AuthPdu2BufferTx[SECOC_AUTHPDU_MAX_LENGTH];
+extern uint8_t SecPdu2BufferTx[SECOC_SECPDU_MAX_LENGTH];
+extern uint8_t AuthPdu2BufferRx[SECOC_AUTHPDU_MAX_LENGTH];
+extern uint8_t SecPdu2BufferRx[SECOC_SECPDU_MAX_LENGTH];
+extern uint8_t AuthPdu3BufferTx[SECOC_AUTHPDU_MAX_LENGTH];
+extern uint8_t SecPdu3BufferTx[SECOC_SECPDU_MAX_LENGTH];
+extern uint8_t AuthPdu3BufferRx[SECOC_AUTHPDU_MAX_LENGTH];
+extern uint8_t SecPdu3BufferRx[SECOC_SECPDU_MAX_LENGTH];
+extern uint8_t AuthPdu4BufferTx[SECOC_AUTHPDU_MAX_LENGTH];
+extern uint8_t SecPdu4BufferTx[SECOC_SECPDU_MAX_LENGTH];
+extern uint8_t AuthPdu4BufferRx[SECOC_AUTHPDU_MAX_LENGTH];
+extern uint8_t SecPdu4BufferRx[SECOC_SECPDU_MAX_LENGTH];
+extern uint8_t AuthPdu5BufferRx[SECOC_AUTHPDU_MAX_LENGTH];
+extern uint8_t SecPdu5BufferRx[SECOC_SECPDU_MAX_LENGTH];
+extern uint8_t AuthPduCollection5BufferRx[SECOC_AUTHPDU_MAX_LENGTH];
+extern uint8_t CryptoPduCollection5BufferRx[SECOC_SECPDU_MAX_LENGTH];
+extern uint8_t AuthPdu5BufferTx[SECOC_AUTHPDU_MAX_LENGTH];
+extern uint8_t SecPdu5BufferTx[SECOC_SECPDU_MAX_LENGTH];
+extern uint8_t AuthPduCollection5BufferTx[SECOC_AUTHPDU_MAX_LENGTH];
+extern uint8_t CryptoPduCollection5BufferTx[SECOC_SECPDU_MAX_LENGTH];
+
 
 typedef struct
 {
@@ -524,7 +555,38 @@ typedef struct /*Specific Implementation Data Structure Configuration SecOC Modu
 	const SecOC_RxPduProcessingType* SecOCRxPduProcessings;
 }SecOC_ConfigType;
 
-
-
+// cppcheck-suppress misra-c2012-8.4
+extern SecOC_MainFunctionTxType SecOC_MainFunctionTxConf;
+// cppcheck-suppress misra-c2012-8.4
+extern SecOC_MainFunctionRxType SecOCMainFunctionRx;
+// cppcheck-suppress misra-c2012-8.4
+extern SecOC_GeneralType SecOC_General;
+extern SecOC_RxCryptographicPduType SecOC_RxCryptographicPdu[];
+extern SecOC_RxAuthenticPduType SecOC_RxAuthenticPdu[];
+extern SecOC_UseMessageLinkType SecOC_UseMessageLink[];
+extern SecOC_RxSecuredPduCollectionType SecOC_RxSecuredPduCollection[];
+extern SecOC_RxAuthenticPduLayerType SecOC_RxAuthenticPduLayer[];
+extern SecOC_RxSecuredPduType SecOC_RxSecuredPdu[];
+extern SecOC_RxSecuredPduLayerType SecOC_RxSecuredPduLayer[];
+// cppcheck-suppress misra-c2012-8.4
+extern Csm_JobType CsmJob;
+// cppcheck-suppress misra-c2012-8.4
+extern SecOC_TxAuthServiceConfigRefType SecOC_TxAuthServiceConfigRef;
+// cppcheck-suppress misra-c2012-8.4
+extern SecOC_RxAuthServiceConfigRefType SecOC_RxAuthServiceConfigRef;
+// cppcheck-suppress misra-c2012-8.4
+extern SecOC_SameBufferPduCollectionType SecOC_SameBufferPduRef;
+extern SecOC_TxAuthenticPduLayerType SecOC_TxAuthenticPduLayer[];
+extern SecOC_TxSecuredPduType SecOC_TxSecuredPdu[];
+extern SecOC_TxCryptographicPduType SecOC_TxCryptographicPdu[];
+extern SecOC_TxAuthenticPduType SecOC_TxAuthenticPdu[];
+extern SecOC_TxSecuredPduCollectionType SecOC_TxSecuredPduCollection[];
+extern SecOC_TxSecuredPduLayerType SecOC_TxSecuredPduLayer[];
+extern SecOC_TxPduProcessingType SecOC_TxPduProcessing[];
+extern SecOC_RxPduProcessingType SecOC_RxPduProcessing[];
+// cppcheck-suppress misra-c2012-8.4
+extern SecOC_ConfigType SecOC_Config;
+extern SecOC_TxCountersType SecOC_TxCounters[];
+extern SecOC_RxCountersType SecOC_RxCounters[];
 
 #endif

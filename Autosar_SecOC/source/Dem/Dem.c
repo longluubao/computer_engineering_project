@@ -2,11 +2,30 @@
 /************************************************INCLUDES***********************************************/
 /********************************************************************************************************/
 
-#include "Dem.h"
-#include "Det.h"
-#include "NvM.h"
+#include "Dem/Dem.h"
+#include "Det/Det.h"
+#include "NvM/NvM.h"
 #include <stdio.h>
 #include <string.h>
+
+/* MISRA C:2012 Rule 17.3 - Cross-module forward declarations */
+extern Std_ReturnType NvM_GetErrorStatus(NvM_BlockIdType BlockId, NvM_RequestResultType* RequestResultPtr);
+extern Std_ReturnType NvM_WriteBlock(NvM_BlockIdType BlockId, const void* NvM_SrcPtr);
+
+/* External API declarations (MISRA 8.4 visibility). */
+void Dem_Init(void);
+void Dem_Shutdown(void);
+void Dem_MainFunction(void);
+Std_ReturnType Dem_ReportErrorStatus(Dem_EventIdType EventId, Dem_EventStatusType EventStatus);
+Std_ReturnType Dem_GetLastEvent(Dem_EventRecordType *EventRecordPtr);
+Std_ReturnType Dem_ReportDetError(uint16 ModuleId, uint8 InstanceId, uint8 ApiId, uint8 ErrorId);
+Std_ReturnType Dem_SetEventStatus(Dem_EventIdType EventId, Dem_EventStatusType EventStatus);
+Std_ReturnType Dem_GetEventStatus(Dem_EventIdType EventId, uint8* EventStatusPtr);
+Std_ReturnType Dem_ClearDTC(uint32 DTC);
+Std_ReturnType Dem_GetNumberOfFilteredDTC(uint8 StatusMask, uint16* NumberOfDTCs);
+Std_ReturnType Dem_SetDTCFilter(uint8 StatusMask);
+Std_ReturnType Dem_GetNextFilteredDTC(uint32* DTC, uint8* DTCStatus);
+Std_ReturnType Dem_GetDTCOfEvent(Dem_EventIdType EventId, uint32* DtcNumber);
 
 /********************************************************************************************************/
 /******************************************GlobalVariables**********************************************/
@@ -120,7 +139,15 @@ void Dem_MainFunction(void)
                 /* Retry in next main cycle on non-pending failure states. */
                 Dem_NvMJobPending = FALSE;
             }
+            else
+            {
+                /* No action required */
+            }
         }
+    }
+    else
+    {
+        /* No action required */
     }
 }
 

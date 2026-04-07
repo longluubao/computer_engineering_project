@@ -2,11 +2,31 @@
 /************************************************INCLUDES***********************************************/
 /********************************************************************************************************/
 
-#include "Dcm.h"
-#include "Dem.h"
-#include "Det.h"
+#include "Dcm/Dcm.h"
+#include "Dem/Dem.h"
+#include "Det/Det.h"
 #include <stdio.h>
 #include <string.h>
+
+/* MISRA C:2012 Rule 17.3 - Cross-module forward declarations */
+extern Std_ReturnType Dem_ClearDTC(uint32 DTC);
+extern Std_ReturnType Dem_GetNextFilteredDTC(uint32* DTC, uint8* DTCStatus);
+
+/* External API declarations (MISRA 8.4 visibility). */
+void Dcm_Init(const Dcm_ConfigType* ConfigPtr);
+void Dcm_DeInit(void);
+void Dcm_MainFunction(void);
+Std_ReturnType Dcm_ProcessRequest(const uint8* RequestData, uint16 RequestLength,
+                                  uint8* ResponseData, uint16* ResponseLength);
+void Dcm_TpTxConfirmation(PduIdType TxPduId, Std_ReturnType result);
+BufReq_ReturnType Dcm_TpStartOfReception(PduIdType RxPduId,
+                                         const PduInfoType* PduInfoPtr,
+                                         PduLengthType TpSduLength,
+                                         PduLengthType* RxBufferSizePtr);
+BufReq_ReturnType Dcm_TpCopyRxData(PduIdType RxPduId,
+                                   const PduInfoType* PduInfoPtr,
+                                   PduLengthType* RxBufferSizePtr);
+void Dcm_TpRxIndication(PduIdType RxPduId, Std_ReturnType result);
 
 /********************************************************************************************************/
 /******************************************GlobalVariables**********************************************/
@@ -26,7 +46,7 @@ void Dcm_Init(const Dcm_ConfigType* ConfigPtr)
 {
     (void)ConfigPtr;
     Dcm_Initialized = TRUE;
-    printf("[DCM] Initialized\n");
+    (void)printf("[DCM] Initialized\n");
 }
 
 void Dcm_MainFunction(void)

@@ -2,12 +2,25 @@
 /************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
-#include "Csm.h"
+#include "CryIf/CryIf.h"
+#include "Csm/Csm.h"
+#include "SecOC/SecOC_Cfg.h"
 
 #include <string.h>
 #include <stdio.h>
 
-#include "SecOC_Cfg.h"
+/* MISRA C:2012 Rule 17.3 - Cross-module forward declarations */
+extern Std_ReturnType CryIf_SignatureVerify(CryIf_ProviderType provider,
+                                           const uint8* dataPtr, uint32 dataLength,
+                                           const uint8* signaturePtr, uint32 signatureLength,
+                                           const uint8* publicKeyPtr);
+extern Std_ReturnType CryIf_GetSessionKeys(uint8 peerId, PQC_SessionKeysType* sessionKeysPtr);
+extern Std_ReturnType CryIf_KeyExchangeInitiate(uint8 peerId, uint8* publicValuePtr);
+extern Std_ReturnType CryIf_KeyExchangeRespond(uint8 peerId, const uint8* partnerPublicValuePtr,
+                                               uint8* ciphertextPtr);
+extern Std_ReturnType CryIf_KeyExchangeGetSharedSecret(uint8 peerId, uint8* sharedSecretPtr);
+extern Std_ReturnType CryIf_DeriveSessionKeys(const uint8* sharedSecretPtr, uint8 peerId,
+                                              PQC_SessionKeysType* sessionKeysPtr);
 
 /********************************************************************************************************/
 /*********************************************Defines****************************************************/
@@ -43,6 +56,50 @@ typedef struct
     CryIf_ProviderType CsmSignatureProvider;
     CryIf_ProviderType CsmKeyExchangeProvider;
 } Csm_JobRoutingType;
+
+/********************************************************************************************************/
+/**************************************ForwardDeclarations***********************************************/
+/********************************************************************************************************/
+
+extern void Csm_Init(const Csm_ConfigType* configPtr);
+extern void Csm_DeInit(void);
+extern void Csm_MainFunction(void);
+extern Std_ReturnType Csm_RegisterJobCallback(uint32 jobId, Csm_JobCallbackType callbackFct, void* callbackContextPtr);
+extern Std_ReturnType Csm_GetJobResult(uint32 jobId, Std_ReturnType* resultPtr, boolean* completedPtr);
+extern void Csm_GetVersionInfo(Std_VersionInfoType* versioninfo);
+extern Std_ReturnType Csm_MacGenerate(uint32 jobId, Crypto_OperationModeType mode,
+                                      const uint8* dataPtr, uint32 dataLength,
+                                      uint8* macPtr, uint32* macLengthPtr);
+extern Std_ReturnType Csm_MacVerify(uint32 jobId, Crypto_OperationModeType mode,
+                                    const uint8* dataPtr, uint32 dataLength,
+                                    const uint8* macPtr, const uint32 macLength,
+                                    Crypto_VerifyResultType* verifyPtr);
+extern Std_ReturnType Csm_SignatureGenerate(uint32 jobId, Crypto_OperationModeType mode,
+                                           const uint8* dataPtr, uint32 dataLength,
+                                           uint8* signaturePtr, uint32* signatureLengthPtr);
+extern Std_ReturnType Csm_SignatureVerify(uint32 jobId, Crypto_OperationModeType mode,
+                                         const uint8* dataPtr, uint32 dataLength,
+                                         const uint8* signaturePtr, uint32 signatureLength,
+                                         Crypto_VerifyResultType* verifyPtr);
+extern Std_ReturnType Csm_KeyElementSet(uint32 keyId, uint32 keyElementId,
+                                        const uint8* keyPtr, uint32 keyLength);
+extern Std_ReturnType Csm_KeySetValid(uint32 keyId);
+extern Std_ReturnType Csm_KeyExchangeInitiate(uint32 jobId, uint8 peerId,
+                                              uint8* publicValuePtr, uint32* publicValueLengthPtr);
+extern Std_ReturnType Csm_KeyExchangeRespond(uint32 jobId, uint8 peerId,
+                                             const uint8* partnerPublicValuePtr,
+                                             uint32 partnerPublicValueLength,
+                                             uint8* ciphertextPtr, uint32* ciphertextLengthPtr);
+extern Std_ReturnType Csm_KeyExchangeComplete(uint32 jobId, uint8 peerId,
+                                              const uint8* ciphertextPtr, uint32 ciphertextLength);
+extern Std_ReturnType Csm_KeyExchangeReset(uint8 peerId);
+extern Std_ReturnType Csm_KeyExchangeGetSharedSecret(uint32 jobId, uint8 peerId,
+                                                     uint8* sharedSecretPtr,
+                                                     uint32* sharedSecretLengthPtr);
+extern Std_ReturnType Csm_DeriveSessionKeys(uint8 peerId, const uint8* sharedSecretPtr,
+                                            uint32 sharedSecretLength);
+extern Std_ReturnType Csm_GetSessionKeys(uint8 peerId, Csm_SessionKeysType* sessionKeysPtr);
+extern Std_ReturnType Csm_ClearSessionKeys(uint8 peerId);
 
 /********************************************************************************************************/
 /*******************************************TypeDefinitions**********************************************/
@@ -368,7 +425,7 @@ static Std_ReturnType Csm_PQC_EnsureReady(void)
     result = CryIf_Init();
     if (result != E_OK)
     {
-        printf("ERROR: CSM PQC init failed\n");
+        (void)printf("ERROR: CSM PQC init failed\n");
         return E_NOT_OK;
     }
 
@@ -380,7 +437,7 @@ static Std_ReturnType Csm_PQC_EnsureReady(void)
             result = CryIf_MldsaGenerateKeyPair(&Csm_MLDSA_KeyPair);
             if (result != E_OK)
             {
-                printf("ERROR: CSM ML-DSA key generation failed\n");
+                (void)printf("ERROR: CSM ML-DSA key generation failed\n");
                 return E_NOT_OK;
             }
 
@@ -392,7 +449,7 @@ static Std_ReturnType Csm_PQC_EnsureReady(void)
         result = CryIf_MldsaLoadKeys(&Csm_MLDSA_KeyPair, CSM_MLDSA_KEY_PREFIX);
         if (result != E_OK)
         {
-            printf("ERROR: CSM strict key bootstrap failed (missing key files)\n");
+            (void)printf("ERROR: CSM strict key bootstrap failed (missing key files)\n");
             return E_NOT_OK;
         }
     }
@@ -400,7 +457,7 @@ static Std_ReturnType Csm_PQC_EnsureReady(void)
     {
         if (Csm_RuntimeConfig.CsmLoadProvisionedMldsaKeysFct == NULL)
         {
-            printf("ERROR: CSM provisioned/HSM bootstrap requires key loading callback\n");
+            (void)printf("ERROR: CSM provisioned/HSM bootstrap requires key loading callback\n");
             return E_NOT_OK;
         }
 
@@ -411,7 +468,7 @@ static Std_ReturnType Csm_PQC_EnsureReady(void)
             CSM_MLDSA_SECRET_KEY_BYTES);
         if (result != E_OK)
         {
-            printf("ERROR: CSM provisioned/HSM key bootstrap failed\n");
+            (void)printf("ERROR: CSM provisioned/HSM key bootstrap failed\n");
             return E_NOT_OK;
         }
     }
@@ -494,7 +551,7 @@ void Csm_Init(const Csm_ConfigType* configPtr)
     }
     else
     {
-        Csm_RuntimeConfig.CsmMldsaBootstrapMode = CSM_MLDSA_BOOTSTRAP_DEMO_FILE_AUTO;
+        Csm_RuntimeConfig.CsmMldsaBootstrapMode = CSM_MLDSA_BOOTSTRAP_FILE_STRICT;
         Csm_RuntimeConfig.CsmLoadProvisionedMldsaKeysFct = NULL;
     }
 
@@ -919,7 +976,7 @@ Std_ReturnType Csm_KeyElementSet(
         return CRYPTO_E_KEY_SIZE_MISMATCH;
     }
 
-    if (CSM_KEYID_IS_SESSION(keyId) == TRUE)
+    if ((uint32)CSM_KEYID_IS_SESSION(keyId) == (uint32)TRUE)
     {
         peerId = CSM_SESSION_PEER_FROM_KEYID(keyId);
         if (peerId >= CSM_MAX_PEERS)
@@ -970,7 +1027,7 @@ Std_ReturnType Csm_KeySetValid(uint32 keyId)
         return E_OK;
     }
 
-    if (CSM_KEYID_IS_SESSION(keyId) == TRUE)
+    if ((uint32)CSM_KEYID_IS_SESSION(keyId) == (uint32)TRUE)
     {
         peerId = CSM_SESSION_PEER_FROM_KEYID(keyId);
         if (peerId >= CSM_MAX_PEERS)

@@ -3,17 +3,17 @@
 /********************************************************************************************************/
 
 #ifdef WINDOWS
-    #include "ethernet_windows.h"
+    #include "Ethernet/ethernet_windows.h"
 #else
-    #include "ethernet.h"
+    #include "Ethernet/ethernet.h"
 #endif
-#include "SecOC_Debug.h"
-#include "SecOC_Lcfg.h"
-#include "SecOC_Cfg.h"
-#include "CanTP.h"
-#include "CanIF.h"
-#include "PduR_CanIf.h"
-#include "SoAd.h"
+#include "Can/CanIF.h"
+#include "Can/CanTP.h"
+#include "PduR/PduR_CanIf.h"
+#include "SecOC/SecOC_Cfg.h"
+#include "SecOC/SecOC_Debug.h"
+#include "SecOC/SecOC_Lcfg.h"
+#include "SoAd/SoAd.h"
 
 #ifdef WINDOWS
     #include <winsock2.h>
@@ -21,12 +21,18 @@
     #pragma comment(lib, "ws2_32.lib")
 #endif
 
+/* MISRA C:2012 Rule 8.4 - Forward declarations for external linkage functions */
+extern void EthDrv_Init(void);
+extern Std_ReturnType EthDrv_Send(unsigned short id, unsigned char* data, uint16 dataLen);
+extern Std_ReturnType EthDrv_Receive(unsigned char* data, uint16 dataLen, unsigned short* id, uint16* actualSize);
+extern void EthDrv_ReceiveMainFunction(void);
+
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
 /********************************************************************************************************/
 
-static uint8 ip_address_send[15] = "127.0.0.1";
-extern SecOC_PduCollection PdusCollections[];
+static char ip_address_send[15] = "127.0.0.1";
+extern SecOC_PduCollection PdusCollections[SECOC_NUM_OF_PDU_COLLECTION];
 
 #ifdef WINDOWS
 static WSADATA wsa_data;
@@ -64,7 +70,8 @@ static void winsock_cleanup(void)
 }
 #endif
 
-void ethernet_init(void)
+/* cppcheck-suppress misra-c2012-8.6 ; platform-specific, only one file compiled per target */
+void EthDrv_Init(void)
 {
     #ifdef WINDOWS
     /* Initialize Winsock */
@@ -86,24 +93,25 @@ void ethernet_init(void)
     }
 
     /* Read the IP address from the file */
-    fgets(ip_address_read, 16, fp);
+    (void)fgets(ip_address_read, 16, fp);
 
     /* Close the file */
-    fclose(fp);
+    (void)fclose(fp);
 
     #ifdef ETHERNET_DEBUG
         printf("IP is %s\n", ip_address_read);
     #endif
 
     /* Copy the IP address to the global variable */
-    if (strlen(ip_address_read) > 0)
+    if (strlen(ip_address_read) > 0U)
     {
         ip_address_read[strcspn(ip_address_read, "\n")] = 0;
-        strcpy(ip_address_send, ip_address_read);
+        (void)strcpy(ip_address_send, ip_address_read);
     }
 }
 
-Std_ReturnType ethernet_send(unsigned short id, unsigned char* data, uint16 dataLen)
+/* cppcheck-suppress misra-c2012-8.6 ; platform-specific, only one file compiled per target */
+Std_ReturnType EthDrv_Send(unsigned short id, unsigned char* data, uint16 dataLen)
 {
     #ifdef ETHERNET_DEBUG
         printf("######## in Sent Ethernet\n");
@@ -156,7 +164,9 @@ Std_ReturnType ethernet_send(unsigned short id, unsigned char* data, uint16 data
     #ifdef ETHERNET_DEBUG
         printf("Sending %d bytes\n", dataLen + sizeof(id));
         for (int j = 0; j < dataLen + sizeof(id) && j < 20; j++)
+        {
             printf("%d\t", sendData[j]);
+        }
         printf("\n");
     #endif
 
@@ -167,7 +177,8 @@ Std_ReturnType ethernet_send(unsigned short id, unsigned char* data, uint16 data
     return E_OK;
 }
 
-Std_ReturnType ethernet_receive(unsigned char* data, uint16 dataLen, unsigned short* id, uint16* actualSize)
+/* cppcheck-suppress misra-c2012-8.6 ; platform-specific, only one file compiled per target */
+Std_ReturnType EthDrv_Receive(unsigned char* data, uint16 dataLen, unsigned short* id, uint16* actualSize)
 {
     #ifdef ETHERNET_DEBUG
         printf("######## in Receive Ethernet\n");
@@ -182,7 +193,8 @@ Std_ReturnType ethernet_receive(unsigned char* data, uint16 dataLen, unsigned sh
     #endif
 
     /* Create a socket */
-    SOCKET server_socket, client_socket;
+    SOCKET server_socket;
+    SOCKET client_socket;
     server_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (server_socket == INVALID_SOCKET)
     {
@@ -253,7 +265,7 @@ Std_ReturnType ethernet_receive(unsigned char* data, uint16 dataLen, unsigned sh
     }
 
     /* Calculate actual PDU size (received bytes - ID size) */
-    int actualPduSize = recv_result - sizeof(unsigned short);
+    int actualPduSize = recv_result - (int)sizeof(unsigned short);
 
     #ifdef ETHERNET_DEBUG
         printf("in Receive Ethernet \t");
@@ -267,6 +279,7 @@ Std_ReturnType ethernet_receive(unsigned char* data, uint16 dataLen, unsigned sh
     #endif
 
     /* Extract ID from END of received data (not from fixed buffer position!) */
+    /* cppcheck-suppress misra-c2012-18.4 ; pointer arithmetic required for buffer offset */
     (void)memcpy(id, recData + actualPduSize, sizeof(unsigned short));
     (void)memcpy(data, recData, actualPduSize);
 
@@ -286,69 +299,10 @@ Std_ReturnType ethernet_receive(unsigned char* data, uint16 dataLen, unsigned sh
     return E_OK;
 }
 
-void ethernet_RecieveMainFunction(void)
+/* cppcheck-suppress misra-c2012-8.6 ; platform-specific, only one file compiled per target */
+void EthDrv_ReceiveMainFunction(void)
 {
-    static uint8 dataRecieve[BUS_LENGTH_RECEIVE];
-    uint16 id;
-    uint16 actualSize;
-    if (ethernet_receive(dataRecieve, BUS_LENGTH_RECEIVE, &id, &actualSize) != E_OK)
-    {
-        return;
-    }
-
-    if (id >= (uint16)SECOC_NUM_OF_RX_PDU_PROCESSING)
-    {
-        return;
-    }
-
-    PduInfoType PduInfoPtr = {
-        .SduDataPtr = dataRecieve,
-        .MetaDataPtr = (uint8*)&PdusCollections[id],
-        .SduLength = actualSize,  /* Use actual received size, not buffer size */
-    };
-    switch (PdusCollections[id].Type)
-    {
-    case SECOC_SECURED_PDU_CANIF:
-        #ifdef ETHERNET_DEBUG
-            printf("here in Direct \n");
-        #endif
-        CanIf_RxIndication(id, &PduInfoPtr);
-        break;
-    case SECOC_SECURED_PDU_CANTP:
-        #ifdef ETHERNET_DEBUG
-            printf("here in CANTP \n");
-        #endif
-        CanTp_RxIndication(id, &PduInfoPtr);
-        break;
-    case SECOC_SECURED_PDU_SOADTP:
-        #ifdef ETHERNET_DEBUG
-            printf("here in Ethernet SOADTP \n");
-        #endif
-        SoAdTp_RxIndication(id, &PduInfoPtr);
-        break;
-    case SECOC_SECURED_PDU_SOADIF:
-        #ifdef ETHERNET_DEBUG
-            printf("here in Ethernet SOADIF \n");
-        #endif
-        PduR_SoAdIfRxIndication(id, &PduInfoPtr);
-        break;
-
-    case SECOC_AUTH_COLLECTON_PDU:
-        #ifdef ETHERNET_DEBUG
-            printf("here in Direct - pdu collection - auth\n");
-        #endif
-        CanIf_RxIndication(id, &PduInfoPtr);
-        break;
-    case SECOC_CRYPTO_COLLECTON_PDU:
-        #ifdef ETHERNET_DEBUG
-            printf("here in Direct- pdu collection - crypto \n");
-        #endif
-        CanIf_RxIndication(id, &PduInfoPtr);
-        break;
-    default:
-        #ifdef ETHERNET_DEBUG
-            printf("This is no type like it for ID : %d  type : %d \n", id, PdusCollections[id].Type);
-        #endif
-        break;
-    }
+    /* Legacy direct Ethernet->PduR path is permanently disabled. */
+    (void)ETHERNET_LEGACY_DIRECT_ROUTING;
+    return;
 }

@@ -1,0 +1,12 @@
+{
+    "unr155_assessment": {
+        "scope": "csms",
+        "standard": "UN Regulation No. 155",
+        "requirements_met": 5,
+        "requirements_partial": 2,
+        "requirements_total": 7,
+        "compliance_pct": 85.7,
+        "gaps": ["Continuous monitoring", "Supply chain security"],
+        "assessed_at": "2026-04-07T14:53:58+07:00"
+    }
+}

@@ -27,5 +27,7 @@ void GUIInterface_alterAuthenticator(uint8_t configId);
 char* GUIInterface_transmit(uint8_t configId);
 char* GUIInterface_receive(uint8_t* rxId , uint8_t* finalRxLen);
 
+char* GUIInterface_authenticate_PQC(uint8_t configId, uint8_t *data, uint8_t len);
+char* GUIInterface_verify_PQC(uint8_t configId);
 
 #endif

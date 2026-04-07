@@ -123,17 +123,19 @@ static void Os_ReportProtectionViolation(void)
 
 static StatusType Os_CheckCurrentApplicationObjectAccess(Os_ObjectType_Type ObjectType, uint32 ObjectID)
 {
-    StatusType accessStatus;
+    StatusType accessStatus = E_OS_OK;
 
     if ((Os_CurrentTask == INVALID_TASK) && (Os_CurrentIsr == INVALID_ISR))
     {
-        return E_OS_OK;
+        accessStatus = E_OS_OK;
     }
-
-    accessStatus = CheckObjectAccess(Os_CurrentApplication, ObjectType, ObjectID);
-    if (accessStatus != E_OS_OK)
+    else
     {
-        Os_ReportProtectionViolation();
+        accessStatus = CheckObjectAccess(Os_CurrentApplication, ObjectType, ObjectID);
+        if (accessStatus != E_OS_OK)
+        {
+            Os_ReportProtectionViolation();
+        }
     }
     return accessStatus;
 }
@@ -149,27 +151,39 @@ static uint32 Os_GetSystemTimeMs(void)
 #else
     struct timespec ts;
     (void)clock_gettime(CLOCK_MONOTONIC, &ts);
-    return (uint32)((uint32)ts.tv_sec * 1000U + (uint32)(ts.tv_nsec / 1000000));
+    return (uint32)(((uint32)ts.tv_sec * 1000U) + ((uint32)(ts.tv_nsec / 1000000)));
 #endif
 }
 
 static TickType Os_TickAdd(TickType Current, TickType Delta, TickType MaxAllowedValue)
 {
     TickType remaining = MaxAllowedValue - Current;
+    TickType result = 0U;
+
     if (Delta > remaining)
     {
-        return Delta - remaining - 1U;
+        result = Delta - remaining - 1U;
     }
-    return Current + Delta;
+    else
+    {
+        result = Current + Delta;
+    }
+    return result;
 }
 
 static TickType Os_TickDistance(TickType Start, TickType End, TickType MaxAllowedValue)
 {
+    TickType result = 0U;
+
     if (End >= Start)
     {
-        return End - Start;
+        result = End - Start;
     }
-    return (MaxAllowedValue - Start) + End + 1U;
+    else
+    {
+        result = (MaxAllowedValue - Start) + End + 1U;
+    }
+    return result;
 }
 
 static void Os_RecalculateTaskPriority(TaskType TaskID)
@@ -406,60 +420,118 @@ static void Os_DispatchTasks(void)
 /*****************************************PublicFunctions*************************************************/
 /********************************************************************************************************/
 
+/* External API declarations (MISRA 8.4 visibility). */
+void Os_Init(const Os_ConfigType* ConfigPtr);
+void StartOS(AppModeType Mode);
+void ShutdownOS(StatusType Error);
+StatusType ActivateTask(TaskType TaskID);
+StatusType TerminateTask(void);
+StatusType ChainTask(TaskType TaskID);
+StatusType GetTaskID(TaskRefType TaskID);
+StatusType GetTaskState(TaskType TaskID, TaskStateRefType State);
+StatusType SetRelAlarm(AlarmType AlarmID, TickType increment, TickType cycle);
+StatusType SetAbsAlarm(AlarmType AlarmID, TickType start, TickType cycle);
+StatusType CancelAlarm(AlarmType AlarmID);
+StatusType GetAlarm(AlarmType AlarmID, TickRefType Tick);
+StatusType GetAlarmBase(AlarmType AlarmID, AlarmBaseRefType Info);
+StatusType IncrementCounter(CounterType CounterID);
+StatusType Os_GetCounterValue(CounterType CounterID, TickRefType Value);
+StatusType GetResource(ResourceType ResID);
+StatusType ReleaseResource(ResourceType ResID);
+StatusType Os_SetEvent(TaskType TaskID, EventMaskType Mask);
+StatusType Os_ClearEvent(EventMaskType Mask);
+StatusType Os_GetEvent(TaskType TaskID, EventMaskRefType Event);
+StatusType Os_WaitEvent(EventMaskType Mask);
+StatusType StartScheduleTableRel(ScheduleTableType ScheduleTableID, TickType Offset);
+StatusType StopScheduleTable(ScheduleTableType ScheduleTableID);
+StatusType StartScheduleTableAbs(ScheduleTableType ScheduleTableID, TickType Start);
+StatusType NextScheduleTable(ScheduleTableType ScheduleTableID_From, ScheduleTableType ScheduleTableID_To);
+AppModeType GetActiveApplicationMode(void);
+StatusType Schedule(void);
+void Os_SetStartupHook(Os_HookFunctionType Hook);
+void Os_SetShutdownHook(Os_HookFunctionType Hook);
+void Os_SetErrorHook(Os_HookFunctionType Hook);
+void Os_SetPreTaskHook(Os_HookFunctionType Hook);
+void Os_SetPostTaskHook(Os_HookFunctionType Hook);
+void Os_SetProtectionHook(Os_HookFunctionType Hook);
+void Os_MainFunction(void);
+void DisableAllInterrupts(void);
+void EnableAllInterrupts(void);
+void SuspendAllInterrupts(void);
+void ResumeAllInterrupts(void);
+void SuspendOSInterrupts(void);
+void ResumeOSInterrupts(void);
+ISRType GetISRID(void);
+ApplicationType GetApplicationID(void);
+StatusType CheckObjectAccess(ApplicationType ApplID, Os_ObjectType_Type ObjectType, uint32 ObjectID);
+StatusType TerminateApplication(ApplicationType Application, RestartType RestartOption);
+StatusType CallTrustedFunction(TrustedFunctionIndexType FunctionIndex, TrustedFunctionParameterRefType FunctionParams);
+StatusType Os_RegisterTrustedFunction(TrustedFunctionIndexType FunctionIndex, Os_TrustedFunctionType FunctionPtr);
+StatusType Os_EnterISR(ISRType IsrID, ApplicationType OwnerApplication);
+void Os_ExitISR(void);
+StatusType Os_AssignObjectToApplication(Os_ObjectType_Type ObjectType, uint32 ObjectID, ApplicationType ApplID);
+
 void Os_Init(const Os_ConfigType* ConfigPtr)
 {
     uint8 i;
     uint8 highestTaskPriority = 0U;
+    boolean IsConfigValid = TRUE;
 
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if (ConfigPtr == NULL)
     {
         Os_ReportDetError(OS_SID_INIT, OS_E_PARAM_POINTER);
-        return;
+        IsConfigValid = FALSE;
     }
-    if (ConfigPtr->NumTasks > OS_MAX_TASKS)
+    else if (ConfigPtr->NumTasks > OS_MAX_TASKS)
     {
         Os_ReportDetError(OS_SID_INIT, OS_E_LIMIT);
-        return;
+        IsConfigValid = FALSE;
     }
-    if (ConfigPtr->NumAlarms > OS_MAX_ALARMS)
+    else if (ConfigPtr->NumAlarms > OS_MAX_ALARMS)
     {
         Os_ReportDetError(OS_SID_INIT, OS_E_LIMIT);
-        return;
+        IsConfigValid = FALSE;
     }
-    if (ConfigPtr->NumCounters > OS_MAX_COUNTERS)
+    else if (ConfigPtr->NumCounters > OS_MAX_COUNTERS)
     {
         Os_ReportDetError(OS_SID_INIT, OS_E_LIMIT);
-        return;
+        IsConfigValid = FALSE;
+    }
+    else
+    {
+        /* No action required */
     }
 #endif
 
-    Os_ConfigPtr = ConfigPtr;
-
-    /* Initialize tasks */
-    for (i = 0U; i < OS_MAX_TASKS; i++)
+    if (IsConfigValid == TRUE)
     {
-        Os_Tasks[i].State = OS_TASK_SUSPENDED;
-        Os_Tasks[i].Priority = 0U;
-        Os_Tasks[i].Kind = OS_TASK_BASIC;
-        Os_Tasks[i].Entry = NULL;
-        Os_Tasks[i].EventsSet = 0U;
-        Os_Tasks[i].EventsWaiting = 0U;
-        Os_Tasks[i].ActivationCount = 0U;
-        Os_Tasks[i].ResourceCount = 0U;
-        Os_TaskOwnerApp[i] = (ApplicationType)0U;
-    }
+        Os_ConfigPtr = ConfigPtr;
 
-    for (i = 0U; i < ConfigPtr->NumTasks; i++)
-    {
-        Os_Tasks[i].Entry = ConfigPtr->Tasks[i].Entry;
-        Os_Tasks[i].Priority = ConfigPtr->Tasks[i].Priority;
-        Os_Tasks[i].Kind = ConfigPtr->Tasks[i].Kind;
-        if (ConfigPtr->Tasks[i].Priority > highestTaskPriority)
+        /* Initialize tasks */
+        for (i = 0U; i < OS_MAX_TASKS; i++)
         {
-            highestTaskPriority = ConfigPtr->Tasks[i].Priority;
+            Os_Tasks[i].State = OS_TASK_SUSPENDED;
+            Os_Tasks[i].Priority = 0U;
+            Os_Tasks[i].Kind = OS_TASK_BASIC;
+            Os_Tasks[i].Entry = NULL;
+            Os_Tasks[i].EventsSet = 0U;
+            Os_Tasks[i].EventsWaiting = 0U;
+            Os_Tasks[i].ActivationCount = 0U;
+            Os_Tasks[i].ResourceCount = 0U;
+            Os_TaskOwnerApp[i] = (ApplicationType)0U;
         }
-    }
+
+        for (i = 0U; i < ConfigPtr->NumTasks; i++)
+        {
+            Os_Tasks[i].Entry = ConfigPtr->Tasks[i].Entry;
+            Os_Tasks[i].Priority = ConfigPtr->Tasks[i].Priority;
+            Os_Tasks[i].Kind = ConfigPtr->Tasks[i].Kind;
+            if (ConfigPtr->Tasks[i].Priority > highestTaskPriority)
+            {
+                highestTaskPriority = ConfigPtr->Tasks[i].Priority;
+            }
+        }
 
     /* Initialize counters */
     for (i = 0U; i < OS_MAX_COUNTERS; i++)
@@ -526,49 +598,54 @@ void Os_Init(const Os_ConfigType* ConfigPtr)
         Os_SchedTables[i].Config = &ConfigPtr->ScheduleTables[i];
     }
 
-    Os_CurrentTask = INVALID_TASK;
-    Os_CurrentIsr = INVALID_ISR;
-    Os_CurrentApplication = (ApplicationType)0U;
-    Os_ActiveAppMode = OSDEFAULTAPPMODE;
-    Os_Initialized = TRUE;
-    Os_Started = FALSE;
+        Os_CurrentTask = INVALID_TASK;
+        Os_CurrentIsr = INVALID_ISR;
+        Os_CurrentApplication = (ApplicationType)0U;
+        Os_ActiveAppMode = OSDEFAULTAPPMODE;
+        Os_Initialized = TRUE;
+        Os_Started = FALSE;
+    }
 }
 
 void StartOS(AppModeType Mode)
 {
     uint8 i;
+    boolean ShouldStart = TRUE;
     (void)Mode;
 
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if (Os_Initialized == FALSE)
     {
         Os_ReportDetError(OS_SID_START_OS, OS_E_UNINIT);
-        return;
+        ShouldStart = FALSE;
     }
 #endif
 
     if (Os_Started != FALSE)
     {
-        return;
+        ShouldStart = FALSE;
     }
 
-    Os_LastTickMs = Os_GetSystemTimeMs();
-    Os_ActiveAppMode = Mode;
-    Os_Started = TRUE;
-
-    /* Autostart tasks */
-    for (i = 0U; i < Os_ConfigPtr->NumTasks; i++)
+    if (ShouldStart == TRUE)
     {
-        if (Os_ConfigPtr->Tasks[i].Autostart != FALSE)
+        Os_LastTickMs = Os_GetSystemTimeMs();
+        Os_ActiveAppMode = Mode;
+        Os_Started = TRUE;
+
+        /* Autostart tasks */
+        for (i = 0U; i < Os_ConfigPtr->NumTasks; i++)
         {
-            Os_Tasks[i].State = OS_TASK_READY;
-            Os_Tasks[i].ActivationCount = 1U;
+            if (Os_ConfigPtr->Tasks[i].Autostart != FALSE)
+            {
+                Os_Tasks[i].State = OS_TASK_READY;
+                Os_Tasks[i].ActivationCount = 1U;
+            }
         }
-    }
 
-    if (Os_StartupHook != NULL)
-    {
-        Os_StartupHook();
+        if (Os_StartupHook != NULL)
+        {
+            Os_StartupHook();
+        }
     }
 }
 
@@ -611,317 +688,411 @@ void ShutdownOS(StatusType Error)
 
 StatusType ActivateTask(TaskType TaskID)
 {
+    StatusType RetVal = E_OS_OK;
+
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if (Os_Initialized == FALSE)
     {
         Os_ReportDetError(OS_SID_ACTIVATE_TASK, OS_E_UNINIT);
-        return E_OS_ACCESS;
+        RetVal = E_OS_ACCESS;
     }
-    if ((Os_ConfigPtr == NULL) || (TaskID >= Os_ConfigPtr->NumTasks))
+    else if ((Os_ConfigPtr == NULL) || (TaskID >= Os_ConfigPtr->NumTasks))
     {
         Os_ReportDetError(OS_SID_ACTIVATE_TASK, OS_E_PARAM_ID);
-        return E_OS_ID;
+        RetVal = E_OS_ID;
     }
-    if (Os_Started == FALSE)
+    else if (Os_Started == FALSE)
     {
         Os_ReportDetError(OS_SID_ACTIVATE_TASK, OS_E_STATE);
-        return E_OS_STATE;
+        RetVal = E_OS_STATE;
+    }
+    else
+    {
+        /* No action required */
     }
 #endif
 
-    if (Os_Tasks[TaskID].ActivationCount >= OS_MAX_TASK_ACTIVATIONS)
+    if ((RetVal == E_OS_OK) && (Os_Tasks[TaskID].ActivationCount >= OS_MAX_TASK_ACTIVATIONS))
     {
-        return E_OS_LIMIT;
+        RetVal = E_OS_LIMIT;
     }
-    if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_TASK, (uint32)TaskID) != E_OS_OK)
+    else if ((RetVal == E_OS_OK) &&
+             (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_TASK, (uint32)TaskID) != E_OS_OK))
     {
-        return E_OS_ACCESS;
+        RetVal = E_OS_ACCESS;
+    }
+    else if (RetVal == E_OS_OK)
+    {
+        if (Os_Tasks[TaskID].State != OS_TASK_SUSPENDED)
+        {
+            Os_Tasks[TaskID].ActivationCount++;
+        }
+        else
+        {
+            Os_Tasks[TaskID].State = OS_TASK_READY;
+            Os_Tasks[TaskID].ActivationCount = 1U;
+        }
+    }
+    else
+    {
+        /* No action required */
     }
 
-    if (Os_Tasks[TaskID].State != OS_TASK_SUSPENDED)
-    {
-        Os_Tasks[TaskID].ActivationCount++;
-        return E_OS_OK;
-    }
-
-    Os_Tasks[TaskID].State = OS_TASK_READY;
-    Os_Tasks[TaskID].ActivationCount = 1U;
-
-    return E_OS_OK;
+    return RetVal;
 }
 
 StatusType TerminateTask(void)
 {
+    StatusType RetVal = E_OS_OK;
+
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if (Os_CurrentTask == INVALID_TASK)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_TERMINATE_TASK, OS_E_NOFUNC);
-        return E_OS_NOFUNC;
+        RetVal = E_OS_NOFUNC;
     }
-    if (Os_Tasks[Os_CurrentTask].ResourceCount > 0U)
+    else if (Os_Tasks[Os_CurrentTask].ResourceCount > 0U)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_TERMINATE_TASK, OS_E_RESOURCE);
-        return E_OS_RESOURCE;
+        RetVal = E_OS_RESOURCE;
+    }
+    else
+    {
+        /* No action required */
     }
 #endif
 
-    Os_Tasks[Os_CurrentTask].State = OS_TASK_SUSPENDED;
-
-    if (Os_Tasks[Os_CurrentTask].ActivationCount > 0U)
+    if (RetVal == E_OS_OK)
     {
-        Os_Tasks[Os_CurrentTask].ActivationCount--;
+        Os_Tasks[Os_CurrentTask].State = OS_TASK_SUSPENDED;
+
         if (Os_Tasks[Os_CurrentTask].ActivationCount > 0U)
         {
-            Os_Tasks[Os_CurrentTask].State = OS_TASK_READY;
+            Os_Tasks[Os_CurrentTask].ActivationCount--;
+            if (Os_Tasks[Os_CurrentTask].ActivationCount > 0U)
+            {
+                Os_Tasks[Os_CurrentTask].State = OS_TASK_READY;
+            }
         }
     }
 
-    return E_OS_OK;
+    return RetVal;
 }
 
 StatusType ChainTask(TaskType TaskID)
 {
     TaskType currentTaskId;
+    StatusType RetVal = E_OS_OK;
 
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if (Os_CurrentTask == INVALID_TASK)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_CHAIN_TASK, OS_E_NOFUNC);
-        return E_OS_NOFUNC;
+        RetVal = E_OS_NOFUNC;
     }
-    if ((Os_ConfigPtr == NULL) || (TaskID >= Os_ConfigPtr->NumTasks))
+    else if ((Os_ConfigPtr == NULL) || (TaskID >= Os_ConfigPtr->NumTasks))
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_CHAIN_TASK, OS_E_PARAM_ID);
-        return E_OS_ID;
+        RetVal = E_OS_ID;
     }
-    if (Os_Tasks[Os_CurrentTask].ResourceCount > 0U)
+    else if (Os_Tasks[Os_CurrentTask].ResourceCount > 0U)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_CHAIN_TASK, OS_E_RESOURCE);
-        return E_OS_RESOURCE;
-    }
-#endif
-
-    currentTaskId = Os_CurrentTask;
-
-    /* Terminate current */
-    Os_Tasks[currentTaskId].State = OS_TASK_SUSPENDED;
-    if (Os_Tasks[currentTaskId].ActivationCount > 0U)
-    {
-        Os_Tasks[currentTaskId].ActivationCount--;
-    }
-    if (Os_Tasks[currentTaskId].ActivationCount > 0U)
-    {
-        Os_Tasks[currentTaskId].State = OS_TASK_READY;
-    }
-
-    /* Activate target */
-    if (Os_Tasks[TaskID].State == OS_TASK_SUSPENDED)
-    {
-        Os_Tasks[TaskID].State = OS_TASK_READY;
-        Os_Tasks[TaskID].ActivationCount = 1U;
+        RetVal = E_OS_RESOURCE;
     }
     else
     {
-        if (Os_Tasks[TaskID].ActivationCount >= OS_MAX_TASK_ACTIVATIONS)
-        {
-            return E_OS_LIMIT;
-        }
-        Os_Tasks[TaskID].ActivationCount++;
+        /* No action required */
     }
+#endif
 
-    return E_OS_OK;
+    if (RetVal == E_OS_OK)
+    {
+        currentTaskId = Os_CurrentTask;
+
+        /* Terminate current */
+        Os_Tasks[currentTaskId].State = OS_TASK_SUSPENDED;
+        if (Os_Tasks[currentTaskId].ActivationCount > 0U)
+        {
+            Os_Tasks[currentTaskId].ActivationCount--;
+        }
+        if (Os_Tasks[currentTaskId].ActivationCount > 0U)
+        {
+            Os_Tasks[currentTaskId].State = OS_TASK_READY;
+        }
+
+        /* Activate target */
+        if (Os_Tasks[TaskID].State == OS_TASK_SUSPENDED)
+        {
+            Os_Tasks[TaskID].State = OS_TASK_READY;
+            Os_Tasks[TaskID].ActivationCount = 1U;
+        }
+        else if (Os_Tasks[TaskID].ActivationCount >= OS_MAX_TASK_ACTIVATIONS)
+        {
+            RetVal = E_OS_LIMIT;
+        }
+        else
+        {
+            Os_Tasks[TaskID].ActivationCount++;
+        }
+    }
+    return RetVal;
 }
 
 StatusType GetTaskID(TaskRefType TaskID)
 {
+    StatusType RetVal = E_OS_OK;
+
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if (TaskID == NULL)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_GET_TASK_ID, OS_E_PARAM_POINTER);
-        return E_OS_ACCESS;
+        RetVal = E_OS_ACCESS;
     }
 #endif
 
-    *TaskID = Os_CurrentTask;
-    return E_OS_OK;
+    if (RetVal == E_OS_OK)
+    {
+        *TaskID = Os_CurrentTask;
+    }
+    return RetVal;
 }
 
 StatusType GetTaskState(TaskType TaskID, TaskStateRefType State)
 {
+    StatusType RetVal = E_OS_OK;
+
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if (State == NULL)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_GET_TASK_STATE, OS_E_PARAM_POINTER);
-        return E_OS_ACCESS;
+        RetVal = E_OS_ACCESS;
     }
-    if ((Os_ConfigPtr == NULL) || (TaskID >= Os_ConfigPtr->NumTasks))
+    else if ((Os_ConfigPtr == NULL) || (TaskID >= Os_ConfigPtr->NumTasks))
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_GET_TASK_STATE, OS_E_PARAM_ID);
-        return E_OS_ID;
+        RetVal = E_OS_ID;
+    }
+    else
+    {
+        /* No action required */
     }
 #endif
 
-    *State = Os_Tasks[TaskID].State;
-    return E_OS_OK;
+    if (RetVal == E_OS_OK)
+    {
+        *State = Os_Tasks[TaskID].State;
+    }
+    return RetVal;
 }
 
 StatusType SetRelAlarm(AlarmType AlarmID, TickType increment, TickType cycle)
 {
     CounterType ctr;
+    StatusType RetVal = E_OS_OK;
 
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if (Os_Initialized == FALSE)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_SET_REL_ALARM, OS_E_UNINIT);
-        return E_OS_ACCESS;
+        RetVal = E_OS_ACCESS;
     }
-    if ((Os_ConfigPtr == NULL) || (AlarmID >= Os_ConfigPtr->NumAlarms))
+    else if ((Os_ConfigPtr == NULL) || (AlarmID >= Os_ConfigPtr->NumAlarms))
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_SET_REL_ALARM, OS_E_PARAM_ID);
-        return E_OS_ID;
+        RetVal = E_OS_ID;
     }
-    if (Os_Started == FALSE)
+    else if (Os_Started == FALSE)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_SET_REL_ALARM, OS_E_STATE);
-        return E_OS_STATE;
+        RetVal = E_OS_STATE;
+    }
+    else
+    {
+        /* No action required */
     }
 #endif
 
-    ctr = Os_Alarms[AlarmID].CounterRef;
-    if ((Os_ConfigPtr == NULL) || (ctr >= Os_ConfigPtr->NumCounters))
+    if (RetVal == E_OS_OK)
     {
-        return E_OS_ID;
+        ctr = Os_Alarms[AlarmID].CounterRef;
+        if ((Os_ConfigPtr == NULL) || (ctr >= Os_ConfigPtr->NumCounters))
+        {
+            RetVal = E_OS_ID;
+        }
+
+        if ((RetVal == E_OS_OK) &&
+            ((increment == 0U) || (increment > Os_Counters[ctr].MaxAllowedValue)))
+        {
+            RetVal = E_OS_VALUE;
+        }
+        else if ((RetVal == E_OS_OK) && (cycle != 0U) &&
+                 ((cycle < Os_Counters[ctr].MinCycle) || (cycle > Os_Counters[ctr].MaxAllowedValue)))
+        {
+            RetVal = E_OS_VALUE;
+        }
+        else
+        {
+            /* No action required */
+        }
+
+        if ((RetVal == E_OS_OK) && (Os_Alarms[AlarmID].Active != FALSE))
+        {
+            RetVal = E_OS_STATE;
+        }
+
+        if (RetVal == E_OS_OK)
+        {
+            Os_Alarms[AlarmID].Expiry = Os_TickAdd(Os_Counters[ctr].Value,
+                                                   increment,
+                                                   Os_Counters[ctr].MaxAllowedValue);
+
+            Os_Alarms[AlarmID].Cycle = cycle;
+            Os_Alarms[AlarmID].Active = TRUE;
+        }
     }
 
-    if ((increment == 0U) || (increment > Os_Counters[ctr].MaxAllowedValue))
-    {
-        return E_OS_VALUE;
-    }
-    if ((cycle != 0U) &&
-        ((cycle < Os_Counters[ctr].MinCycle) || (cycle > Os_Counters[ctr].MaxAllowedValue)))
-    {
-        return E_OS_VALUE;
-    }
-
-    if (Os_Alarms[AlarmID].Active != FALSE)
-    {
-        return E_OS_STATE;
-    }
-
-    Os_Alarms[AlarmID].Expiry = Os_TickAdd(Os_Counters[ctr].Value,
-                                           increment,
-                                           Os_Counters[ctr].MaxAllowedValue);
-
-    Os_Alarms[AlarmID].Cycle = cycle;
-    Os_Alarms[AlarmID].Active = TRUE;
-
-    return E_OS_OK;
+    return RetVal;
 }
 
 StatusType SetAbsAlarm(AlarmType AlarmID, TickType start, TickType cycle)
 {
     CounterType ctr;
+    StatusType RetVal = E_OS_OK;
 
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if (Os_Initialized == FALSE)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_SET_ABS_ALARM, OS_E_UNINIT);
-        return E_OS_ACCESS;
+        RetVal = E_OS_ACCESS;
     }
-    if ((Os_ConfigPtr == NULL) || (AlarmID >= Os_ConfigPtr->NumAlarms))
+    else if ((Os_ConfigPtr == NULL) || (AlarmID >= Os_ConfigPtr->NumAlarms))
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_SET_ABS_ALARM, OS_E_PARAM_ID);
-        return E_OS_ID;
+        RetVal = E_OS_ID;
     }
-    if (Os_Started == FALSE)
+    else if (Os_Started == FALSE)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_SET_ABS_ALARM, OS_E_STATE);
-        return E_OS_STATE;
+        RetVal = E_OS_STATE;
+    }
+    else
+    {
+        /* No action required */
     }
 #endif
 
-    ctr = Os_Alarms[AlarmID].CounterRef;
-    if ((Os_ConfigPtr == NULL) || (ctr >= Os_ConfigPtr->NumCounters))
+    if (RetVal == E_OS_OK)
     {
-        return E_OS_ID;
+        ctr = Os_Alarms[AlarmID].CounterRef;
+        if ((Os_ConfigPtr == NULL) || (ctr >= Os_ConfigPtr->NumCounters))
+        {
+            RetVal = E_OS_ID;
+        }
+
+        if ((RetVal == E_OS_OK) && (start > Os_Counters[ctr].MaxAllowedValue))
+        {
+            RetVal = E_OS_VALUE;
+        }
+        else if ((RetVal == E_OS_OK) && (cycle != 0U) &&
+                 ((cycle < Os_Counters[ctr].MinCycle) || (cycle > Os_Counters[ctr].MaxAllowedValue)))
+        {
+            RetVal = E_OS_VALUE;
+        }
+        else
+        {
+            /* No action required */
+        }
+
+        if ((RetVal == E_OS_OK) && (Os_Alarms[AlarmID].Active != FALSE))
+        {
+            RetVal = E_OS_STATE;
+        }
+
+        if (RetVal == E_OS_OK)
+        {
+            Os_Alarms[AlarmID].Expiry = start;
+            Os_Alarms[AlarmID].Cycle = cycle;
+            Os_Alarms[AlarmID].Active = TRUE;
+        }
     }
 
-    if (start > Os_Counters[ctr].MaxAllowedValue)
-    {
-        return E_OS_VALUE;
-    }
-    if ((cycle != 0U) &&
-        ((cycle < Os_Counters[ctr].MinCycle) || (cycle > Os_Counters[ctr].MaxAllowedValue)))
-    {
-        return E_OS_VALUE;
-    }
-
-    if (Os_Alarms[AlarmID].Active != FALSE)
-    {
-        return E_OS_STATE;
-    }
-
-    Os_Alarms[AlarmID].Expiry = start;
-    Os_Alarms[AlarmID].Cycle = cycle;
-    Os_Alarms[AlarmID].Active = TRUE;
-
-    return E_OS_OK;
+    return RetVal;
 }
 
 StatusType CancelAlarm(AlarmType AlarmID)
 {
+    StatusType RetVal = E_OS_OK;
+
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if (Os_Initialized == FALSE)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_CANCEL_ALARM, OS_E_UNINIT);
-        return E_OS_ACCESS;
+        RetVal = E_OS_ACCESS;
     }
-    if ((Os_ConfigPtr == NULL) || (AlarmID >= Os_ConfigPtr->NumAlarms))
+    else if ((Os_ConfigPtr == NULL) || (AlarmID >= Os_ConfigPtr->NumAlarms))
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_CANCEL_ALARM, OS_E_PARAM_ID);
-        return E_OS_ID;
+        RetVal = E_OS_ID;
     }
-    if (Os_Started == FALSE)
+    else if (Os_Started == FALSE)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_CANCEL_ALARM, OS_E_STATE);
-        return E_OS_STATE;
+        RetVal = E_OS_STATE;
+    }
+    else
+    {
+        /* No action required */
     }
 #endif
 
-    if (Os_Alarms[AlarmID].Active == FALSE)
+    if ((RetVal == E_OS_OK) && (Os_Alarms[AlarmID].Active == FALSE))
     {
-        return E_OS_NOFUNC;
+        RetVal = E_OS_NOFUNC;
+    }
+    else if (RetVal == E_OS_OK)
+    {
+        Os_Alarms[AlarmID].Active = FALSE;
+    }
+    else
+    {
+        /* No action required */
     }
 
-    Os_Alarms[AlarmID].Active = FALSE;
-    return E_OS_OK;
+    return RetVal;
 }
 
 StatusType GetAlarm(AlarmType AlarmID, TickRefType Tick)
 {
+    StatusType RetVal = E_OS_OK;
+
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if (Tick == NULL)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_GET_ALARM, OS_E_PARAM_POINTER);
-        return E_OS_ACCESS;
+        RetVal = E_OS_ACCESS;
     }
-    if ((Os_ConfigPtr == NULL) || (AlarmID >= Os_ConfigPtr->NumAlarms))
+    else if ((Os_ConfigPtr == NULL) || (AlarmID >= Os_ConfigPtr->NumAlarms))
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_GET_ALARM, OS_E_PARAM_ID);
-        return E_OS_ID;
+        RetVal = E_OS_ID;
     }
-    if (Os_Started == FALSE)
+    else if (Os_Started == FALSE)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_GET_ALARM, OS_E_STATE);
-        return E_OS_STATE;
+        RetVal = E_OS_STATE;
+    }
+    else
+    {
+        /* No action required */
     }
 #endif
 
-    if (Os_Alarms[AlarmID].Active == FALSE)
+    if ((RetVal == E_OS_OK) && (Os_Alarms[AlarmID].Active == FALSE))
     {
-        return E_OS_NOFUNC;
+        RetVal = E_OS_NOFUNC;
     }
-
+    else if (RetVal == E_OS_OK)
     {
         CounterType ctr = Os_Alarms[AlarmID].CounterRef;
         if (Os_Alarms[AlarmID].Expiry >= Os_Counters[ctr].Value)
@@ -933,8 +1104,12 @@ StatusType GetAlarm(AlarmType AlarmID, TickRefType Tick)
             *Tick = (Os_Counters[ctr].MaxAllowedValue - Os_Counters[ctr].Value) + Os_Alarms[AlarmID].Expiry + 1U;
         }
     }
+    else
+    {
+        /* No action required */
+    }
 
-    return E_OS_OK;
+    return RetVal;
 }
 
 StatusType GetAlarmBase(AlarmType AlarmID, AlarmBaseRefType Info)
@@ -1215,228 +1390,284 @@ StatusType Os_GetEvent(TaskType TaskID, EventMaskRefType Event)
 
 StatusType Os_WaitEvent(EventMaskType Mask)
 {
+    StatusType RetVal = E_OS_OK;
+
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if (Os_CurrentTask == INVALID_TASK)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_WAIT_EVENT, OS_E_NOFUNC);
-        return E_OS_NOFUNC;
+        RetVal = E_OS_NOFUNC;
     }
-    if (Os_Tasks[Os_CurrentTask].Kind != OS_TASK_EXTENDED)
+    else if (Os_Tasks[Os_CurrentTask].Kind != OS_TASK_EXTENDED)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_WAIT_EVENT, OS_E_STATE);
-        return E_OS_ACCESS;
+        RetVal = E_OS_ACCESS;
     }
-    if (Os_Started == FALSE)
+    else if (Os_Started == FALSE)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_WAIT_EVENT, OS_E_STATE);
-        return E_OS_STATE;
+        RetVal = E_OS_STATE;
     }
-    if (Os_Tasks[Os_CurrentTask].ResourceCount > 0U)
+    else if (Os_Tasks[Os_CurrentTask].ResourceCount > 0U)
     {
         (void)Det_ReportError(OS_MODULE_ID, OS_INSTANCE_ID, OS_SID_WAIT_EVENT, OS_E_RESOURCE);
-        return E_OS_RESOURCE;
+        RetVal = E_OS_RESOURCE;
+    }
+    else
+    {
+        /* No action required */
     }
 #endif
 
-    /* Cooperative: if event already set, return immediately */
-    if ((Os_Tasks[Os_CurrentTask].EventsSet & Mask) != 0U)
+    if ((RetVal == E_OS_OK) &&
+        ((Os_Tasks[Os_CurrentTask].EventsSet & Mask) == 0U))
     {
-        return E_OS_OK;
+        /* Mark as waiting - dispatcher will skip this task. */
+        Os_Tasks[Os_CurrentTask].EventsWaiting = Mask;
+        Os_Tasks[Os_CurrentTask].State = OS_TASK_WAITING;
     }
 
-    /* Mark as waiting - dispatcher will skip this task */
-    Os_Tasks[Os_CurrentTask].EventsWaiting = Mask;
-    Os_Tasks[Os_CurrentTask].State = OS_TASK_WAITING;
-
-    return E_OS_OK;
+    return RetVal;
 }
 
 StatusType StartScheduleTableRel(ScheduleTableType ScheduleTableID, TickType Offset)
 {
     CounterType ctr;
+    StatusType RetVal = E_OS_OK;
 
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if ((Os_ConfigPtr == NULL) || (ScheduleTableID >= Os_ConfigPtr->NumScheduleTables))
     {
         Os_ReportDetError(OS_SID_START_SCHED_TABLE_REL, OS_E_PARAM_ID);
-        return E_OS_ID;
+        RetVal = E_OS_ID;
     }
-    if (Os_Started == FALSE)
+    else if (Os_Started == FALSE)
     {
         Os_ReportDetError(OS_SID_START_SCHED_TABLE_REL, OS_E_STATE);
-        return E_OS_STATE;
+        RetVal = E_OS_STATE;
+    }
+    else
+    {
+        /* No action required */
     }
 #endif
 
-    if (Os_SchedTables[ScheduleTableID].Config == NULL)
+    if ((RetVal == E_OS_OK) && (Os_SchedTables[ScheduleTableID].Config == NULL))
     {
-        return E_OS_ID;
+        RetVal = E_OS_ID;
+    }
+    else if (RetVal == E_OS_OK)
+    {
+        ctr = Os_SchedTables[ScheduleTableID].Config->CounterRef;
+        if ((Os_ConfigPtr == NULL) || (ctr >= Os_ConfigPtr->NumCounters))
+        {
+            RetVal = E_OS_ID;
+        }
+        else if (Offset > Os_Counters[ctr].MaxAllowedValue)
+        {
+            RetVal = E_OS_VALUE;
+        }
+        else if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_SCHEDULETABLE, (uint32)ScheduleTableID) != E_OS_OK)
+        {
+            RetVal = E_OS_ACCESS;
+        }
+        else if (Os_SchedTables[ScheduleTableID].State == OS_SCHED_TABLE_RUNNING)
+        {
+            RetVal = E_OS_STATE;
+        }
+        else
+        {
+            Os_SchedTables[ScheduleTableID].StartTick = Os_TickAdd(Os_Counters[ctr].Value,
+                                                                   Offset,
+                                                                   Os_Counters[ctr].MaxAllowedValue);
+            Os_SchedTables[ScheduleTableID].OffsetElapsed = (Offset == 0U) ? TRUE : FALSE;
+            Os_SchedTables[ScheduleTableID].NextExpiryIndex = 0U;
+            Os_SchedTables[ScheduleTableID].State = OS_SCHED_TABLE_RUNNING;
+        }
+    }
+    else
+    {
+        /* No action required */
     }
 
-    ctr = Os_SchedTables[ScheduleTableID].Config->CounterRef;
-    if ((Os_ConfigPtr == NULL) || (ctr >= Os_ConfigPtr->NumCounters))
-    {
-        return E_OS_ID;
-    }
-
-    if (Offset > Os_Counters[ctr].MaxAllowedValue)
-    {
-        return E_OS_VALUE;
-    }
-    if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_SCHEDULETABLE, (uint32)ScheduleTableID) != E_OS_OK)
-    {
-        return E_OS_ACCESS;
-    }
-
-    if (Os_SchedTables[ScheduleTableID].State == OS_SCHED_TABLE_RUNNING)
-    {
-        return E_OS_STATE;
-    }
-
-    Os_SchedTables[ScheduleTableID].StartTick = Os_TickAdd(Os_Counters[ctr].Value,
-                                                           Offset,
-                                                           Os_Counters[ctr].MaxAllowedValue);
-    Os_SchedTables[ScheduleTableID].OffsetElapsed = (Offset == 0U) ? TRUE : FALSE;
-    Os_SchedTables[ScheduleTableID].NextExpiryIndex = 0U;
-    Os_SchedTables[ScheduleTableID].State = OS_SCHED_TABLE_RUNNING;
-
-    return E_OS_OK;
+    return RetVal;
 }
 
 StatusType StopScheduleTable(ScheduleTableType ScheduleTableID)
 {
+    StatusType RetVal = E_OS_OK;
+
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if ((Os_ConfigPtr == NULL) || (ScheduleTableID >= Os_ConfigPtr->NumScheduleTables))
     {
         Os_ReportDetError(OS_SID_STOP_SCHED_TABLE, OS_E_PARAM_ID);
-        return E_OS_ID;
+        RetVal = E_OS_ID;
     }
-    if (Os_Started == FALSE)
+    else if (Os_Started == FALSE)
     {
         Os_ReportDetError(OS_SID_STOP_SCHED_TABLE, OS_E_STATE);
-        return E_OS_STATE;
+        RetVal = E_OS_STATE;
+    }
+    else
+    {
+        /* No action required */
     }
 #endif
 
-    if (Os_SchedTables[ScheduleTableID].State != OS_SCHED_TABLE_RUNNING)
+    if ((RetVal == E_OS_OK) && (Os_SchedTables[ScheduleTableID].State != OS_SCHED_TABLE_RUNNING))
     {
-        return E_OS_NOFUNC;
+        RetVal = E_OS_NOFUNC;
     }
-    if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_SCHEDULETABLE, (uint32)ScheduleTableID) != E_OS_OK)
+    else if ((RetVal == E_OS_OK) &&
+             (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_SCHEDULETABLE, (uint32)ScheduleTableID) != E_OS_OK))
     {
-        return E_OS_ACCESS;
+        RetVal = E_OS_ACCESS;
+    }
+    else if (RetVal == E_OS_OK)
+    {
+        Os_SchedTables[ScheduleTableID].State = OS_SCHED_TABLE_STOPPED;
+        Os_SchedTables[ScheduleTableID].OffsetElapsed = FALSE;
+        Os_SchedTables[ScheduleTableID].NextExpiryIndex = 0U;
+        Os_SchedTables[ScheduleTableID].NextPending = FALSE;
+        Os_SchedTables[ScheduleTableID].NextTableID = (ScheduleTableType)0U;
+    }
+    else
+    {
+        /* No action required */
     }
 
-    Os_SchedTables[ScheduleTableID].State = OS_SCHED_TABLE_STOPPED;
-    Os_SchedTables[ScheduleTableID].OffsetElapsed = FALSE;
-    Os_SchedTables[ScheduleTableID].NextExpiryIndex = 0U;
-    Os_SchedTables[ScheduleTableID].NextPending = FALSE;
-    Os_SchedTables[ScheduleTableID].NextTableID = (ScheduleTableType)0U;
-    return E_OS_OK;
+    return RetVal;
 }
 
 StatusType StartScheduleTableAbs(ScheduleTableType ScheduleTableID, TickType Start)
 {
     CounterType ctr;
+    StatusType RetVal = E_OS_OK;
 
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if ((Os_ConfigPtr == NULL) || (ScheduleTableID >= Os_ConfigPtr->NumScheduleTables))
     {
         Os_ReportDetError(OS_SID_START_SCHED_TABLE_ABS, OS_E_PARAM_ID);
-        return E_OS_ID;
+        RetVal = E_OS_ID;
     }
-    if (Os_Started == FALSE)
+    else if (Os_Started == FALSE)
     {
         Os_ReportDetError(OS_SID_START_SCHED_TABLE_ABS, OS_E_STATE);
-        return E_OS_STATE;
+        RetVal = E_OS_STATE;
+    }
+    else
+    {
+        /* No action required */
     }
 #endif
 
-    if (Os_SchedTables[ScheduleTableID].Config == NULL)
+    if ((RetVal == E_OS_OK) && (Os_SchedTables[ScheduleTableID].Config == NULL))
     {
-        return E_OS_ID;
+        RetVal = E_OS_ID;
+    }
+    else if (RetVal == E_OS_OK)
+    {
+        ctr = Os_SchedTables[ScheduleTableID].Config->CounterRef;
+        if ((Os_ConfigPtr == NULL) || (ctr >= Os_ConfigPtr->NumCounters))
+        {
+            RetVal = E_OS_ID;
+        }
+        else if (Start > Os_Counters[ctr].MaxAllowedValue)
+        {
+            RetVal = E_OS_VALUE;
+        }
+        else if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_SCHEDULETABLE, (uint32)ScheduleTableID) != E_OS_OK)
+        {
+            RetVal = E_OS_ACCESS;
+        }
+        else if (Os_SchedTables[ScheduleTableID].State == OS_SCHED_TABLE_RUNNING)
+        {
+            RetVal = E_OS_STATE;
+        }
+        else
+        {
+            Os_SchedTables[ScheduleTableID].StartTick = Start;
+            Os_SchedTables[ScheduleTableID].OffsetElapsed = FALSE;
+            Os_SchedTables[ScheduleTableID].NextExpiryIndex = 0U;
+            Os_SchedTables[ScheduleTableID].NextPending = FALSE;
+            Os_SchedTables[ScheduleTableID].NextTableID = (ScheduleTableType)0U;
+            Os_SchedTables[ScheduleTableID].State = OS_SCHED_TABLE_RUNNING;
+        }
+    }
+    else
+    {
+        /* No action required */
     }
 
-    ctr = Os_SchedTables[ScheduleTableID].Config->CounterRef;
-    if ((Os_ConfigPtr == NULL) || (ctr >= Os_ConfigPtr->NumCounters))
-    {
-        return E_OS_ID;
-    }
-
-    if (Start > Os_Counters[ctr].MaxAllowedValue)
-    {
-        return E_OS_VALUE;
-    }
-    if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_SCHEDULETABLE, (uint32)ScheduleTableID) != E_OS_OK)
-    {
-        return E_OS_ACCESS;
-    }
-
-    if (Os_SchedTables[ScheduleTableID].State == OS_SCHED_TABLE_RUNNING)
-    {
-        return E_OS_STATE;
-    }
-
-    Os_SchedTables[ScheduleTableID].StartTick = Start;
-    Os_SchedTables[ScheduleTableID].OffsetElapsed = FALSE;
-    Os_SchedTables[ScheduleTableID].NextExpiryIndex = 0U;
-    Os_SchedTables[ScheduleTableID].NextPending = FALSE;
-    Os_SchedTables[ScheduleTableID].NextTableID = (ScheduleTableType)0U;
-    Os_SchedTables[ScheduleTableID].State = OS_SCHED_TABLE_RUNNING;
-
-    return E_OS_OK;
+    return RetVal;
 }
 
 StatusType NextScheduleTable(ScheduleTableType ScheduleTableID_From, ScheduleTableType ScheduleTableID_To)
 {
+    StatusType RetVal = E_OS_OK;
+
 #if (OS_DEV_ERROR_DETECT == STD_ON)
     if ((Os_ConfigPtr == NULL) ||
         (ScheduleTableID_From >= Os_ConfigPtr->NumScheduleTables) ||
         (ScheduleTableID_To >= Os_ConfigPtr->NumScheduleTables))
     {
         Os_ReportDetError(OS_SID_NEXT_SCHED_TABLE, OS_E_PARAM_ID);
-        return E_OS_ID;
+        RetVal = E_OS_ID;
     }
-    if (Os_Started == FALSE)
+    else if (Os_Started == FALSE)
     {
         Os_ReportDetError(OS_SID_NEXT_SCHED_TABLE, OS_E_STATE);
-        return E_OS_STATE;
+        RetVal = E_OS_STATE;
+    }
+    else
+    {
+        /* No action required */
     }
 #endif
 
-    if ((Os_SchedTables[ScheduleTableID_From].Config == NULL) ||
-        (Os_SchedTables[ScheduleTableID_To].Config == NULL))
+    if ((RetVal == E_OS_OK) &&
+        ((Os_SchedTables[ScheduleTableID_From].Config == NULL) ||
+         (Os_SchedTables[ScheduleTableID_To].Config == NULL)))
     {
-        return E_OS_ID;
+        RetVal = E_OS_ID;
+    }
+    else if ((RetVal == E_OS_OK) &&
+             (Os_SchedTables[ScheduleTableID_From].State != OS_SCHED_TABLE_RUNNING))
+    {
+        RetVal = E_OS_NOFUNC;
+    }
+    else if ((RetVal == E_OS_OK) &&
+             (Os_SchedTables[ScheduleTableID_To].State == OS_SCHED_TABLE_RUNNING))
+    {
+        RetVal = E_OS_STATE;
+    }
+    else if ((RetVal == E_OS_OK) &&
+             (Os_SchedTables[ScheduleTableID_From].Config->CounterRef !=
+              Os_SchedTables[ScheduleTableID_To].Config->CounterRef))
+    {
+        RetVal = E_OS_ID;
+    }
+    else if ((RetVal == E_OS_OK) &&
+             (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_SCHEDULETABLE, (uint32)ScheduleTableID_From) != E_OS_OK))
+    {
+        RetVal = E_OS_ACCESS;
+    }
+    else if ((RetVal == E_OS_OK) &&
+             (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_SCHEDULETABLE, (uint32)ScheduleTableID_To) != E_OS_OK))
+    {
+        RetVal = E_OS_ACCESS;
+    }
+    else if (RetVal == E_OS_OK)
+    {
+        Os_SchedTables[ScheduleTableID_From].NextPending = TRUE;
+        Os_SchedTables[ScheduleTableID_From].NextTableID = ScheduleTableID_To;
+    }
+    else
+    {
+        /* No action required */
     }
 
-    if (Os_SchedTables[ScheduleTableID_From].State != OS_SCHED_TABLE_RUNNING)
-    {
-        return E_OS_NOFUNC;
-    }
-
-    if (Os_SchedTables[ScheduleTableID_To].State == OS_SCHED_TABLE_RUNNING)
-    {
-        return E_OS_STATE;
-    }
-
-    if (Os_SchedTables[ScheduleTableID_From].Config->CounterRef !=
-        Os_SchedTables[ScheduleTableID_To].Config->CounterRef)
-    {
-        return E_OS_ID;
-    }
-    if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_SCHEDULETABLE, (uint32)ScheduleTableID_From) != E_OS_OK)
-    {
-        return E_OS_ACCESS;
-    }
-    if (Os_CheckCurrentApplicationObjectAccess(OS_OBJECT_SCHEDULETABLE, (uint32)ScheduleTableID_To) != E_OS_OK)
-    {
-        return E_OS_ACCESS;
-    }
-
-    Os_SchedTables[ScheduleTableID_From].NextPending = TRUE;
-    Os_SchedTables[ScheduleTableID_From].NextTableID = ScheduleTableID_To;
-    return E_OS_OK;
+    return RetVal;
 }
 
 AppModeType GetActiveApplicationMode(void)

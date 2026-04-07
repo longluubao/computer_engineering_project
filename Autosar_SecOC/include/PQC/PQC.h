@@ -19,6 +19,13 @@
 /********************************************************************************************************/
 #include "Std_Types.h"
 
+/* liboqs algorithm identifiers (from <oqs/kem.h> and <oqs/sig.h>) */
+#ifndef OQS_KEM_ALG_ML_KEM_768_DECLARED
+#define OQS_KEM_ALG_ML_KEM_768_DECLARED
+extern int OQS_KEM_alg_is_enabled(const char *method_name);
+extern int OQS_SIG_alg_is_enabled(const char *method_name);
+#endif
+
 /********************************************************************************************************/
 /***********************************************DEFINES***************************************************/
 /********************************************************************************************************/

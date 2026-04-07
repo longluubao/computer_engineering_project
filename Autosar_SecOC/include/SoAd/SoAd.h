@@ -14,8 +14,8 @@
 /********************************************************************************************************/
 
 #include "Std_Types.h"
-#include "ComStack_Types.h"
-#include "TcpIp.h"
+#include "Com/ComStack_Types.h"
+#include "TcpIp/TcpIp.h"
 
 /********************************************************************************************************/
 /************************************************Defines*************************************************/
@@ -116,10 +116,42 @@ typedef struct
     boolean Enabled;
 } SoAd_RoutingGroupStateType;
 
+typedef enum
+{
+    SOAD_PDU_ROUTE_NONE = 0U,
+    SOAD_PDU_ROUTE_IF = 1U,
+    SOAD_PDU_ROUTE_TP = 2U
+} SoAd_PduRouteType;
+
+typedef struct
+{
+    PduIdType               SoAdPduId;
+    SoAd_PduRouteType       SoAdPduRouteType;
+    SoAd_RoutingGroupIdType SoAdRoutingGroupId;
+    uint8                   SoAdAuthPduHeaderLength;
+    uint8                   SoAdFreshnessValueTruncLength;
+    uint16                  SoAdAuthInfoLengthBits;
+    PduLengthType           SoAdAuthenticPduLength;
+} SoAd_PduRouteConfigType;
+
+typedef struct
+{
+    PduIdType             SoAdTxPduId;
+    TcpIp_ProtocolType    SoAdProtocol;
+    TcpIp_LocalAddrIdType SoAdLocalAddrId;
+    uint16                SoAdLocalPort;
+    TcpIp_SockAddrType    SoAdRemoteAddr;
+    SoAd_SoConModeType    SoAdInitialMode;
+} SoAd_SoConConfigType;
+
 /** @brief Configuration type */
 typedef struct
 {
-    uint8 dummy;
+    const SoAd_PduRouteConfigType* SoAdPduRouteConfigPtr;
+    uint16                         SoAdPduRouteConfigCount;
+    const SoAd_SoConConfigType*    SoAdSoConConfigPtr;
+    uint16                         SoAdSoConConfigCount;
+    boolean                        SoAdEnableUnauthApControl;
 } SoAd_ConfigType;
 
 typedef enum

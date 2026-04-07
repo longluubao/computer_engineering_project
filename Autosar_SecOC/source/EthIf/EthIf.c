@@ -16,6 +16,22 @@
     #include "ethernet.h"
 #endif
 
+/* MISRA C:2012 Rule 8.4 - Forward declarations for external linkage functions */
+extern void EthIf_Init(const EthIf_ConfigType* CfgPtr);
+extern void EthIf_DeInit(void);
+extern Std_ReturnType EthIf_SetControllerMode(uint8 CtrlIdx, Eth_ModeType CtrlMode);
+extern Std_ReturnType EthIf_GetControllerMode(uint8 CtrlIdx, Eth_ModeType* CtrlModePtr);
+extern void EthIf_GetPhysAddr(uint8 CtrlIdx, uint8* PhysAddrPtr);
+extern BufReq_ReturnType EthIf_ProvideTxBuffer(uint8 CtrlIdx, Eth_FrameType FrameType, uint8 Priority, Eth_BufIdxType* BufIdxPtr, uint8** BufPtr, uint16* LenBytePtr);
+extern Std_ReturnType EthIf_Transmit(uint8 CtrlIdx, Eth_BufIdxType BufIdx, Eth_FrameType FrameType, boolean TxConfirmation, uint16 LenByte, const uint8* PhysAddrPtr);
+extern void EthIf_RxIndication(uint8 CtrlIdx, Eth_FrameType FrameType, boolean IsBroadcast, const uint8* PhysAddrPtr, const uint8* DataPtr, uint16 LenByte);
+extern void EthIf_TxConfirmation(uint8 CtrlIdx, Eth_BufIdxType BufIdx);
+extern void EthIf_GetVersionInfo(Std_VersionInfoType* VersionInfoPtr);
+extern void EthIf_MainFunctionRx(void);
+extern void EthIf_MainFunctionTx(void);
+extern void EthIf_SetRxIndicationCallback(EthIf_RxIndicationCbkType Callback);
+extern void EthIf_SetTxConfirmationCallback(EthIf_TxConfirmationCbkType Callback);
+
 /* --- Internal Types --- */
 
 /** @brief State of a single Tx buffer slot */
@@ -89,11 +105,11 @@ void EthIf_Init(const EthIf_ConfigType* CfgPtr)
     EthIf_TxCbk = NULL;
 
     /* Initialize the underlying Ethernet driver */
-    ethernet_init();
+    EthDrv_Init();
 
     EthIf_Initialized = TRUE;
 
-    printf("[EthIf] Initialized\n");
+    (void)printf("[EthIf] Initialized\n");
 }
 
 void EthIf_DeInit(void)
@@ -142,9 +158,9 @@ Std_ReturnType EthIf_SetControllerMode(uint8 CtrlIdx, Eth_ModeType CtrlMode)
 
     EthIf_CtrlState[CtrlIdx].Mode = CtrlMode;
 
-    printf("[EthIf] Controller %u mode set to %s\n",
-           CtrlIdx,
-           (CtrlMode == ETH_MODE_ACTIVE) ? "ACTIVE" : "DOWN");
+    (void)printf("[EthIf] Controller %u mode set to %s\n",
+                 CtrlIdx,
+                 (CtrlMode == ETH_MODE_ACTIVE) ? "ACTIVE" : "DOWN");
 
     return E_OK;
 }
@@ -298,7 +314,7 @@ Std_ReturnType EthIf_Transmit(uint8 CtrlIdx,
 #endif
 
     /* Use FrameType as the PDU ID for the underlying ethernet_send */
-    result = ethernet_send((unsigned short)FrameType,
+    result = EthDrv_Send((unsigned short)FrameType,
                            EthIf_TxBufPool[BufIdx].Data,
                            LenByte);
 
@@ -425,7 +441,7 @@ void EthIf_MainFunctionRx(void)
     }
 
     /* Poll the underlying Ethernet driver for received data */
-    result = ethernet_receive(rxBuffer, ETHIF_RX_BUF_SIZE, &rxId, &actualSize);
+    result = EthDrv_Receive(rxBuffer, ETHIF_RX_BUF_SIZE, &rxId, &actualSize);
 
     if (result == E_OK)
     {

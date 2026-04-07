@@ -17,6 +17,26 @@
 #endif 
 
 /********************************************************************************************************/
+/**************************************ForwardDeclarations***********************************************/
+/********************************************************************************************************/
+
+extern void PduR_SoAdIfTxConfirmation(PduIdType TxPduId, Std_ReturnType result);
+extern void PduR_SoAdIfRxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr);
+extern BufReq_ReturnType PduR_SoAdTpCopyTxData(PduIdType id,
+                                               const PduInfoType* info,
+                                               const RetryInfoType* retry,
+                                               PduLengthType* availableDataPtr);
+extern void PduR_SoAdTpTxConfirmation(PduIdType TxPduId, Std_ReturnType result);
+extern BufReq_ReturnType PduR_SoAdTpCopyRxData(PduIdType id,
+                                               const PduInfoType* info,
+                                               PduLengthType* bufferSizePtr);
+extern BufReq_ReturnType PduR_SoAdStartOfReception(PduIdType id,
+                                                   const PduInfoType* info,
+                                                   PduLengthType TpSduLength,
+                                                   PduLengthType* bufferSizePtr);
+extern void PduR_SoAdTpRxIndication(PduIdType id, Std_ReturnType result);
+
+/********************************************************************************************************/
 /********************************************Functions***************************************************/
 /********************************************************************************************************/
 

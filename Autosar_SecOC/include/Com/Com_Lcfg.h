@@ -29,6 +29,7 @@ typedef struct Com_ConfigTypeTag Com_ConfigType;
 /*****************************************FunctionPrototype**********************************************/
 /********************************************************************************************************/
 
+// cppcheck-suppress misra-c2012-8.4
 extern const Com_ConfigType Com_Config;
 
 #endif

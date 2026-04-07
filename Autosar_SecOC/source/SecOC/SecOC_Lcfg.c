@@ -73,7 +73,7 @@ SecOC_PduCollection PdusCollections[] =
 {
     {SECOC_SECURED_PDU_CANIF,0,0,0,0},        // ID 0: CAN Interface
     {SECOC_SECURED_PDU_CANTP,0,0,0,0},        // ID 1: CAN Transport Protocol
-    {SECOC_SECURED_PDU_SOADIF,0,0,0,0},       // ID 2: SoAd Interface (Ethernet) - FIXED!
+    {SECOC_SECURED_PDU_SOADTP,0,0,0,0},       // ID 2: SoAd TP (Ethernet gateway path)
     {SECOC_SECURED_PDU_CANIF,0,0,0,0},        // ID 3: CAN Interface
     {SECOC_SECURED_PDU_CANTP,0,0,0,0},        // ID 4: CAN Transport Protocol
     {SECOC_SECURED_PDU_CANIF,0,0,0,0},        // ID 5: CAN Interface
@@ -98,6 +98,7 @@ SecOC_PduCollection PdusCollections[] =
 * Start Of General
 */
 
+// cppcheck-suppress misra-c2012-8.4
 SecOC_MainFunctionTxType SecOC_MainFunctionTxConf = 
 {
     SECOC_MAIN_FUNCTION_PERIOD_TX,
@@ -106,6 +107,7 @@ SecOC_MainFunctionTxType SecOC_MainFunctionTxConf =
 };
 
 
+// cppcheck-suppress misra-c2012-8.4
 SecOC_MainFunctionRxType SecOCMainFunctionRx = 
 {
     SECOC_MAIN_FUNCTION_PERIOD_RX,
@@ -115,6 +117,7 @@ SecOC_MainFunctionRxType SecOCMainFunctionRx =
 
 
 
+// cppcheck-suppress misra-c2012-8.4
 SecOC_GeneralType SecOC_General = 
 {
     SECOC_DEFAULT_AUTHENTICATION_INFORMATION_PATTERN_VALUE,
@@ -333,11 +336,13 @@ SecOC_RxSecuredPduLayerType SecOC_RxSecuredPduLayer[] =
 
 
 
+// cppcheck-suppress misra-c2012-8.4
 Csm_JobType CsmJob = 
 {
     CSM_JOBID
 };
 
+// cppcheck-suppress misra-c2012-8.4
 SecOC_TxAuthServiceConfigRefType SecOC_TxAuthServiceConfigRef =
 {
     &CsmJob
@@ -345,11 +350,13 @@ SecOC_TxAuthServiceConfigRefType SecOC_TxAuthServiceConfigRef =
 
 
 
+// cppcheck-suppress misra-c2012-8.4
 SecOC_RxAuthServiceConfigRefType SecOC_RxAuthServiceConfigRef = 
 {
     &CsmJob
 };
 
+// cppcheck-suppress misra-c2012-8.4
 SecOC_SameBufferPduCollectionType SecOC_SameBufferPduRef=
 {
     SECOC_BUFFERLENGTH
@@ -820,6 +827,7 @@ SecOC_RxPduProcessingType SecOC_RxPduProcessing[] =
 };
 
 
+// cppcheck-suppress misra-c2012-8.4
 SecOC_ConfigType SecOC_Config=
 {
     &SecOC_General,

@@ -1,9 +1,12 @@
 
-#include "SecOC.h"
-#include "SecOC_Debug.h"
-#include "EcuM.h"
-#include "Os.h"
+#include "EcuM/EcuM.h"
+#include "Os/Os.h"
+#include "SecOC/SecOC.h"
+#include "SecOC/SecOC_Debug.h"
 #include <stdio.h>
+
+/* MISRA C:2012 Rule 17.3 - Cross-module forward declarations */
+extern Std_ReturnType EcuM_StartupTwo(void);
 
 #ifdef DEBUG_ALL
 void SecOC_test(void);

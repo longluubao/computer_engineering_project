@@ -6,9 +6,9 @@
 /********************************************************************************************************/
 
 #include "Std_Types.h"
-#include "PQC.h"
-#include "PQC_KeyExchange.h"
-#include "PQC_KeyDerivation.h"
+#include "PQC/PQC.h"
+#include "PQC/PQC_KeyExchange.h"
+#include "PQC/PQC_KeyDerivation.h"
 
 /********************************************************************************************************/
 /*********************************************DefinesAndEnums********************************************/

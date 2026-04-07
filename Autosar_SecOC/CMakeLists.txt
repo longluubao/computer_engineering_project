@@ -118,7 +118,7 @@ elseif(UNIX)
 endif()
 
 # Add Phase 3: Complete Ethernet Gateway Integration Test
-add_executable(Phase3_Complete_Test test_phase3_complete_ethernet_gateway.c)
+add_executable(Phase3_Complete_Test test/test_phase3_complete_ethernet_gateway.c)
 target_include_directories(Phase3_Complete_Test PUBLIC ${headerDirs} ${LIBOQS_INCLUDE_DIR})
 target_link_libraries(Phase3_Complete_Test SecOCLib ${LIBOQS_LIBRARY})
 if(WIN32)

@@ -3,6 +3,22 @@
 #include "Ea.h"
 #include "Det.h"
 
+/* External API declarations (MISRA 8.4 visibility). */
+void MemIf_Init(void);
+void MemIf_MainFunction(void);
+Std_ReturnType MemIf_Read(uint8 DeviceIndex, uint16 BlockNumber, uint16 BlockOffset,
+                          uint8* DataBufferPtr, uint16 Length);
+Std_ReturnType MemIf_Write(uint8 DeviceIndex, uint16 BlockNumber,
+                           const uint8* DataBufferPtr, uint16 Length);
+Std_ReturnType MemIf_InvalidateBlock(uint8 DeviceIndex, uint16 BlockNumber);
+Std_ReturnType MemIf_EraseImmediateBlock(uint8 DeviceIndex, uint16 BlockNumber);
+void MemIf_SetMode(MemIf_ModeType Mode);
+MemIf_StatusType MemIf_GetStatus(uint8 DeviceIndex);
+MemIf_JobResultType MemIf_GetJobResult(uint8 DeviceIndex);
+Std_ReturnType MemIf_SetJobNotifications(uint8 DeviceIndex,
+    MemIf_JobNotificationType JobEndNotificationPtr,
+    MemIf_JobNotificationType JobErrorNotificationPtr);
+
 static uint8 MemIf_Initialized = FALSE;
 
 static Std_ReturnType MemIf_CheckDeviceIndex(uint8 DeviceIndex, uint8 Sid)

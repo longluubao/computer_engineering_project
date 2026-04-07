@@ -10,6 +10,16 @@
 #include <stdio.h>
 #include <string.h>
 
+/* External API declarations (MISRA 8.4 visibility). */
+void Det_Init(const Det_ConfigType* ConfigPtr);
+void Det_Start(void);
+Std_ReturnType Det_ReportError(uint16 ModuleId, uint8 InstanceId, uint8 ApiId, uint8 ErrorId);
+Std_ReturnType Det_ReportRuntimeError(uint16 ModuleId, uint8 InstanceId, uint8 ApiId, uint8 ErrorId);
+Std_ReturnType Det_ReportTransientFault(uint16 ModuleId, uint8 InstanceId, uint8 ApiId, uint8 FaultId);
+void Det_GetVersionInfo(Std_VersionInfoType* versioninfo);
+uint8 Det_GetErrorCount(void);
+Std_ReturnType Det_GetErrorEntry(uint8 Index, Det_ErrorEntryType* Entry);
+
 /* --- Global Data --- */
 
 static uint8 Det_Initialized = FALSE;
@@ -48,21 +58,21 @@ void Det_Init(const Det_ConfigType* ConfigPtr)
     Det_ErrorLogCount = 0U;
     Det_Initialized   = TRUE;
 
-    printf("[DET] Initialized\n");
+    (void)printf("[DET] Initialized\n");
 }
 
 void Det_Start(void)
 {
     if (Det_Initialized == TRUE)
     {
-        printf("[DET] Started\n");
+        (void)printf("[DET] Started\n");
     }
 }
 
 Std_ReturnType Det_ReportError(uint16 ModuleId, uint8 InstanceId, uint8 ApiId, uint8 ErrorId)
 {
-    printf("[DET] Dev Error: Module=%u Inst=%u Api=%u Err=%u\n",
-           ModuleId, InstanceId, ApiId, ErrorId);
+    (void)printf("[DET] Dev Error: Module=%u Inst=%u Api=%u Err=%u\n",
+                 ModuleId, InstanceId, ApiId, ErrorId);
 
     if (Det_Initialized == TRUE)
     {
@@ -75,8 +85,8 @@ Std_ReturnType Det_ReportError(uint16 ModuleId, uint8 InstanceId, uint8 ApiId, u
 
 Std_ReturnType Det_ReportRuntimeError(uint16 ModuleId, uint8 InstanceId, uint8 ApiId, uint8 ErrorId)
 {
-    printf("[DET] Runtime Error: Module=%u Inst=%u Api=%u Err=%u\n",
-           ModuleId, InstanceId, ApiId, ErrorId);
+    (void)printf("[DET] Runtime Error: Module=%u Inst=%u Api=%u Err=%u\n",
+                 ModuleId, InstanceId, ApiId, ErrorId);
 
     if (Det_Initialized == TRUE)
     {
@@ -89,8 +99,8 @@ Std_ReturnType Det_ReportRuntimeError(uint16 ModuleId, uint8 InstanceId, uint8 A
 
 Std_ReturnType Det_ReportTransientFault(uint16 ModuleId, uint8 InstanceId, uint8 ApiId, uint8 FaultId)
 {
-    printf("[DET] Transient Fault: Module=%u Inst=%u Api=%u Fault=%u\n",
-           ModuleId, InstanceId, ApiId, FaultId);
+    (void)printf("[DET] Transient Fault: Module=%u Inst=%u Api=%u Fault=%u\n",
+                 ModuleId, InstanceId, ApiId, FaultId);
 
     if (Det_Initialized == TRUE)
     {

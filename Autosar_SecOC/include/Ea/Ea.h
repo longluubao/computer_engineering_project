@@ -2,7 +2,7 @@
 #define INCLUDE_EA_H_
 
 #include "Std_Types.h"
-#include "MemIf.h"
+#include "MemIf/MemIf.h"
 
 #define EA_MODULE_ID                 ((uint16)40U)
 #define EA_INSTANCE_ID               ((uint8)0U)

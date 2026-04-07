@@ -94,6 +94,19 @@ static void CanNm_EnterBusSleep(void)
 }
 
 /********************************************************************************************************/
+/*****************************External API declarations (MISRA 8.4)**************************************/
+/********************************************************************************************************/
+
+void CanNm_Init(void);
+void CanNm_DeInit(void);
+Std_ReturnType CanNm_NetworkRequest(uint8 NetworkHandle);
+Std_ReturnType CanNm_NetworkRelease(uint8 NetworkHandle);
+Std_ReturnType CanNm_GetState(uint8 NetworkHandle, CanNm_NmStateType *NmStatePtr);
+void CanNm_TxConfirmation(PduIdType TxPduId, Std_ReturnType result);
+void CanNm_RxIndication(PduIdType RxPduId, const PduInfoType *PduInfoPtr);
+void CanNm_MainFunction(void);
+
+/********************************************************************************************************/
 /********************************************Functions***************************************************/
 /********************************************************************************************************/
 

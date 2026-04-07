@@ -105,7 +105,7 @@ TEST(AuthenticationTests, directRx)
     uint16 id;
     uint16 actualReceivedSize;
     printf("Receiving data via Ethernet...\n");
-    ethernet_receive(dataRecieve, BUS_LENGTH_RECEIVE, &id, &actualReceivedSize);
+    EthDrv_Receive(dataRecieve, BUS_LENGTH_RECEIVE, &id, &actualReceivedSize);
 
 #if SECOC_USE_PQC_MODE == FALSE
     /* Only verify exact match in Classical mode (PQC signatures vary) */

@@ -1,14 +1,14 @@
 /********************************************************************************************************/
 /************************************************INCLUDES************************************************/
 /********************************************************************************************************/
-#include "scheduler.h"
+#include "Scheduler/scheduler.h"
 
-#include "SecOC.h"
-#include "SecOC_Debug.h"
-#include "Com.h"
-#include "CanTP.h"
-#include "ethernet.h"
-#include "SoAd.h"
+#include "Can/CanTP.h"
+#include "Com/Com.h"
+#include "Ethernet/ethernet.h"
+#include "SecOC/SecOC.h"
+#include "SecOC/SecOC_Debug.h"
+#include "SoAd/SoAd.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,10 +16,15 @@
 #include <unistd.h>
 #include <signal.h>
 #include <string.h>
-#include <sys/time.h> 
+#include <sys/time.h>
 
-
-
+/* External API declarations (MISRA 8.4 visibility). */
+void EthernetRecieveFn(void);
+void RecieveMainFunctions(void);
+void TxMainFunctions(void);
+void start_task(int i);
+void scheduler_handler(int signum);
+void Scheduler_Start(void);
 
 
 /********************************************************************************************************/
@@ -29,7 +34,7 @@
 static char stacks[NUM_FUNCTIONS][STACK_SIZE];
 
 static struct task_state {
-    void (*function)();
+    void (*function)(void);
     char *stack;
     int state;
     ucontext_t context; // Store the context for each task
@@ -99,18 +104,19 @@ void Scheduler_Start()
     struct sigaction sa;
     struct itimerval timer;
 
-    void (*functions[NUM_FUNCTIONS])() = {EthernetRecieveFn, RecieveMainFunctions, TxMainFunctions};
+    void (*functions[NUM_FUNCTIONS])(void) = {EthernetRecieveFn, RecieveMainFunctions, TxMainFunctions};
 
     // Initialize task states
     for (i = 0; i < NUM_FUNCTIONS; i++) {
         tasks[i].function = functions[i];
+        /* cppcheck-suppress misra-c2012-18.4 ; pointer arithmetic required for stack top */
         tasks[i].stack = stacks[i] + STACK_SIZE;
         tasks[i].state = 0;
         getcontext(&tasks[i].context);
         tasks[i].context.uc_stack.ss_sp = tasks[i].stack;
         tasks[i].context.uc_stack.ss_size = STACK_SIZE;
         tasks[i].context.uc_link = NULL;
-        makecontext(&tasks[i].context, (void (*)()) start_task, 1, i);
+        makecontext(&tasks[i].context, (void (*)(void)) start_task, 1, i);
     }
 
     // Set up timer signal for scheduler

@@ -3,6 +3,19 @@
 #include <stdio.h>
 #include <string.h>
 
+/* External API declarations (MISRA 8.4 visibility). */
+void Fee_Init(void);
+void Fee_MainFunction(void);
+Std_ReturnType Fee_Read(uint16 BlockNumber, uint16 BlockOffset, uint8* DataBufferPtr, uint16 Length);
+Std_ReturnType Fee_Write(uint16 BlockNumber, const uint8* DataBufferPtr, uint16 Length);
+Std_ReturnType Fee_InvalidateBlock(uint16 BlockNumber);
+Std_ReturnType Fee_EraseImmediateBlock(uint16 BlockNumber);
+void Fee_SetMode(MemIf_ModeType Mode);
+MemIf_StatusType Fee_GetStatus(void);
+MemIf_JobResultType Fee_GetJobResult(void);
+void Fee_SetJobEndNotification(Fee_JobNotificationType NotificationPtr);
+void Fee_SetJobErrorNotification(Fee_JobNotificationType NotificationPtr);
+
 #define FEE_STORAGE_MAGIC (0x33454546UL)
 #define FEE_STORAGE_FILE_NAME "fee_storage.bin"
 #define FEE_WL_SLOT_COUNT ((uint8)4U)

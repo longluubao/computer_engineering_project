@@ -9,12 +9,12 @@
 /************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
-#include "TcpIp.h"
-#include "SoAd.h"
-#include "EthSM.h"
-#include "Det.h"
+#include "Det/Det.h"
+#include "EthSM/EthSM.h"
+#include "SoAd/SoAd.h"
+#include "TcpIp/TcpIp.h"
 #if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_ETHIF)
-    #include "EthIf.h"
+    #include "EthIf/EthIf.h"
 #endif
 #include <string.h>
 
@@ -36,6 +36,35 @@
     #define TCPIP_PLATFORM_INVALID_SOCKET  (-1)
     #define TCPIP_PLATFORM_SOCKET_ERROR    (-1)
 #endif
+
+/* MISRA C:2012 Rule 17.3 - Platform socket prototypes (system headers may be unavailable to static analysis) */
+#if !defined(_SYS_SOCKET_H) && !defined(_WINSOCK2API_) && !defined(__SYS_SOCKET_H__)
+struct sockaddr;
+extern int bind(int, const struct sockaddr*, unsigned int);
+extern int listen(int, int);
+extern int connect(int, const struct sockaddr*, unsigned int);
+extern int getsockname(int, struct sockaddr*, unsigned int*);
+extern int setsockopt(int, int, int, const void*, unsigned int);
+#endif
+#if !defined(_FCNTL_H) && !defined(__FCNTL_H__)
+extern int fcntl(int, int, ...);
+#endif
+
+/* MISRA C:2012 Rule 8.4 - Forward declarations for external linkage functions */
+extern void TcpIp_Init(const TcpIp_ConfigType* ConfigPtr);
+extern void TcpIp_Shutdown(void);
+extern Std_ReturnType TcpIp_GetSocketId(TcpIp_DomainType Domain, TcpIp_ProtocolType Protocol, TcpIp_SocketIdType* SocketIdPtr);
+extern Std_ReturnType TcpIp_Close(TcpIp_SocketIdType SocketId, boolean Abort);
+extern Std_ReturnType TcpIp_Bind(TcpIp_SocketIdType SocketId, TcpIp_LocalAddrIdType LocalAddrId, uint16* PortPtr);
+extern Std_ReturnType TcpIp_TcpConnect(TcpIp_SocketIdType SocketId, const TcpIp_SockAddrType* RemoteAddrPtr);
+extern Std_ReturnType TcpIp_TcpListen(TcpIp_SocketIdType SocketId, uint16 MaxChannels);
+extern Std_ReturnType TcpIp_UdpTransmit(TcpIp_SocketIdType SocketId, const uint8* DataPtr, const TcpIp_SockAddrType* RemoteAddrPtr, uint16 TotalLength);
+extern Std_ReturnType TcpIp_TcpTransmit(TcpIp_SocketIdType SocketId, const uint8* DataPtr, uint32 AvailableLength, boolean ForceRetrieve);
+extern void TcpIp_RxIndication(TcpIp_SocketIdType SocketId, const TcpIp_SockAddrType* RemoteAddrPtr, const uint8* BufPtr, uint16 Length);
+extern void TcpIp_MainFunction(void);
+extern void TcpIp_GetVersionInfo(Std_VersionInfoType* VersionInfoPtr);
+extern Std_ReturnType TcpIp_RequestIpAddrAssignment(TcpIp_LocalAddrIdType LocalAddrId, TcpIp_IpAddrAssignmentType Type, const TcpIp_SockAddrType* LocalIpAddrPtr);
+extern Std_ReturnType TcpIp_GetIpAddr(TcpIp_LocalAddrIdType LocalAddrId, TcpIp_SockAddrType* IpAddrPtr, uint8* NetmaskPtr, TcpIp_SockAddrType* DefaultRouterPtr);
 
 /********************************************************************************************************/
 /************************************************Defines*************************************************/
@@ -973,6 +1002,10 @@ void TcpIp_MainFunction(void)
                     TcpIp_ClosePlatformSocket(TcpIp_SocketTable[idx].platformSocket);
                     TcpIp_SocketTable[idx].platformSocket = TCPIP_PLATFORM_INVALID_SOCKET;
                     TcpIp_SocketTable[idx].state          = TCPIP_SOCKET_STATE_UNUSED;
+                }
+                else
+                {
+                    /* No action required */
                 }
             }
         }

@@ -2,12 +2,15 @@
 /************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
-#include "Com.h"
-#include "PduR_Com.h"
-#include "SecOC_Lcfg.h"
-#include "SecOC_Debug.h"
+#include "Com/Com.h"
+#include "PduR/PduR_Com.h"
+#include "SecOC/SecOC_Debug.h"
+#include "SecOC/SecOC_Lcfg.h"
 #include <string.h>
 #include <stdio.h>
+
+/* MISRA C:2012 Rule 17.3 - Cross-module forward declarations */
+extern Std_ReturnType PduR_ComTransmit(PduIdType PduID, const PduInfoType *PduInfo);
 
 /********************************************************************************************************/
 /************************************************Defines*************************************************/
@@ -77,6 +80,47 @@ static Com_TxIpduRuntimeType Com_TxIpduRuntime[COM_NUM_OF_TX_IPDU];
 static Com_RxIpduRuntimeType Com_RxIpduRuntime[COM_NUM_OF_RX_IPDU];
 static Com_IpduGroupRuntimeType Com_IpduGroupRuntime[COM_NUM_OF_IPDU_GROUPS];
 static Com_SignalGroupRuntimeType Com_SignalGroupRuntime[COM_NUM_OF_SIGNAL_GROUPS];
+
+/********************************************************************************************************/
+/**************************************ForwardDeclarations***********************************************/
+/********************************************************************************************************/
+
+extern void Com_Init(void);
+extern void Com_InitWithConfig(const Com_ConfigType* ConfigPtr);
+extern void Com_DeInit(void);
+extern Std_ReturnType Com_SendSignal(Com_SignalIdType SignalId, const uint8* SignalDataPtr);
+extern Std_ReturnType Com_ReceiveSignal(Com_SignalIdType SignalId, uint8* SignalDataPtr);
+extern Std_ReturnType Com_SendDynSignal(Com_SignalIdType SignalId, const uint8* SignalDataPtr, uint16 Length);
+extern Std_ReturnType Com_ReceiveDynSignal(Com_SignalIdType SignalId, uint8* SignalDataPtr, uint16* LengthPtr);
+extern Std_ReturnType Com_InvalidateSignal(Com_SignalIdType SignalId);
+extern Std_ReturnType Com_SendSignalGroup(Com_SignalGroupIdType SignalGroupId);
+extern Std_ReturnType Com_ReceiveSignalGroup(Com_SignalGroupIdType SignalGroupId);
+extern Std_ReturnType Com_UpdateShadowSignal(Com_SignalIdType SignalId, const uint8* SignalDataPtr);
+extern Std_ReturnType Com_ReceiveShadowSignal(Com_SignalIdType SignalId, uint8* SignalDataPtr);
+extern Std_ReturnType Com_InvalidateSignalGroup(Com_SignalGroupIdType SignalGroupId);
+extern Std_ReturnType Com_SendSignalGroupArray(Com_SignalGroupIdType SignalGroupId,
+                                               const uint8* SignalGroupArrayPtr,
+                                               uint16 Length);
+extern Std_ReturnType Com_ReceiveSignalGroupArray(Com_SignalGroupIdType SignalGroupId,
+                                                  uint8* SignalGroupArrayPtr,
+                                                  uint16* LengthPtr);
+extern void Com_IpduGroupStart(Com_IpduGroupIdType IpduGroupId, boolean Initialize);
+extern void Com_IpduGroupStop(Com_IpduGroupIdType IpduGroupId);
+extern Std_ReturnType Com_TriggerIPDUSend(PduIdType TxPduId);
+extern void Com_TxConfirmation(PduIdType TxPduId, Std_ReturnType result);
+extern void Com_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr);
+extern BufReq_ReturnType Com_StartOfReception(PduIdType ComRxPduId,
+                                              const PduInfoType* PduInfoPtr,
+                                              PduLengthType TpSduLength,
+                                              PduLengthType* RxBufferSizePtr);
+extern BufReq_ReturnType Com_CopyRxData(PduIdType ComRxPduId,
+                                        const PduInfoType* PduInfoPtr,
+                                        PduLengthType* RxBufferSizePtr);
+extern void Com_TpRxIndication(PduIdType ComRxPduId, Std_ReturnType Result);
+extern void Com_TpTxConfirmation(PduIdType ComTxPduId, Std_ReturnType Result);
+extern void Com_MainFunctionTx(void);
+extern void Com_MainFunctionRx(void);
+extern void Com_MainTx(void);
 
 /********************************************************************************************************/
 /**************************************Static Helper Functions*******************************************/
@@ -1176,6 +1220,10 @@ void Com_MainFunctionRx(void)
             {
                 Com_RxIpduRuntime[RxPduId].ComRxDeadlineTimeout = TRUE;
             }
+        }
+        else
+        {
+            /* No action required */
         }
     }
 }

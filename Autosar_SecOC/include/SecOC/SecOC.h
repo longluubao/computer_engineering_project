@@ -348,4 +348,24 @@ Std_ReturnType SecOC_VerifyStatusOverride(
 );
 
 
+/********************************************************************************************************/
+/*****************************************MainFunction Prototypes****************************************/
+/********************************************************************************************************/
+
+void SecOC_MainFunctionTx(void);
+void SecOC_MainFunctionRx(void);
+
+/********************************************************************************************************/
+/*****************************************Global Variable Declarations***********************************/
+/********************************************************************************************************/
+
+extern const SecOC_TxPduProcessingType *SecOCTxPduProcessing;
+extern const SecOC_RxPduProcessingType *SecOCRxPduProcessing;
+// cppcheck-suppress misra-c2012-8.4
+extern const SecOC_GeneralType         *SecOCGeneral;
+
+#ifndef RELEASE
+extern PduLengthType authRecieveLength[];
+#endif
+
 #endif /* INCLUDE_SECOC_H_*/

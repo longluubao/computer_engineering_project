@@ -2,21 +2,23 @@
 /************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
-#include "CanIF.h"
-#include "Can.h"
-#include "CanTP.h"
-#include "CanNm.h"
-#include "Det.h"
-#include "SecOC.h"
-#include "SecOC_Debug.h"
-#include "PduR_CanIf.h"
+#include "Can/Can.h"
+#include "Can/CanIF.h"
+#include "Can/CanTP.h"
+#include "CanNm/CanNm.h"
+#include "Det/Det.h"
+#include "PduR/PduR_CanIf.h"
+#include "SecOC/SecOC.h"
+#include "SecOC/SecOC_Debug.h"
+#include "SecOC/SecOC_Lcfg.h"
 
+/* MISRA C:2012 Rule 17.3 - Cross-module forward declarations */
+extern Std_ReturnType Can_GetControllerMode(uint8 Controller, Can_ControllerStateType *ControllerModePtr);
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
 /********************************************************************************************************/
 
-extern SecOC_PduCollection PdusCollections[];
 static boolean CanIf_Initialized = FALSE;
 static CanIf_ControllerModeType CanIf_ControllerModes[CAN_MAX_CONTROLLERS];
 static CanIf_PduModeType CanIf_PduModes[CAN_MAX_CONTROLLERS];
@@ -51,6 +53,17 @@ static void CanIf_InternalTxConfirmation(PduIdType TxPduId, Std_ReturnType resul
 /********************************************************************************************************/
 /********************************************Functions***************************************************/
 /********************************************************************************************************/
+
+/* External API declarations (MISRA 8.4 visibility). */
+void CanIf_Init(void);
+Std_ReturnType CanIf_SetControllerMode(uint8 ControllerId, CanIf_ControllerModeType ControllerMode);
+Std_ReturnType CanIf_Transmit(PduIdType TxPduId, const PduInfoType *PduInfoPtr);
+void CanIf_TxConfirmation(PduIdType TxPduId, Std_ReturnType result);
+void CanIf_RxIndication(PduIdType RxPduId, const PduInfoType *PduInfoPtr);
+void CanIf_ControllerModeIndication(uint8 ControllerId, CanIf_ControllerModeType ControllerMode);
+Std_ReturnType CanIf_GetControllerMode(uint8 ControllerId, CanIf_ControllerModeType *ControllerModePtr);
+Std_ReturnType CanIf_SetPduMode(uint8 ControllerId, CanIf_PduModeType PduModeRequest);
+Std_ReturnType CanIf_GetPduMode(uint8 ControllerId, CanIf_PduModeType *PduModePtr);
 
 void CanIf_Init(void)
 {
@@ -98,42 +111,49 @@ void CanIf_Init(void)
 
 Std_ReturnType CanIf_SetControllerMode(uint8 ControllerId, CanIf_ControllerModeType ControllerMode)
 {
+    Std_ReturnType RetVal = E_OK;
+    Can_ControllerStateType CanMode = CAN_CS_STOPPED;
+
     if (CanIf_Initialized == FALSE)
     {
         (void)Det_ReportError(CANIF_MODULE_ID, CANIF_INSTANCE_ID, CANIF_SID_SET_CONTROLLER_MODE, CANIF_E_UNINIT);
-        return E_NOT_OK;
+        RetVal = E_NOT_OK;
     }
-
-    if (ControllerId >= CAN_MAX_CONTROLLERS)
+    else if (ControllerId >= CAN_MAX_CONTROLLERS)
     {
         (void)Det_ReportError(CANIF_MODULE_ID, CANIF_INSTANCE_ID, CANIF_SID_SET_CONTROLLER_MODE, CANIF_E_PARAM_CONTROLLER);
-        return E_NOT_OK;
+        RetVal = E_NOT_OK;
     }
-
-    /* Map CanIf mode to Can driver mode and request transition */
-    Can_ControllerStateType canMode;
-    switch (ControllerMode)
+    else
     {
-    case CANIF_CS_STARTED:
-        canMode = CAN_CS_STARTED;
-        break;
-    case CANIF_CS_STOPPED:
-        canMode = CAN_CS_STOPPED;
-        break;
-    case CANIF_CS_SLEEP:
-        canMode = CAN_CS_SLEEP;
-        break;
-    default:
-        return E_NOT_OK;
+        /* Map CanIf mode to Can driver mode and request transition */
+        switch (ControllerMode)
+        {
+            case CANIF_CS_STARTED:
+                CanMode = CAN_CS_STARTED;
+                break;
+            case CANIF_CS_STOPPED:
+                CanMode = CAN_CS_STOPPED;
+                break;
+            case CANIF_CS_SLEEP:
+                CanMode = CAN_CS_SLEEP;
+                break;
+            default:
+                RetVal = E_NOT_OK;
+                break;
+        }
     }
 
-    Std_ReturnType result = Can_SetControllerMode(ControllerId, canMode);
-    if (result == E_OK)
+    if (RetVal == E_OK)
     {
-        CanIf_ControllerModes[ControllerId] = ControllerMode;
+        RetVal = Can_SetControllerMode(ControllerId, CanMode);
+        if (RetVal == E_OK)
+        {
+            CanIf_ControllerModes[ControllerId] = ControllerMode;
+        }
     }
 
-    return result;
+    return RetVal;
 }
 
 Std_ReturnType CanIf_Transmit(PduIdType TxPduId, const PduInfoType *PduInfoPtr)
@@ -172,7 +192,9 @@ Std_ReturnType CanIf_Transmit(PduIdType TxPduId, const PduInfoType *PduInfoPtr)
     #ifdef CANIF_DEBUG
         printf("Secure PDU -->\n");
             for(int i = 0; i < PduInfoPtr->SduLength; i++)
+            {
                 printf("%d ", PduInfoPtr->SduDataPtr[i]);
+            }
         printf("\n");
     #endif
 

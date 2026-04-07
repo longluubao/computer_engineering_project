@@ -10,10 +10,28 @@
 /************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
-#include "EthSM.h"
-#include "EthIf.h"
-#include "Det.h"
-#include "BswM.h"
+#include "BswM/BswM.h"
+#include "Det/Det.h"
+#include "EthIf/EthIf.h"
+#include "EthSM/EthSM.h"
+#include "TcpIp/TcpIp.h"
+
+/* MISRA C:2012 Rule 8.4 - Forward declarations for external linkage functions */
+extern void EthSM_Init(const EthSM_ConfigType* ConfigPtr);
+extern void EthSM_DeInit(void);
+extern Std_ReturnType EthSM_RequestComMode(NetworkHandleType NetworkHandle, ComM_ModeType ComM_Mode);
+extern Std_ReturnType EthSM_GetCurrentComMode(NetworkHandleType NetworkHandle, ComM_ModeType* ComM_ModePtr);
+extern Std_ReturnType EthSM_GetCurrentInternalMode(NetworkHandleType NetworkHandle, EthSM_NetworkModeStateType* EthSM_InternalMode);
+extern void EthSM_TcpIpModeIndication(uint8 CtrlIdx, TcpIp_StateType State);
+extern void EthSM_MainFunction(void);
+extern void EthSM_GetVersionInfo(Std_VersionInfoType* VersionInfoPtr);
+
+/* MISRA C:2012 Rule 17.3 - Cross-module forward declarations */
+extern Std_ReturnType EthIf_SetControllerMode(uint8 CtrlIdx, Eth_ModeType CtrlMode);
+extern Std_ReturnType EthIf_GetControllerMode(uint8 CtrlIdx, Eth_ModeType* CtrlModePtr);
+extern Std_ReturnType TcpIp_RequestIpAddrAssignment(TcpIp_LocalAddrIdType LocalAddrId,
+                                                    TcpIp_IpAddrAssignmentType Type,
+                                                    const TcpIp_SockAddrType* LocalIpAddrPtr);
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/

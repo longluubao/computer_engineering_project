@@ -2,7 +2,7 @@
 #define INCLUDE_FEE_H_
 
 #include "Std_Types.h"
-#include "MemIf.h"
+#include "MemIf/MemIf.h"
 
 #define FEE_MODULE_ID                ((uint16)21U)
 #define FEE_INSTANCE_ID              ((uint8)0U)

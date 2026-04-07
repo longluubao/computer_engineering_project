@@ -8,6 +8,11 @@
 #include <pthread.h>
 #include <ucontext.h>
 
+/* MISRA C:2012 Rule 17.3 - pthread prototype for static analysis when system headers are unavailable */
+#ifndef _PTHREAD_H
+typedef unsigned long int pthread_t;
+extern int pthread_create(pthread_t*, const void*, void*(*)(void*), void*);
+#endif
 
 /********************************************************************************************************/
 /************************************************Defines*************************************************/
@@ -22,6 +27,11 @@
 /*****************************************FunctionPrototype**********************************************/
 /********************************************************************************************************/
 
-void Scheduler_Start();
+void EthernetRecieveFn(void);
+void RecieveMainFunctions(void);
+void TxMainFunctions(void);
+void start_task(int i);
+void scheduler_handler(int signum);
+void Scheduler_Start(void);
 
 #endif

@@ -35,6 +35,15 @@ static void ApBridge_UpdateSoAdState(SoAd_ApBridgeStateType State)
 /********************************************Functions***************************************************/
 /********************************************************************************************************/
 
+/* External API declarations (MISRA 8.4 visibility). */
+void ApBridge_Init(void);
+void ApBridge_DeInit(void);
+void ApBridge_MainFunction(void);
+void ApBridge_ReportHeartbeat(boolean Success);
+void ApBridge_ReportServiceStatus(boolean ServiceOk);
+Std_ReturnType ApBridge_SetForcedState(SoAd_ApBridgeStateType State);
+Std_ReturnType ApBridge_GetStatus(ApBridge_StatusType* StatusPtr);
+
 void ApBridge_Init(void)
 {
     ApBridge_State = APBRIDGE_STATE_INIT;
@@ -62,48 +71,62 @@ void ApBridge_DeInit(void)
 void ApBridge_MainFunction(void)
 {
     SoAd_ApBridgeStateType TargetState;
+    boolean IsActive = FALSE;
+    boolean IsForced = FALSE;
 
     if (ApBridge_State != APBRIDGE_STATE_INIT)
     {
-        return;
-    }
-
-    if (ApBridge_HeartbeatAgeCycles < 0xFFFFU)
-    {
-        ApBridge_HeartbeatAgeCycles++;
-    }
-
-    if (ApBridge_ForcedStateValid == TRUE)
-    {
-        ApBridge_UpdateSoAdState(ApBridge_ForcedState);
-        return;
-    }
-
-    if ((ApBridge_HasRecentHeartbeat == FALSE) ||
-        (ApBridge_HeartbeatAgeCycles >= APBRIDGE_HEARTBEAT_TIMEOUT_CYCLES))
-    {
-        TargetState = SOAD_AP_BRIDGE_NOT_READY;
-    }
-    else if (ApBridge_ServiceFailCounter >= APBRIDGE_SERVICE_FAIL_THRESHOLD)
-    {
-        TargetState = SOAD_AP_BRIDGE_DEGRADED;
+        IsActive = FALSE;
     }
     else
     {
-        TargetState = SOAD_AP_BRIDGE_READY;
+        IsActive = TRUE;
     }
 
-    ApBridge_UpdateSoAdState(TargetState);
+    if (IsActive == TRUE)
+    {
+        if (ApBridge_HeartbeatAgeCycles < 0xFFFFU)
+        {
+            ApBridge_HeartbeatAgeCycles++;
+        }
+
+        if (ApBridge_ForcedStateValid == TRUE)
+        {
+            IsForced = TRUE;
+            ApBridge_UpdateSoAdState(ApBridge_ForcedState);
+        }
+
+        if (IsForced == FALSE)
+        {
+            if ((ApBridge_HasRecentHeartbeat == FALSE) ||
+                (ApBridge_HeartbeatAgeCycles >= APBRIDGE_HEARTBEAT_TIMEOUT_CYCLES))
+            {
+                TargetState = SOAD_AP_BRIDGE_NOT_READY;
+            }
+            else if (ApBridge_ServiceFailCounter >= APBRIDGE_SERVICE_FAIL_THRESHOLD)
+            {
+                TargetState = SOAD_AP_BRIDGE_DEGRADED;
+            }
+            else
+            {
+                TargetState = SOAD_AP_BRIDGE_READY;
+            }
+
+            ApBridge_UpdateSoAdState(TargetState);
+        }
+    }
 }
 
 void ApBridge_ReportHeartbeat(boolean Success)
 {
-    if (ApBridge_State != APBRIDGE_STATE_INIT)
+    boolean IsActive = FALSE;
+
+    if (ApBridge_State == APBRIDGE_STATE_INIT)
     {
-        return;
+        IsActive = TRUE;
     }
 
-    if (Success == TRUE)
+    if ((IsActive == TRUE) && (Success == TRUE))
     {
         ApBridge_HasRecentHeartbeat = TRUE;
         ApBridge_HeartbeatAgeCycles = 0U;
@@ -112,62 +135,68 @@ void ApBridge_ReportHeartbeat(boolean Success)
 
 void ApBridge_ReportServiceStatus(boolean ServiceOk)
 {
-    if (ApBridge_State != APBRIDGE_STATE_INIT)
+    if (ApBridge_State == APBRIDGE_STATE_INIT)
     {
-        return;
-    }
-
-    if (ServiceOk == TRUE)
-    {
-        ApBridge_ServiceFailCounter = 0U;
-        if (ApBridge_ServiceRecoveryCounter < 0xFFU)
+        if (ServiceOk == TRUE)
         {
-            ApBridge_ServiceRecoveryCounter++;
+            ApBridge_ServiceFailCounter = 0U;
+            if (ApBridge_ServiceRecoveryCounter < 0xFFU)
+            {
+                ApBridge_ServiceRecoveryCounter++;
+            }
         }
-    }
-    else
-    {
-        ApBridge_ServiceRecoveryCounter = 0U;
-        if (ApBridge_ServiceFailCounter < 0xFFU)
+        else
         {
-            ApBridge_ServiceFailCounter++;
+            ApBridge_ServiceRecoveryCounter = 0U;
+            if (ApBridge_ServiceFailCounter < 0xFFU)
+            {
+                ApBridge_ServiceFailCounter++;
+            }
         }
-    }
 
-    if (ApBridge_ServiceRecoveryCounter >= APBRIDGE_SERVICE_RECOVERY_THRESHOLD)
-    {
-        ApBridge_ServiceFailCounter = 0U;
+        if (ApBridge_ServiceRecoveryCounter >= APBRIDGE_SERVICE_RECOVERY_THRESHOLD)
+        {
+            ApBridge_ServiceFailCounter = 0U;
+        }
     }
 }
 
 Std_ReturnType ApBridge_SetForcedState(SoAd_ApBridgeStateType State)
 {
+    Std_ReturnType RetVal = E_OK;
+
     if (ApBridge_State != APBRIDGE_STATE_INIT)
     {
-        return E_NOT_OK;
+        RetVal = E_NOT_OK;
     }
-
-    if (State > SOAD_AP_BRIDGE_DEGRADED)
+    else if (State > SOAD_AP_BRIDGE_DEGRADED)
     {
-        return E_NOT_OK;
+        RetVal = E_NOT_OK;
+    }
+    else
+    {
+        ApBridge_ForcedState = State;
+        ApBridge_ForcedStateValid = TRUE;
+        ApBridge_UpdateSoAdState(State);
     }
 
-    ApBridge_ForcedState = State;
-    ApBridge_ForcedStateValid = TRUE;
-    ApBridge_UpdateSoAdState(State);
-    return E_OK;
+    return RetVal;
 }
 
 Std_ReturnType ApBridge_GetStatus(ApBridge_StatusType* StatusPtr)
 {
+    Std_ReturnType RetVal = E_OK;
+
     if ((ApBridge_State != APBRIDGE_STATE_INIT) || (StatusPtr == NULL))
     {
-        return E_NOT_OK;
+        RetVal = E_NOT_OK;
     }
-
-    StatusPtr->ApBridgeState = ApBridge_CurrentState;
-    StatusPtr->HeartbeatAgeCycles = ApBridge_HeartbeatAgeCycles;
-    StatusPtr->ServiceFailCounter = ApBridge_ServiceFailCounter;
-    StatusPtr->ServiceRecoveryCounter = ApBridge_ServiceRecoveryCounter;
-    return E_OK;
+    else
+    {
+        StatusPtr->ApBridgeState = ApBridge_CurrentState;
+        StatusPtr->HeartbeatAgeCycles = ApBridge_HeartbeatAgeCycles;
+        StatusPtr->ServiceFailCounter = ApBridge_ServiceFailCounter;
+        StatusPtr->ServiceRecoveryCounter = ApBridge_ServiceRecoveryCounter;
+    }
+    return RetVal;
 }

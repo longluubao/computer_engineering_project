@@ -1,0 +1,12 @@
+{
+  "tool": "cppcheck-misra-addon",
+  "output": "misra-cppcheck.txt",
+  "deduplicated_output": "misra-cppcheck-clean.txt",
+  "main_violations_output": "misra-main-violations.txt",
+  "total_misra_findings": 2066,
+  "unique_misra_findings": 0,
+  "duplicate_misra_findings": 2066,
+  "top_rule": "none",
+  "top_file": "none",
+  "key_rule_family_hits_10_11_14": 11
+}

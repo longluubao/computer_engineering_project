@@ -2,11 +2,28 @@
 /************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
-#include "ComM.h"
-#include "Det.h"
-#include "CanNm.h"
-#include "CanSM.h"
-#include "BswM.h"
+#include "BswM/BswM.h"
+#include "CanNm/CanNm.h"
+#include "CanSM/CanSM.h"
+#include "ComM/ComM.h"
+#include "Det/Det.h"
+
+/********************************************************************************************************/
+/**************************************ForwardDeclarations***********************************************/
+/********************************************************************************************************/
+
+extern void ComM_Init(void);
+extern void ComM_DeInit(void);
+extern Std_ReturnType ComM_RequestComMode(uint8 Channel, ComM_ModeType ComMode);
+extern Std_ReturnType ComM_GetCurrentComMode(uint8 Channel, ComM_ModeType *ComModePtr);
+extern Std_ReturnType ComM_GetState(uint8 Channel, ComM_SubStateType *StatePtr);
+extern Std_ReturnType ComM_BusSM_ModeIndication(uint8 Channel, ComM_ModeType ComMode);
+extern void ComM_MainFunction(void);
+
+/* MISRA C:2012 Rule 17.3 - Cross-module forward declarations */
+extern Std_ReturnType CanNm_NetworkRequest(uint8 NetworkHandle);
+extern Std_ReturnType CanNm_NetworkRelease(uint8 NetworkHandle);
+extern Std_ReturnType CanSM_RequestComMode(uint8 NetworkHandle, CanSM_ComModeType ComM_Mode);
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/

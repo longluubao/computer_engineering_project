@@ -23,7 +23,6 @@
 /******************************************GlobalVaribles************************************************/
 /********************************************************************************************************/
 
-extern const SecOC_RxPduProcessingType     *SecOCRxPduProcessing;
 #ifdef SCHEDULER_ON
     extern pthread_mutex_t lock;
 #endif
@@ -43,6 +42,18 @@ static uint16 CanTp_RxTimeoutCounter[SECOC_NUM_OF_RX_PDU_PROCESSING];
 /* Channel states */
 static CanTp_ChannelStateType CanTp_TxState[SECOC_NUM_OF_TX_PDU_PROCESSING];
 static CanTp_ChannelStateType CanTp_RxState[SECOC_NUM_OF_RX_PDU_PROCESSING];
+
+/********************************************************************************************************/
+/*****************************External API declarations (MISRA 8.4)**************************************/
+/********************************************************************************************************/
+
+void CanTp_Init(void);
+void CanTp_Shutdown(void);
+Std_ReturnType CanTp_Transmit(PduIdType CanTpTxSduId, const PduInfoType* CanTpTxInfoPtr);
+void CanTp_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr);
+void CanTp_MainFunctionTx(void);
+void CanTp_TxConfirmation(PduIdType TxPduId, Std_ReturnType result);
+void CanTp_MainFunctionRx(void);
 
 /********************************************************************************************************/
 /********************************************Functions***************************************************/
@@ -245,7 +256,7 @@ void CanTp_MainFunctionTx(void)
 
         if( CanTp_Buffer[TxPduId].SduLength > 0)
         {
-            uint8 lastFrameIndex = (CanTp_Buffer[TxPduId].SduLength % BUS_LENGTH == 0)  ? (CanTp_Buffer[TxPduId].SduLength / BUS_LENGTH) : ((CanTp_Buffer[TxPduId].SduLength / BUS_LENGTH) + 1);
+            uint8 lastFrameIndex = ((CanTp_Buffer[TxPduId].SduLength % BUS_LENGTH) == 0)  ? (CanTp_Buffer[TxPduId].SduLength / BUS_LENGTH) : ((CanTp_Buffer[TxPduId].SduLength / BUS_LENGTH) + 1);
             #ifdef CANTP_DEBUG
                 printf("Start sending id = %d\n" , TxPduId);
                 printf("PDU length = %ld\n" , CanTp_Buffer[TxPduId].SduLength);
@@ -258,9 +269,9 @@ void CanTp_MainFunctionTx(void)
             #endif
             for(int frameIndex = 0; frameIndex < lastFrameIndex ; frameIndex++)
             {
-                if(frameIndex == lastFrameIndex - 1)
+                if(frameIndex == (lastFrameIndex - 1))
                 {
-                    info.SduLength = (CanTp_Buffer[TxPduId].SduLength % BUS_LENGTH == 0)  ? (BUS_LENGTH) : (CanTp_Buffer[TxPduId].SduLength % BUS_LENGTH);
+                    info.SduLength = ((CanTp_Buffer[TxPduId].SduLength % BUS_LENGTH) == 0)  ? (BUS_LENGTH) : (CanTp_Buffer[TxPduId].SduLength % BUS_LENGTH);
                     #ifdef CANTP_DEBUG
                     printf("last frame PDU length = %ld\n" , CanTp_Buffer[TxPduId].SduLength);
                     printf("All Data to be Sent: \n");
@@ -273,14 +284,18 @@ void CanTp_MainFunctionTx(void)
                 }
                 BufReq_ReturnType resultCopy = PduR_CanTpCopyTxData(TxPduId, &info, &retry, &availableDataPtr);
                 Std_ReturnType resultTrasmit = CanIf_Transmit(TxPduId , &info);
-                if(resultTrasmit != E_OK || resultCopy!= BUFREQ_OK)
+                if((resultTrasmit != E_OK) || (resultCopy != BUFREQ_OK))
                 {
                     retry.TpDataState = TP_DATARETRY;
-                    frameIndex--;
+                    frameIndex--; /* DEVIATION: Rule 14.2 - loop counter adjusted for TP segmentation */ // cppcheck-suppress misra-c2012-14.2
                 }
                 else if(resultTrasmit == E_OK)
                 {
                     retry.TpDataState = TP_DATACONF;
+                }
+                else
+                {
+                    /* No action required */
                 }
 
                 #ifdef CANTP_DEBUG
@@ -345,7 +360,7 @@ void CanTp_MainFunctionRx(void)
         BufReq_ReturnType result = BUFREQ_OK;
         if((CanTp_Recieve_Counter[RxPduId] > 0) && (CanTp_Buffer_Rx[RxPduId].SduLength > 0))
         {
-            uint8 lastFrameIndex = (CanTp_secureLength_Recieve[RxPduId] % BUS_LENGTH == 0)  ? (CanTp_secureLength_Recieve[RxPduId] / BUS_LENGTH) : ((CanTp_secureLength_Recieve[RxPduId] / BUS_LENGTH) + 1);
+            uint8 lastFrameIndex = ((CanTp_secureLength_Recieve[RxPduId] % BUS_LENGTH) == 0)  ? (CanTp_secureLength_Recieve[RxPduId] / BUS_LENGTH) : ((CanTp_secureLength_Recieve[RxPduId] / BUS_LENGTH) + 1);
             PduLengthType bufferSizePtr;
             #ifdef CANTP_DEBUG
                 printf("######## in main tp Rx  in id : %d\n", RxPduId);
@@ -372,7 +387,7 @@ void CanTp_MainFunctionRx(void)
             }
             else if (CanTp_Recieve_Counter[RxPduId] == lastFrameIndex)
             {
-                CanTp_Buffer_Rx[RxPduId].SduLength = (CanTp_secureLength_Recieve[RxPduId] % BUS_LENGTH == 0) ? (BUS_LENGTH) : (CanTp_secureLength_Recieve[RxPduId] % BUS_LENGTH);
+                CanTp_Buffer_Rx[RxPduId].SduLength = ((CanTp_secureLength_Recieve[RxPduId] % BUS_LENGTH) == 0) ? (BUS_LENGTH) : (CanTp_secureLength_Recieve[RxPduId] % BUS_LENGTH);
                 result = PduR_CanTpCopyRxData(RxPduId, &CanTp_Buffer_Rx[RxPduId], &bufferSizePtr);
                 PduR_CanTpRxIndication(RxPduId, result);
                 CanTp_Recieve_Counter[RxPduId] = 0;

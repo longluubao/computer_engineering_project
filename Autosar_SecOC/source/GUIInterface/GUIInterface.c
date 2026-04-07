@@ -48,6 +48,20 @@ extern Std_ReturnType seperatePduCollectionTx(const PduIdType TxPduId,uint32 Aut
     #define DLL_EXPORT
 #endif
 
+/* External API declarations (MISRA 8.4 visibility). */
+void GUIInterface_init(void);
+char* GUIInterface_authenticate(uint8_t configId, uint8_t *data, uint8_t len);
+char* GUIInterface_verify(uint8_t configId);
+char* GUIInterface_getSecuredPDU(uint8_t configId, uint8_t *len);
+char* GUIInterface_getSecuredRxPDU(uint8_t configId, uint8_t *len, uint8_t * Securedlen);
+char* GUIInterface_getAuthPdu(uint8_t configId, uint8_t *len);
+void GUIInterface_alterFreshness(uint8_t configId);
+void GUIInterface_alterAuthenticator(uint8_t configId);
+char* GUIInterface_transmit(uint8_t configId);
+char* GUIInterface_receive(uint8_t* rxId, uint8_t* finalRxLen);
+char* GUIInterface_authenticate_PQC(uint8_t configId, uint8_t *data, uint8_t len);
+char* GUIInterface_verify_PQC(uint8_t configId);
+
 static char* errorString(Std_ReturnType error)
 {
     switch(error)
@@ -84,7 +98,7 @@ DLL_EXPORT char* GUIInterface_authenticate(uint8_t configId, uint8_t *data, uint
 
 
     // Creating te Authentic PDU
-    memcpy(authPdu->SduDataPtr, data, len);
+    (void)memcpy(authPdu->SduDataPtr, data, len);
     authPdu->SduLength = len;
 
     Std_ReturnType result;
@@ -121,7 +135,7 @@ DLL_EXPORT char* GUIInterface_getSecuredPDU(uint8_t configId, uint8_t *len)
     *len = securedPdu->SduLength;
 
     static char securedStr[100]; /* Static to be passed to the python program*/
-    memset(securedStr, 0, sizeof(securedStr)); /* Clear buffer before use */
+    (void)memset(securedStr, 0, sizeof(securedStr)); /* Clear buffer before use */
 
     uint8_t headerIdx = SecOCTxPduProcessing[configId].SecOCTxSecuredPduLayer->SecOCTxSecuredPdu->SecOCAuthPduHeaderLength;
     uint8_t authIdx = *len - BIT_TO_BYTES(SecOCTxPduProcessing[configId].SecOCAuthInfoTruncLength);
@@ -146,7 +160,7 @@ DLL_EXPORT char* GUIInterface_getSecuredPDU(uint8_t configId, uint8_t *len)
 
 DLL_EXPORT char* GUIInterface_getSecuredRxPDU(uint8_t configId, uint8_t *len , uint8_t * Securedlen)
 {
-    if(PdusCollections[configId].Type == SECOC_AUTH_COLLECTON_PDU || PdusCollections[configId].Type == SECOC_CRYPTO_COLLECTON_PDU)
+    if((PdusCollections[configId].Type == SECOC_AUTH_COLLECTON_PDU) || (PdusCollections[configId].Type == SECOC_CRYPTO_COLLECTON_PDU))
     {
         configId = PdusCollections[configId].CollectionId;
     }
@@ -155,7 +169,7 @@ DLL_EXPORT char* GUIInterface_getSecuredRxPDU(uint8_t configId, uint8_t *len , u
     *Securedlen = securedPdu->SduLength;
 
     static char securedStr[100]; /* Static to be passed to the python program*/
-    memset(securedStr, 0, sizeof(securedStr)); /* Clear buffer before use */
+    (void)memset(securedStr, 0, sizeof(securedStr)); /* Clear buffer before use */
 
     uint8_t headerIdx = SecOCRxPduProcessing[configId].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCAuthPduHeaderLength;
     uint8_t authIdx = *len - BIT_TO_BYTES(SecOCRxPduProcessing[configId].SecOCAuthInfoTruncLength);
@@ -197,7 +211,7 @@ DLL_EXPORT void GUIInterface_alterFreshness(uint8_t configId)
     uint32 FreshnesslenBytes = BIT_TO_BYTES(SecOCTxPduProcessing[configId].SecOCFreshnessValueTruncLength);
     PduInfoType *securedPdu = &(SecOCTxPduProcessing[configId].SecOCTxSecuredPduLayer->SecOCTxSecuredPdu->SecOCTxSecuredLayerPduRef);
 
-    if(FreshnesslenBytes == 0 || securedPdu->SduLength == 0)
+    if((FreshnesslenBytes == 0) || (securedPdu->SduLength == 0))
     {
         return;
     }
@@ -208,13 +222,13 @@ DLL_EXPORT void GUIInterface_alterFreshness(uint8_t configId)
     /* Get the first freshness byte */
     uint8_t freshness_offset = securedPdu->SduLength - macLen - FreshnesslenBytes;
 
-    printf("DEBUG alterFreshness: PDU len=%d, MAC len=%d, Freshness len=%d, offset=%d\n",
-           securedPdu->SduLength, macLen, FreshnesslenBytes, freshness_offset);
-    printf("Before: byte[%d] = %d\n", freshness_offset, securedPdu->SduDataPtr[freshness_offset]);
+    (void)printf("DEBUG alterFreshness: PDU len=%d, MAC len=%d, Freshness len=%d, offset=%d\n",
+                 securedPdu->SduLength, macLen, FreshnesslenBytes, freshness_offset);
+    (void)printf("Before: byte[%d] = %d\n", freshness_offset, securedPdu->SduDataPtr[freshness_offset]);
 
     securedPdu->SduDataPtr[freshness_offset]++;  // INCREMENT instead of decrement
 
-    printf("After: byte[%d] = %d\n", freshness_offset, securedPdu->SduDataPtr[freshness_offset]);
+    (void)printf("After: byte[%d] = %d\n", freshness_offset, securedPdu->SduDataPtr[freshness_offset]);
 
 }
 
@@ -228,13 +242,13 @@ DLL_EXPORT void GUIInterface_alterAuthenticator(uint8_t configId)
     }
 
     uint8_t mac_offset = securedPdu->SduLength - 1;
-    printf("DEBUG alterAuthenticator: PDU len=%d, offset=%d (last byte)\n",
-           securedPdu->SduLength, mac_offset);
-    printf("Before: byte[%d] = %d\n", mac_offset, securedPdu->SduDataPtr[mac_offset]);
+    (void)printf("DEBUG alterAuthenticator: PDU len=%d, offset=%d (last byte)\n",
+                 securedPdu->SduLength, mac_offset);
+    (void)printf("Before: byte[%d] = %d\n", mac_offset, securedPdu->SduDataPtr[mac_offset]);
 
     securedPdu->SduDataPtr[securedPdu->SduLength - 1]++;
 
-    printf("After: byte[%d] = %d\n", mac_offset, securedPdu->SduDataPtr[mac_offset]);
+    (void)printf("After: byte[%d] = %d\n", mac_offset, securedPdu->SduDataPtr[mac_offset]);
 
     
 }
@@ -299,7 +313,7 @@ DLL_EXPORT char* GUIInterface_receive(uint8_t* rxId , uint8_t* finalRxLen)
         static uint8 dataRecieve [BUS_LENGTH_RECEIVE];
         uint16 id;
         uint16 actualSize;
-        result = ethernet_receive(dataRecieve , BUS_LENGTH_RECEIVE, &id, &actualSize);
+        result = EthDrv_Receive(dataRecieve , BUS_LENGTH_RECEIVE, &id, &actualSize);
 
         if (result != E_OK)
         {
@@ -387,7 +401,7 @@ DLL_EXPORT char* GUIInterface_authenticate_PQC(uint8_t configId, uint8_t *data, 
     SecOC_TxCounters[configId].AuthenticationCounter = 0;
 
     /* Create Authentic PDU */
-    memcpy(authPdu->SduDataPtr, data, len);
+    (void)memcpy(authPdu->SduDataPtr, data, len);
     authPdu->SduLength = len;
 
     /* Use PQC authentication (ML-DSA-65 signature) */

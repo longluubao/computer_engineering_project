@@ -1,0 +1,12 @@
+{
+    "homologation_check": {
+        "region": "eu",
+        "vehicle_type": "M1",
+        "requirements_checked": 7,
+        "passed": 6,
+        "warnings": 1,
+        "failed": 0,
+        "status": "CONDITIONAL_PASS",
+        "timestamp": "2026-04-07T14:52:38+07:00"
+    }
+}

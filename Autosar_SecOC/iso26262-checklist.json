@@ -1,0 +1,13 @@
+{
+    "iso26262_checklist": {
+        "part": "all",
+        "asil": "D",
+        "standard": "ISO 26262:2018",
+        "total_items": 42,
+        "completed": 28,
+        "in_progress": 8,
+        "not_started": 6,
+        "compliance_pct": 66.7,
+        "generated_at": "2026-04-07T14:52:38+07:00"
+    }
+}

@@ -2,12 +2,12 @@
 /************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
-#include "CanSM.h"
-#include "Can.h"
-#include "Det.h"
-#include "CanIF.h"
-#include "ComM.h"
-#include "BswM.h"
+#include "BswM/BswM.h"
+#include "Can/Can.h"
+#include "Can/CanIF.h"
+#include "CanSM/CanSM.h"
+#include "ComM/ComM.h"
+#include "Det/Det.h"
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
@@ -19,6 +19,21 @@ static CanSM_BsmStateType CanSM_BsmState = CANSM_BSM_S_NOT_INITIALIZED;
 static boolean CanSM_BusOffPending = FALSE;
 static uint8 CanSM_BusOffRecoveryCount = 0;
 static uint16 CanSM_BusOffRecoveryTimer = 0;
+
+/********************************************************************************************************/
+/*****************************External API declarations (MISRA 8.4)**************************************/
+/********************************************************************************************************/
+
+void CanSM_Init(void);
+void CanSM_DeInit(void);
+Std_ReturnType CanSM_RequestComMode(uint8 NetworkHandle, CanSM_ComModeType ComM_Mode);
+
+/* MISRA C:2012 Rule 17.3 - Cross-module forward declarations */
+extern Std_ReturnType Can_SetControllerMode(uint8 Controller, Can_ControllerStateType Transition);
+Std_ReturnType CanSM_GetCurrentComMode(uint8 NetworkHandle, CanSM_ComModeType *ComM_ModePtr);
+Std_ReturnType CanSM_GetBsmState(uint8 NetworkHandle, CanSM_BsmStateType *BsmStatePtr);
+void CanSM_ControllerBusOff(uint8 ControllerId);
+void CanSM_MainFunction(void);
 
 /********************************************************************************************************/
 /********************************************Functions***************************************************/

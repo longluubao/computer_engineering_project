@@ -3,6 +3,19 @@
 #include <stdio.h>
 #include <string.h>
 
+/* External API declarations (MISRA 8.4 visibility). */
+void Ea_Init(void);
+void Ea_MainFunction(void);
+Std_ReturnType Ea_Read(uint16 BlockNumber, uint16 BlockOffset, uint8* DataBufferPtr, uint16 Length);
+Std_ReturnType Ea_Write(uint16 BlockNumber, const uint8* DataBufferPtr, uint16 Length);
+Std_ReturnType Ea_InvalidateBlock(uint16 BlockNumber);
+Std_ReturnType Ea_EraseImmediateBlock(uint16 BlockNumber);
+void Ea_SetMode(MemIf_ModeType Mode);
+MemIf_StatusType Ea_GetStatus(void);
+MemIf_JobResultType Ea_GetJobResult(void);
+void Ea_SetJobEndNotification(Ea_JobNotificationType NotificationPtr);
+void Ea_SetJobErrorNotification(Ea_JobNotificationType NotificationPtr);
+
 #define EA_STORAGE_MAGIC             (0x32414555UL) /* "UEA2" */
 #define EA_STORAGE_FILE_NAME         "ea_storage.bin"
 #define EA_WL_SLOT_COUNT             ((uint8)3U)

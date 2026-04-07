@@ -7,6 +7,26 @@
 #include "SoAd.h"
 #include "BswM.h"
 
+/* External API declarations (MISRA 8.4 visibility). */
+void UdpNm_Init(void);
+void UdpNm_DeInit(void);
+Std_ReturnType UdpNm_PassiveStartUp(uint8 NetworkHandle);
+Std_ReturnType UdpNm_NetworkRequest(uint8 NetworkHandle);
+Std_ReturnType UdpNm_NetworkRelease(uint8 NetworkHandle);
+Std_ReturnType UdpNm_SetUserData(uint8 NetworkHandle, const uint8 *NmUserDataPtr);
+Std_ReturnType UdpNm_GetUserData(uint8 NetworkHandle, uint8 *NmUserDataPtr);
+Std_ReturnType UdpNm_GetPduData(uint8 NetworkHandle, uint8 *NmPduDataPtr);
+Std_ReturnType UdpNm_GetNodeIdentifier(uint8 NetworkHandle, uint8 *NmNodeIdPtr);
+Std_ReturnType UdpNm_GetLocalNodeIdentifier(uint8 NetworkHandle, uint8 *NmNodeIdPtr);
+Std_ReturnType UdpNm_GetState(uint8 NetworkHandle, UdpNm_NmStateType *NmStatePtr,
+                              UdpNm_ModeType *NmModePtr);
+Std_ReturnType UdpNm_RepeatMessageRequest(uint8 NetworkHandle);
+Std_ReturnType UdpNm_Transmit(PduIdType UdpNmSrcPduId,
+                              const PduInfoType *UdpNmSrcPduInfoPtr);
+void UdpNm_TxConfirmation(PduIdType TxPduId, Std_ReturnType result);
+void UdpNm_RxIndication(PduIdType RxPduId, const PduInfoType *PduInfoPtr);
+void UdpNm_MainFunction(void);
+
 /********************************************************************************************************/
 /******************************************GlobalVariables************************************************/
 /********************************************************************************************************/

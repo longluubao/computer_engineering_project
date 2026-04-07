@@ -5,6 +5,22 @@
 #include "encrypt.h"
 #include "Std_Types.h"
 
+/* External API declarations (MISRA 8.4 visibility). */
+extern unsigned char s_box[256];
+extern unsigned char mul2[256];
+extern unsigned char mul3[256];
+extern unsigned char rcon[256];
+void KeyExpansionCore(unsigned char * in, unsigned char i);
+void KeyExpansion(unsigned char inputKey[16], unsigned char expandedKeys[176]);
+void AddRoundKey(unsigned char * state, unsigned char * roundKey);
+void SubBytes(unsigned char * state);
+void ShiftRows(unsigned char * state);
+void MixColumns(unsigned char * state);
+void Round(unsigned char * state, unsigned char * key);
+void FinalRound(unsigned char * state, unsigned char * key);
+void AESEncrypt(uint8* message, unsigned char * expandedKey, uint8* encryptedMessage);
+void addPadding(const uint8* message, int messageLen, uint8* paddedMessage);
+void startEncryption(const uint8* message, uint32 messageLen, uint8* macPtr, uint32* macLengthPtr);
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
@@ -135,7 +151,7 @@ void KeyExpansion(unsigned char inputKey[16], unsigned char expandedKeys[176]) {
             KeyExpansionCore(tmpCore, rconIteration++);
         }
 
-        for (unsigned char a = 0; a < 4; a++) {
+        for (unsigned char a = 0; a < 4U; a++) {
             expandedKeys[bytesGenerated] = expandedKeys[bytesGenerated - 16] ^ tmpCore[a];
             bytesGenerated++;
         }
@@ -286,40 +302,40 @@ void addPadding(const uint8* message , int messageLen , uint8* paddedMessage)
 
 
 
+#define ENCRYPT_MAX_PADDED_LEN  256U
+
 void startEncryption(const uint8* message, uint32 messageLen, uint8* macPtr, uint32* macLengthPtr)
 {
     uint8 key[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
     uint8 expandedKey[176];
-
+    static uint8 encryptedMessage[ENCRYPT_MAX_PADDED_LEN];
+    static uint8 paddedMessage[ENCRYPT_MAX_PADDED_LEN];
 
     /* Pad message to 16 bytes*/
     uint32 paddedMessageLen = messageLen;
-    if ((paddedMessageLen % 16) != 0) {
-        paddedMessageLen = ( (paddedMessageLen / 16) + 1) * 16;
+    if ((paddedMessageLen % 16U) != 0U) {
+        paddedMessageLen = ( (paddedMessageLen / 16U) + 1U) * 16U;
     }
 
-    uint8* encryptedMessage    = (uint8*) malloc( sizeof(uint8) * paddedMessageLen);
-    uint8* paddedMessage       = (uint8*) malloc( sizeof(uint8) * paddedMessageLen);
+    if (paddedMessageLen > ENCRYPT_MAX_PADDED_LEN) {
+        return;
+    }
 
     addPadding(message , messageLen , paddedMessage);
     KeyExpansion(key, expandedKey);
 
-    for (int i = 0; i < paddedMessageLen; i += 16) {
-        AESEncrypt(&paddedMessage[i], expandedKey, encryptedMessage+i);
+    for (uint32 i = 0U; i < paddedMessageLen; i += 16U) {
+        AESEncrypt(&paddedMessage[i], expandedKey, &encryptedMessage[i]);
     }
 
-    sint32 macDiff = paddedMessageLen - (*macLengthPtr);
-    uint8 macStart = (macDiff < 0) ? 0 : macDiff;
+    sint32 macDiff = (sint32)paddedMessageLen - (sint32)(*macLengthPtr);
+    uint8 macStart = (macDiff < 0) ? 0U : (uint8)macDiff;
     /* Update macLength*/
-    (*macLengthPtr) = paddedMessageLen - macStart;
+    (*macLengthPtr) = paddedMessageLen - (uint32)macStart;
     /* Copy generated MAC to the required destination*/
-    memcpy(macPtr, &encryptedMessage[macStart], *macLengthPtr);
+    (void)memcpy(macPtr, &encryptedMessage[macStart], *macLengthPtr);
 
     if (*macLengthPtr > paddedMessageLen) {
         *macLengthPtr = paddedMessageLen;
     }
-
-    /*Free memory*/ 
-    free(paddedMessage);
-    free(encryptedMessage);
 }

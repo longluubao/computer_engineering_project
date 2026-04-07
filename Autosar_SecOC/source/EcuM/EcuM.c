@@ -2,36 +2,35 @@
 /************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
-#include "EcuM.h"
-#include "Det.h"
-#include "Dem.h"
-#include "Dcm.h"
-#include "MemIf.h"
-#include "NvM.h"
-#include "Can.h"
-#include "CanIF.h"
-#include "CanTP.h"
-#include "CanSM.h"
-#include "CanNm.h"
-#include "BswM.h"
-#include "ComM.h"
-#include "EthIf.h"
-#include "EthSM.h"
-#include "TcpIp.h"
-#include "SoAd.h"
-#include "SoAd_PQC.h"
-#include "ApBridge.h"
-#include "SecOC.h"
-#include "SecOC_Lcfg.h"
-#include "Csm.h"
-#include "Com.h"
+#include "ApBridge/ApBridge.h"
+#include "BswM/BswM.h"
+#include "Can/Can.h"
+#include "Can/CanIF.h"
+#include "Can/CanTP.h"
+#include "CanNm/CanNm.h"
+#include "CanSM/CanSM.h"
+#include "Com/Com.h"
+#include "ComM/ComM.h"
+#include "Csm/Csm.h"
+#include "Dcm/Dcm.h"
+#include "Dem/Dem.h"
+#include "Det/Det.h"
+#include "EcuM/EcuM.h"
+#include "EthIf/EthIf.h"
+#include "EthSM/EthSM.h"
+#include "MemIf/MemIf.h"
+#include "NvM/NvM.h"
+#include "SecOC/SecOC.h"
+#include "SecOC/SecOC_Lcfg.h"
+#include "SoAd/SoAd.h"
+#include "SoAd/SoAd_PQC.h"
+#include "TcpIp/TcpIp.h"
 #include <string.h>
 
 /********************************************************************************************************/
 /******************************************GlobalVaribles************************************************/
 /********************************************************************************************************/
 
-extern SecOC_ConfigType SecOC_Config;
 static EcuM_StateType EcuM_State = ECUM_STATE_UNINIT;
 static EcuM_ShutdownTargetType EcuM_ShutdownTarget = ECUM_SHUTDOWN_TARGET_OFF;
 static EcuM_ShutdownTargetType EcuM_LastShutdownTarget = ECUM_SHUTDOWN_TARGET_OFF;

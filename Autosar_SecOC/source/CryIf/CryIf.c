@@ -2,9 +2,53 @@
 /************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
-#include "CryIf.h"
+#include "CryIf/CryIf.h"
+#include "Encrypt/encrypt.h"
+#include "PQC/PQC.h"
+#include "PQC/PQC_KeyDerivation.h"
+#include "PQC/PQC_KeyExchange.h"
 
-#include "encrypt.h"
+/********************************************************************************************************/
+/**************************************ForwardDeclarations***********************************************/
+/********************************************************************************************************/
+
+extern Std_ReturnType CryIf_Init(void);
+extern void CryIf_DeInit(void);
+extern Std_ReturnType CryIf_MacGenerate(CryIf_ProviderType provider,
+                                        const uint8* dataPtr, uint32 dataLength,
+                                        uint8* macPtr, uint32* macLengthPtr);
+extern Std_ReturnType CryIf_SignatureGenerate(CryIf_ProviderType provider,
+                                             const uint8* dataPtr, uint32 dataLength,
+                                             const uint8* secretKeyPtr,
+                                             uint8* signaturePtr, uint32* signatureLengthPtr);
+extern Std_ReturnType CryIf_SignatureVerify(CryIf_ProviderType provider,
+                                           const uint8* dataPtr, uint32 dataLength,
+                                           const uint8* signaturePtr, uint32 signatureLength,
+                                           const uint8* publicKeyPtr);
+extern Std_ReturnType CryIf_KeyExchangeInitiate(uint8 peerId, uint8* publicValuePtr);
+extern Std_ReturnType CryIf_KeyExchangeRespond(uint8 peerId, const uint8* partnerPublicValuePtr,
+                                               uint8* ciphertextPtr);
+extern Std_ReturnType CryIf_KeyExchangeComplete(uint8 peerId, const uint8* ciphertextPtr);
+extern Std_ReturnType CryIf_KeyExchangeReset(uint8 peerId);
+extern Std_ReturnType CryIf_KeyExchangeGetSharedSecret(uint8 peerId, uint8* sharedSecretPtr);
+extern Std_ReturnType CryIf_DeriveSessionKeys(const uint8* sharedSecretPtr, uint8 peerId,
+                                              PQC_SessionKeysType* sessionKeysPtr);
+extern Std_ReturnType CryIf_GetSessionKeys(uint8 peerId, PQC_SessionKeysType* sessionKeysPtr);
+extern Std_ReturnType CryIf_ClearSessionKeys(uint8 peerId);
+extern Std_ReturnType CryIf_MldsaLoadKeys(PQC_MLDSA_KeyPairType* keyPairPtr,
+                                          const char* filePrefixPtr);
+extern Std_ReturnType CryIf_MldsaGenerateKeyPair(PQC_MLDSA_KeyPairType* keyPairPtr);
+extern Std_ReturnType CryIf_MldsaSaveKeys(const PQC_MLDSA_KeyPairType* keyPairPtr,
+                                          const char* filePrefixPtr);
+
+/* MISRA C:2012 Rule 17.3 - Cross-module forward declarations */
+extern Std_ReturnType PQC_KeyExchange_Init(void);
+extern Std_ReturnType PQC_KeyDerivation_Init(void);
+extern Std_ReturnType PQC_MLDSA_Sign(const uint8* Message, uint32 MessageLength,
+                                     const uint8* SecretKey, uint8* Signature, uint32* SignatureLength);
+extern Std_ReturnType PQC_MLDSA_Verify(const uint8* Message, uint32 MessageLength,
+                                       const uint8* Signature, uint32 SignatureLength, const uint8* PublicKey);
+extern void startEncryption(const uint8* message, uint32 messageLen, uint8* macPtr, uint32* macLengthPtr);
 
 /********************************************************************************************************/
 /********************************************PublicFunctions*********************************************/

@@ -1,0 +1,15 @@
+MISRA Main Violations (Top 20)
+===========================================
+
+Totals
+- Raw MISRA findings: 2066
+- Unique diagnostics: 0
+- Duplicate diagnostics removed: 2066
+
+Top rules
+
+Top files
+
+Top rule+file pairs
+
+Most duplicated exact diagnostics

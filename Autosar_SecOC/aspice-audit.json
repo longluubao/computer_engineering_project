@@ -1,0 +1,18 @@
+{
+    "aspice_audit": {
+        "target_level": 2,
+        "process_area": "SWE",
+        "standard": "Automotive SPICE 3.1",
+        "assessments": [
+            {"process": "SWE.1", "name": "Requirements", "rating": "L", "level": 1},
+            {"process": "SWE.2", "name": "Architecture", "rating": "F", "level": 2},
+            {"process": "SWE.3", "name": "Design", "rating": "L", "level": 1},
+            {"process": "SWE.4", "name": "Unit Testing", "rating": "P", "level": 0},
+            {"process": "SWE.5", "name": "Integration", "rating": "L", "level": 1},
+            {"process": "SWE.6", "name": "Qualification", "rating": "P", "level": 0}
+        ],
+        "overall_capability": 1,
+        "gaps_for_level_2": ["SWE.4 needs improvement", "SWE.6 needs improvement"],
+        "audited_at": "2026-04-07T14:52:38+07:00"
+    }
+}

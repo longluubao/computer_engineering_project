@@ -51,9 +51,9 @@ static void HKDF_Extract(
     uint32 input_len = 0;
 
     /* Concatenate salt and IKM */
-    memcpy(input, salt, salt_len);
+    (void)memcpy(input, salt, salt_len);
     input_len += salt_len;
-    memcpy(input + input_len, ikm, ikm_len);
+    (void)memcpy(input + input_len, ikm, ikm_len);
     input_len += ikm_len;
 
     /* Hash using SHA-256 from liboqs */
@@ -78,9 +78,9 @@ static void HKDF_Expand(
     uint32 input_len = 0;
 
     /* Concatenate PRK, info, and counter */
-    memcpy(input, prk, prk_len);
+    (void)memcpy(input, prk, prk_len);
     input_len += prk_len;
-    memcpy(input + input_len, info, info_len);
+    (void)memcpy(input + input_len, info, info_len);
     input_len += info_len;
     input[input_len++] = 0x01;  /* Counter byte */
 
@@ -89,7 +89,7 @@ static void HKDF_Expand(
     OQS_SHA2_sha256(hash, input, input_len);
 
     /* Copy desired length */
-    memcpy(okm, hash, okm_len < 32 ? okm_len : 32);
+    (void)memcpy(okm, hash, (okm_len < 32) ? okm_len : 32);
 }
 
 /**
@@ -107,12 +107,12 @@ Std_ReturnType PQC_KeyDerivation_Init(void)
     /* Initialize all session key storage */
     for (i = 0; i < PQC_SESSION_KEYS_MAX; i++)
     {
-        memset(&PQC_SessionKeys[i], 0, sizeof(PQC_SessionKeysType));
+        (void)memset(&PQC_SessionKeys[i], 0, sizeof(PQC_SessionKeysType));
         PQC_SessionKeys[i].IsValid = FALSE;
     }
 
     PQC_KeyDerivation_Initialized = TRUE;
-    printf("PQC Key Derivation Module initialized (%u session slots)\n", PQC_SESSION_KEYS_MAX);
+    (void)printf("PQC Key Derivation Module initialized (%u session slots)\n", PQC_SESSION_KEYS_MAX);
 
     return E_OK;
 }
@@ -129,22 +129,22 @@ Std_ReturnType PQC_DeriveSessionKeys(
 
     if (PQC_KeyDerivation_Initialized == FALSE)
     {
-        printf("ERROR: Key Derivation Module not initialized\n");
+        (void)printf("ERROR: Key Derivation Module not initialized\n");
         return E_NOT_OK;
     }
 
-    if (SharedSecret == NULL || SessionKeys == NULL)
+    if ((SharedSecret == NULL) || (SessionKeys == NULL))
     {
         return E_NOT_OK;
     }
 
     if (PeerId >= PQC_SESSION_KEYS_MAX)
     {
-        printf("ERROR: Invalid peer ID %u\n", PeerId);
+        (void)printf("ERROR: Invalid peer ID %u\n", PeerId);
         return E_NOT_OK;
     }
 
-    printf("Deriving session keys for peer %u from ML-KEM shared secret...\n", PeerId);
+    (void)printf("Deriving session keys for peer %u from ML-KEM shared secret...\n", PeerId);
 
     /* Step 1: HKDF-Extract - derive pseudorandom key from shared secret */
     HKDF_Extract(
@@ -178,14 +178,14 @@ Std_ReturnType PQC_DeriveSessionKeys(
     SessionKeys->IsValid = TRUE;
 
     /* Store in global session key array */
-    memcpy(&PQC_SessionKeys[PeerId], SessionKeys, sizeof(PQC_SessionKeysType));
+    (void)memcpy(&PQC_SessionKeys[PeerId], SessionKeys, sizeof(PQC_SessionKeysType));
 
-    printf("Session keys derived successfully:\n");
-    printf("  Encryption Key:     %u bytes\n", PQC_DERIVED_KEY_LENGTH);
-    printf("  Authentication Key: %u bytes\n", PQC_DERIVED_KEY_LENGTH);
+    (void)printf("Session keys derived successfully:\n");
+    (void)printf("  Encryption Key:     %u bytes\n", PQC_DERIVED_KEY_LENGTH);
+    (void)printf("  Authentication Key: %u bytes\n", PQC_DERIVED_KEY_LENGTH);
 
     /* Clear sensitive PRK */
-    memset(prk, 0, sizeof(prk));
+    (void)memset(prk, 0, sizeof(prk));
 
     return E_OK;
 }
@@ -204,11 +204,11 @@ Std_ReturnType PQC_GetSessionKeys(
 
     if (PQC_SessionKeys[PeerId].IsValid == FALSE)
     {
-        printf("ERROR: No valid session keys for peer %u\n", PeerId);
+        (void)printf("ERROR: No valid session keys for peer %u\n", PeerId);
         return E_NOT_OK;
     }
 
-    memcpy(SessionKeys, &PQC_SessionKeys[PeerId], sizeof(PQC_SessionKeysType));
+    (void)memcpy(SessionKeys, &PQC_SessionKeys[PeerId], sizeof(PQC_SessionKeysType));
 
     return E_OK;
 }
@@ -223,10 +223,10 @@ Std_ReturnType PQC_ClearSessionKeys(uint8 PeerId)
         return E_NOT_OK;
     }
 
-    memset(&PQC_SessionKeys[PeerId], 0, sizeof(PQC_SessionKeysType));
+    (void)memset(&PQC_SessionKeys[PeerId], 0, sizeof(PQC_SessionKeysType));
     PQC_SessionKeys[PeerId].IsValid = FALSE;
 
-    printf("Session keys cleared for peer %u\n", PeerId);
+    (void)printf("Session keys cleared for peer %u\n", PeerId);
 
     return E_OK;
 }

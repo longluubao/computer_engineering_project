@@ -14,7 +14,24 @@
 /******************************************GlobalVaribles************************************************/
 /********************************************************************************************************/
 
-extern SecOC_PduCollection PdusCollections[];
+extern SecOC_PduCollection PdusCollections[SECOC_NUM_OF_PDU_COLLECTION];
+
+/********************************************************************************************************/
+/**************************************ForwardDeclarations***********************************************/
+/********************************************************************************************************/
+
+extern Std_ReturnType PduR_SecOCTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr);
+extern void PduR_SecOCIfTxConfirmation(PduIdType TxPduId, Std_ReturnType result);
+extern void PduR_SecOCIfRxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr);
+extern void PduR_SecOCTpTxConfirmation(PduIdType TxPduId, Std_ReturnType result);
+extern BufReq_ReturnType PduR_SecOCTpStartOfReception(PduIdType RxPduId,
+                                                      const PduInfoType* PduInfoPtr,
+                                                      PduLengthType TpSduLength,
+                                                      PduLengthType* RxBufferSizePtr);
+extern BufReq_ReturnType PduR_SecOCTpCopyRxData(PduIdType RxPduId,
+                                                const PduInfoType* PduInfoPtr,
+                                                PduLengthType* RxBufferSizePtr);
+extern void PduR_SecOCTpRxIndication(PduIdType RxPduId, Std_ReturnType result);
 
 /********************************************************************************************************/
 /********************************************Functions***************************************************/

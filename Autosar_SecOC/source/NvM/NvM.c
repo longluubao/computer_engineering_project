@@ -4,6 +4,21 @@
 #include "MemIf.h"
 #include <string.h>
 
+/* External API declarations (MISRA 8.4 visibility). */
+void NvM_Init(void);
+void NvM_MainFunction(void);
+Std_ReturnType NvM_ReadAll(void);
+Std_ReturnType NvM_WriteAll(void);
+Std_ReturnType NvM_ReadBlock(NvM_BlockIdType BlockId, void* NvM_DstPtr);
+Std_ReturnType NvM_WriteBlock(NvM_BlockIdType BlockId, const void* NvM_SrcPtr);
+Std_ReturnType NvM_RestoreBlockDefaults(NvM_BlockIdType BlockId, void* NvM_DstPtr);
+Std_ReturnType NvM_InvalidateNvBlock(NvM_BlockIdType BlockId);
+Std_ReturnType NvM_EraseNvBlock(NvM_BlockIdType BlockId);
+Std_ReturnType NvM_GetErrorStatus(NvM_BlockIdType BlockId, NvM_RequestResultType* RequestResultPtr);
+Std_ReturnType NvM_SetRamBlockStatus(NvM_BlockIdType BlockId, boolean BlockChanged);
+Std_ReturnType NvM_SetDataIndex(NvM_BlockIdType BlockId, uint8 DataIndex);
+Std_ReturnType NvM_GetDataIndex(NvM_BlockIdType BlockId, uint8* DataIndexPtr);
+
 #define NVM_CRC_LENGTH                       ((uint16)4U)
 #define NVM_MAX_PAYLOAD_LENGTH               ((uint16)500U)
 #define NVM_MAX_NV_BLOCK_LENGTH              (NVM_MAX_PAYLOAD_LENGTH + NVM_CRC_LENGTH)
@@ -99,8 +114,6 @@ static uint8 NvM_ReadBuffer[NVM_MAX_NV_BLOCK_LENGTH];
 static uint8 NvM_VerifyBuffer[NVM_MAX_NV_BLOCK_LENGTH];
 static NvM_QueuedRequestType NvM_HighPrioQueue[NVM_HIGH_PRIO_QUEUE_SIZE];
 static NvM_QueuedRequestType NvM_NormalPrioQueue[NVM_NORMAL_PRIO_QUEUE_SIZE];
-
-extern Dem_DtcRecordType Dem_DtcStorage[DEM_MAX_NUMBER_OF_DTCS];
 
 static const uint8 NvM_DemDtcStorageDefaults[sizeof(Dem_DtcRecordType) * DEM_MAX_NUMBER_OF_DTCS] = {0};
 
@@ -322,6 +335,10 @@ static uint16 NvM_GetPhysicalBlockId(uint16 BlockIndex, uint8 CopyIndex)
     else if (DescriptorPtr->BlockManagementType == NVM_BLOCK_DATASET)
     {
         PhysicalId = (uint16)(DescriptorPtr->PhysicalBlockBaseId + NvM_BlockAdmin[BlockIndex].DataIndex);
+    }
+    else
+    {
+        /* No action required */
     }
 
     return PhysicalId;
@@ -1086,6 +1103,10 @@ void NvM_MainFunction(void)
         {
             AdminPtr->RequestResult = NVM_REQ_NOT_OK;
         }
+    }
+    else
+    {
+        /* No action required */
     }
 
     if (NvM_TargetIsMultiBlock == TRUE)
