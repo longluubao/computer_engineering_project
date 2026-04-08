@@ -1,6 +1,17 @@
 cmake_minimum_required(VERSION 3.20)
 set(CMAKE_BUILD_TYPE Debug)
 
+# ---- MCAL Target Selection ----
+# Usage: cmake -DMCAL_TARGET=PI4 ..   (or SIM for simulation)
+# Default: PI4 on Linux, SIM on Windows
+if(NOT DEFINED MCAL_TARGET)
+    if(UNIX)
+        set(MCAL_TARGET "PI4" CACHE STRING "MCAL target platform (PI4, SIM)")
+    else()
+        set(MCAL_TARGET "SIM" CACHE STRING "MCAL target platform (PI4, SIM)")
+    endif()
+endif()
+message(STATUS "MCAL Target: ${MCAL_TARGET}")
 
 if (WIN32)
     file(GLOB_RECURSE SCR_FILES CONFIGURE_DEPENDS "source/*.c")
@@ -16,6 +27,11 @@ if (WIN32)
     # Add Windows-specific files back
     list(APPEND SCR_FILES "${CMAKE_SOURCE_DIR}/source/Ethernet/ethernet_windows.c")
     list(APPEND HDR_FILES "${CMAKE_SOURCE_DIR}/include/Ethernet/ethernet_windows.h")
+    # Remove Pi4 MCAL files on Windows (use simulation CAN)
+    file(GLOB_RECURSE MCAL_PI4_FILES "${CMAKE_SOURCE_DIR}/source/Mcal/Pi4/*.c")
+    foreach(_f ${MCAL_PI4_FILES})
+        list(REMOVE_ITEM SCR_FILES "${_f}")
+    endforeach()
 elseif(UNIX)
     file(GLOB_RECURSE SCR_FILES CONFIGURE_DEPENDS  "source/*.c")
     file(GLOB_RECURSE HDR_FILES CONFIGURE_DEPENDS  "include/*.h")
@@ -28,6 +44,20 @@ elseif(UNIX)
     set( CMAKE_CXX_COMPILER "/usr/bin/g++" )
     set( CMAKE_C_COMPILER "/usr/bin/gcc" )
     set (CMAKE_GENERATOR "Unix Makefiles" CACHE INTERNAL "" FORCE)
+
+    # ---- MCAL Target-specific source selection ----
+    if(MCAL_TARGET STREQUAL "PI4")
+        # Replace simulation CAN driver with SocketCAN Pi4 driver
+        list(REMOVE_ITEM SCR_FILES "${CMAKE_SOURCE_DIR}/source/Can/Can.c")
+        message(STATUS "MCAL: Using Pi4 SocketCAN driver (replacing simulation Can.c)")
+    else()
+        # SIM mode: remove Pi4-specific MCAL source files
+        file(GLOB_RECURSE MCAL_PI4_FILES "${CMAKE_SOURCE_DIR}/source/Mcal/Pi4/*.c")
+        foreach(_f ${MCAL_PI4_FILES})
+            list(REMOVE_ITEM SCR_FILES "${_f}")
+        endforeach()
+        message(STATUS "MCAL: Using simulation mode (Can.c software queues)")
+    endif()
 endif()
 
 project(SecOC)
@@ -70,10 +100,16 @@ endforeach()
 
 if(WIN32)
     target_compile_definitions(SecOC PUBLIC WINDOWS)
+    target_compile_definitions(SecOC PUBLIC MCAL_TARGET=MCAL_TARGET_SIM)
     # Link Winsock2 library for Windows sockets
     target_link_libraries(SecOC ws2_32)
 elseif(UNIX)
     target_compile_definitions(SecOC PUBLIC LINUX)
+    if(MCAL_TARGET STREQUAL "PI4")
+        target_compile_definitions(SecOC PUBLIC MCAL_TARGET=MCAL_TARGET_PI4)
+    else()
+        target_compile_definitions(SecOC PUBLIC MCAL_TARGET=MCAL_TARGET_SIM)
+    endif()
 endif()
 
 
@@ -111,11 +147,20 @@ target_link_libraries(SecOCLibShared ${LIBOQS_LIBRARY} OpenSSL::Crypto OpenSSL::
 if(WIN32)
     target_compile_definitions(SecOCLib PUBLIC WINDOWS)
     target_compile_definitions(SecOCLibShared PUBLIC WINDOWS)
+    target_compile_definitions(SecOCLib PUBLIC MCAL_TARGET=MCAL_TARGET_SIM)
+    target_compile_definitions(SecOCLibShared PUBLIC MCAL_TARGET=MCAL_TARGET_SIM)
     target_link_libraries(SecOCLib ws2_32)
     target_link_libraries(SecOCLibShared ws2_32)
 elseif(UNIX)
     target_compile_definitions(SecOCLib PUBLIC LINUX)
     target_compile_definitions(SecOCLibShared PUBLIC LINUX)
+    if(MCAL_TARGET STREQUAL "PI4")
+        target_compile_definitions(SecOCLib PUBLIC MCAL_TARGET=MCAL_TARGET_PI4)
+        target_compile_definitions(SecOCLibShared PUBLIC MCAL_TARGET=MCAL_TARGET_PI4)
+    else()
+        target_compile_definitions(SecOCLib PUBLIC MCAL_TARGET=MCAL_TARGET_SIM)
+        target_compile_definitions(SecOCLibShared PUBLIC MCAL_TARGET=MCAL_TARGET_SIM)
+    endif()
 endif()
 
 # Add Phase 3: Complete Ethernet Gateway Integration Test
