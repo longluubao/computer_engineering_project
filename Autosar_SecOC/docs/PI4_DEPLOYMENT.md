@@ -170,7 +170,67 @@ The Pi 4 acts as a **High Performance Computer (HPC) / Central Gateway** in a zo
 | **Config** | Compile-time `#define` | Move critical params to runtime JSON/YAML config |
 | **Performance** | Not profiled on ARM | Benchmark PQC ops on Cortex-A72 (ML-DSA sign ~10x slower than x86) |
 
-### 3.7 Missing AUTOSAR Features
+### 3.7 ML-KEM Key Management (KeyM) — Detailed Status
+
+The ML-KEM key management is the most feature-complete area of the PQC implementation.
+Below is an audit of what exists and what is still needed for Pi 4 deployment.
+
+#### What's DONE
+
+| Component | File | What It Does |
+|-----------|------|-------------|
+| **ML-KEM-768 KeyGen/Encaps/Decaps** | `source/PQC/PQC.c` | Full liboqs wrapper. Calls `OQS_KEM_keypair()`, `OQS_KEM_encaps()`, `OQS_KEM_decaps()`. Key sizes validated against constants. |
+| **3-Way Key Exchange Protocol** | `source/PQC/PQC_KeyExchange.c` | Session manager for up to 8 peers. State machine: IDLE → INITIATED → ESTABLISHED (or FAILED). Alice/Bob roles. Secret key zeroized after decapsulation (line 211). |
+| **HKDF Session Key Derivation** | `source/PQC/PQC_KeyDerivation.c` | Derives AES-256-GCM encryption key + HMAC-SHA256 auth key from ML-KEM shared secret. Uses SHA-256 from liboqs. Up to 16 session key slots. |
+| **Csm Key Exchange API** | `source/Csm/Csm.c` | Full API: `Csm_KeyExchangeInitiate/Respond/Complete/Reset/GetSharedSecret`, `Csm_DeriveSessionKeys`, `Csm_GetSessionKeys`, `Csm_ClearSessionKeys`. Routes through CryIf to PQC layer. |
+| **CryIf Routing** | `source/CryIf/CryIf.c` | Routes Csm key exchange calls to PQC_KeyExchange functions. |
+| **SoAd PQC Integration** | `source/SoAd/SoAd_PQC.c` | ML-KEM key exchange over Ethernet. Control message handling for in-band negotiation. Main function for periodic processing. |
+| **ML-DSA-65 Key File I/O** | `source/PQC/PQC.c` | `PQC_MLDSA_SaveKeys()` / `PQC_MLDSA_LoadKeys()` — writes `.pub` and `.key` binary files. |
+
+**Key exchange flow (working end-to-end):**
+```
+Alice (HPC Pi4)                          Bob (Peer ECU)
+      │                                        │
+      │──── PQC_KeyExchange_Initiate() ────────>│  (sends 1184-byte public key)
+      │                                        │
+      │<──── PQC_KeyExchange_Respond() ─────────│  (sends 1088-byte ciphertext)
+      │                                        │
+      │──── PQC_KeyExchange_Complete() ────────>│  (decapsulates → 32-byte shared secret)
+      │                                        │
+      │──── PQC_DeriveSessionKeys() ───────────>│  (HKDF → AES-256 + HMAC-SHA256 keys)
+      │                                        │
+      ├─── Session ESTABLISHED ─────────────────┤
+```
+
+#### What's MISSING — Gaps for Pi 4 Deployment
+
+| Gap | Priority | Details | Suggested Fix |
+|-----|----------|---------|---------------|
+| **HKDF uses simplified extract** | P0 | `PQC_KeyDerivation.c:47` uses `SHA-256(salt \|\| IKM)` instead of proper `HMAC-SHA256(salt, IKM)`. Not a true RFC 5869 HKDF-Extract. | Replace with `HMAC-SHA256` using OpenSSL `HMAC()` or liboqs. ~2 hours. |
+| **Key file paths are CWD-relative** | P0 | `PQC_MLDSA_SaveKeys()` writes to `%s.pub` in current directory. Breaks if service launched from different directory. | Use absolute path like `/etc/secoc/keys/` or make configurable. ~1 hour. |
+| **No automatic key rotation** | P1 | Session keys stay until manual `PQC_KeyExchange_Reset()`. No timer-based rekeying. NIST recommends rekeying periodically. | Add rekeying counter or timer in `SoAd_PQC_MainFunction()`. Trigger re-exchange after N messages or T seconds. ~4 hours. |
+| **Secret keys in plaintext RAM** | P1 | `PQC_Sessions[].SharedSecret` and `LocalKeyPair.SecretKey` sit in static memory with no protection. | On Pi 4: use `mlock()` to prevent swapping. Consider `sodium_mprotect_noaccess()` pattern when keys not in use. ~3 hours. |
+| **No persistent ML-KEM key storage** | P1 | ML-KEM keys are ephemeral (regenerated per session). If the gateway restarts, all sessions must re-negotiate. | This is by design (forward secrecy). For faster restart: cache session keys in NvM with expiry timestamp. ~6 hours. |
+| **No trust anchor / certificate chain** | P2 | Keys exchanged in-band via SoAd_PQC. No pre-shared trust anchors, no PKI, no certificate verification. Vulnerable to MITM on first exchange. | Add pre-provisioned peer public key list. Or implement a simple certificate format with ML-DSA signatures. ~8-16 hours. |
+| **No formal AUTOSAR KeyM module** | P2 | Key management is split across PQC/Csm/CryIf. No `KeyM_Init()`, no key slot abstraction, no AUTOSAR SWS_KeyManager API. Functionally complete but not spec-compliant. | Wrap existing functions in a `source/KeyM/KeyM.c` module with AUTOSAR API. ~4 hours. |
+| **No key usage counters** | P3 | No tracking of how many sign/verify operations used a key. | Add counter in `Csm_SessionKeys[]` struct. ~1 hour. |
+| **No key export restrictions** | P3 | `PQC_KeyExchange_GetSharedSecret()` freely returns raw shared secret bytes to any caller. | Add access control or restrict to Csm layer only. ~2 hours. |
+
+#### Configuration Reference (ML-KEM related)
+
+| Parameter | File | Value | Meaning |
+|-----------|------|-------|---------|
+| `PQC_MLKEM_PUBLIC_KEY_BYTES` | `PQC.h` | 1184 | ML-KEM-768 public key size |
+| `PQC_MLKEM_SECRET_KEY_BYTES` | `PQC.h` | 2400 | ML-KEM-768 secret key size |
+| `PQC_MLKEM_CIPHERTEXT_BYTES` | `PQC.h` | 1088 | ML-KEM-768 ciphertext size |
+| `PQC_MLKEM_SHARED_SECRET_BYTES` | `PQC.h` | 32 | Shared secret (256 bits) |
+| `PQC_MAX_PEERS` | `PQC_KeyExchange.h` | 8 | Max concurrent key exchange peers |
+| `PQC_SESSION_KEYS_MAX` | `PQC_KeyDerivation.h` | 16 | Max derived session key slots |
+| `PQC_DERIVED_KEY_LENGTH` | `PQC_KeyDerivation.h` | 32 | AES-256 key length (bytes) |
+| `CSM_MAX_PEERS` | `Csm.h` | 8 | Csm peer session limit |
+| `SOAD_PQC_MAX_PEERS` | `SoAd_PQC.h` | 8 | SoAd PQC session limit |
+
+### 3.8 Other Missing AUTOSAR Features
 
 These SWS features are defined in the AUTOSAR spec but not yet implemented:
 
@@ -180,7 +240,6 @@ These SWS features are defined in the AUTOSAR spec but not yet implemented:
 - **Lin / LIN stack** — not implemented (not typical for HPC gateway)
 - **J1939** — not implemented
 - **DoIP (Diagnostics over IP)** — not implemented, would extend Dcm over Ethernet
-- **SecOC key management SWS** — key provisioning is manual, no AUTOSAR KeyM module
 
 ---
 
