@@ -359,9 +359,11 @@ void SecOC_MainFunctionRx(void);
 /*****************************************Global Variable Declarations***********************************/
 /********************************************************************************************************/
 
+/* cppcheck-suppress misra-c2012-8.4 */
 extern const SecOC_TxPduProcessingType *SecOCTxPduProcessing;
+/* cppcheck-suppress misra-c2012-8.4 */
 extern const SecOC_RxPduProcessingType *SecOCRxPduProcessing;
-// cppcheck-suppress misra-c2012-8.4
+/* cppcheck-suppress misra-c2012-8.4 */
 extern const SecOC_GeneralType         *SecOCGeneral;
 
 #ifndef RELEASE

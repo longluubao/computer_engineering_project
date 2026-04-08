@@ -41,8 +41,11 @@
     #define STATIC
 #endif
 
+/* cppcheck-suppress misra-c2012-8.4 */
 const SecOC_TxPduProcessingType     *SecOCTxPduProcessing;
+/* cppcheck-suppress misra-c2012-8.4 */
 const SecOC_RxPduProcessingType     *SecOCRxPduProcessing;
+/* cppcheck-suppress misra-c2012-8.4 */
 const SecOC_GeneralType             *SecOCGeneral;
 
 static SecOC_StateType SecOCState = SECOC_UNINIT;
