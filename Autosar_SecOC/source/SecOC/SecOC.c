@@ -1307,6 +1307,7 @@ static void constructDataToAuthenticatorRx(PduIdType RxPduId, SecOC_RxIntermedia
 }
 
 
+/* cppcheck-suppress misra-c2012-5.8 */
 STATIC Std_ReturnType verify(PduIdType RxPduId, PduInfoType* SecPdu, SecOC_VerificationResultType *verification_result)
 {
     #ifdef SECOC_DEBUG
@@ -1929,6 +1930,7 @@ Std_ReturnType SecOC_VerifyStatusOverride(
 /********************************************************************************************************/
 
 #ifdef DEBUG_ALL
+/* cppcheck-suppress misra-c2012-8.4 */
 void SecOC_test(void)
 {
     SecOC_Init(&SecOC_Config);

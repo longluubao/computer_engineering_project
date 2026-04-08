@@ -353,8 +353,8 @@ static void EcuM_PersistGatewayHealthToNvM(void)
         return;
     }
 
-    /* cppcheck-suppress misra-c2012-21.16 */
     if ((EcuM_HasGatewayHealthSnapshot == FALSE) ||
+        /* cppcheck-suppress misra-c2012-21.16 */
         (memcmp(&CurrentGatewayHealth, &EcuM_LastGatewayHealthSnapshot, sizeof(BswM_GatewayHealthType)) != 0))
     {
         (void)NvM_SetRamBlockStatus(NVM_BLOCK_ID_GATEWAY_HEALTH, TRUE);

@@ -30,7 +30,7 @@
 // Use 8192 bytes to support PQC signatures (ML-DSA-65 = 3309 bytes)
 #define SECOC_SECPDU_MAX_LENGTH                                     8192U
 
-#define SECOC_RX_DATA_TO_AUTHENTICATOR_LENGTH                       (sizeof(PduIdType) + SECOC_AUTHPDU_MAX_LENGTH + (SECOC_FRESHNESS_MAX_LENGTH/8U + 1U))
+#define SECOC_RX_DATA_TO_AUTHENTICATOR_LENGTH                       ((uint32)sizeof(PduIdType) + (uint32)SECOC_AUTHPDU_MAX_LENGTH + (SECOC_FRESHNESS_MAX_LENGTH/8U + 1U))
 
 
 
@@ -183,8 +183,9 @@ typedef struct
  * Parent_Container_Name : SecOC_TxPduProcessing    *
  * Container_Index       : 10.1.21                  *
  ***************************************************/
-/* cppcheck-suppress misra-c2012-2.4 */
+/* cppcheck-suppress misra-c2012-2.3 */
 typedef struct
+/* cppcheck-suppress misra-c2012-2.4 */
 {
     uint32                  SecOCSecuredTxPduLength;
     uint32                  SecOCSecuredTxPduOffset;
@@ -446,6 +447,7 @@ typedef struct
 /*extern Csm_JobType CsmJob;*/
 typedef struct
 {
+   /* cppcheck-suppress misra-c2012-5.8 */
    Csm_JobType    *CsmJob;
 }SecOC_RxAuthServiceConfigRefType;
 

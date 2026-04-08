@@ -13,7 +13,7 @@
 /************************************************Defines*************************************************/
 /********************************************************************************************************/
 
-#define SECOC_MAX_FRESHNESS_SIZE 32
+#define SECOC_MAX_FRESHNESS_SIZE 32U
 
 typedef uint8                 SecOC_FreshnessArrayType[SECOC_MAX_FRESHNESS_SIZE];
 

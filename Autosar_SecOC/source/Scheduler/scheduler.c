@@ -48,7 +48,7 @@ static boolean once = FALSE;
 static pthread_t t;
 
 
-void EthernetRecieveFn() {
+void EthernetRecieveFn(void) {
     while (1) {
         tasks[0].state++;
 
@@ -66,7 +66,7 @@ void EthernetRecieveFn() {
     }
 }
 
-void RecieveMainFunctions() {
+void RecieveMainFunctions(void) {
     while (1) {
         tasks[1].state++;
         SoAd_MainFunctionRx();
@@ -78,7 +78,7 @@ void RecieveMainFunctions() {
     }
 }
 
-void TxMainFunctions() 
+void TxMainFunctions(void)
 {
     while (1) 
     {
@@ -102,7 +102,7 @@ void scheduler_handler(int signum) {
     (void)signum;
 }
 
-void Scheduler_Start()
+void Scheduler_Start(void)
 {
     int i;
     struct sigaction sa;

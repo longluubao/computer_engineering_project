@@ -129,7 +129,7 @@ Std_ReturnType CanTp_Transmit(PduIdType CanTpTxSduId, const PduInfoType* CanTpTx
     CanTp_TxTimeoutCounter[CanTpTxSduId] = 0;
 
     /* Determine if Single Frame or First Frame */
-    if (CanTpTxInfoPtr->SduLength <= (PduLengthType)(BUS_LENGTH - 1U))
+    if (CanTpTxInfoPtr->SduLength <= ((PduLengthType)BUS_LENGTH - (PduLengthType)1U))
     {
         CanTp_TxState[CanTpTxSduId] = CANTP_STATE_TX_SF;
     }
@@ -256,7 +256,7 @@ void CanTp_MainFunctionTx(void)
 
         if( CanTp_Buffer[TxPduId].SduLength > 0U)
         {
-            PduLengthType lastFrameIndex = ((CanTp_Buffer[TxPduId].SduLength % (PduLengthType)BUS_LENGTH) == 0U)  ? (CanTp_Buffer[TxPduId].SduLength / (PduLengthType)BUS_LENGTH) : ((CanTp_Buffer[TxPduId].SduLength / (PduLengthType)BUS_LENGTH) + 1);
+            PduLengthType lastFrameIndex = ((CanTp_Buffer[TxPduId].SduLength % (PduLengthType)BUS_LENGTH) == 0U)  ? (CanTp_Buffer[TxPduId].SduLength / (PduLengthType)BUS_LENGTH) : ((CanTp_Buffer[TxPduId].SduLength / (PduLengthType)BUS_LENGTH) + (PduLengthType)1U);
             #ifdef CANTP_DEBUG
                 (void)printf("Start sending id = %d\n" , TxPduId);
                 (void)printf("PDU length = %ld\n" , CanTp_Buffer[TxPduId].SduLength);
@@ -360,7 +360,7 @@ void CanTp_MainFunctionRx(void)
         BufReq_ReturnType result = BUFREQ_OK;
         if((CanTp_Recieve_Counter[RxPduId] > 0U) && (CanTp_Buffer_Rx[RxPduId].SduLength > 0U))
         {
-            PduLengthType lastFrameIndex = ((CanTp_secureLength_Recieve[RxPduId] % (PduLengthType)BUS_LENGTH) == 0U)  ? (CanTp_secureLength_Recieve[RxPduId] / (PduLengthType)BUS_LENGTH) : ((CanTp_secureLength_Recieve[RxPduId] / (PduLengthType)BUS_LENGTH) + 1);
+            PduLengthType lastFrameIndex = ((CanTp_secureLength_Recieve[RxPduId] % (PduLengthType)BUS_LENGTH) == 0U)  ? (CanTp_secureLength_Recieve[RxPduId] / (PduLengthType)BUS_LENGTH) : ((CanTp_secureLength_Recieve[RxPduId] / (PduLengthType)BUS_LENGTH) + (PduLengthType)1U);
             PduLengthType bufferSizePtr;
             #ifdef CANTP_DEBUG
                 (void)printf("######## in main tp Rx  in id : %d\n", RxPduId);

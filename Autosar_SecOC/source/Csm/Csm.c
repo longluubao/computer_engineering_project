@@ -976,7 +976,8 @@ Std_ReturnType Csm_KeyElementSet(
         return CRYPTO_E_KEY_SIZE_MISMATCH;
     }
 
-    if (CSM_KEYID_IS_SESSION(keyId) == TRUE)
+    /* cppcheck-suppress misra-c2012-10.4 */
+    if (CSM_KEYID_IS_SESSION(keyId) != 0)
     {
         peerId = CSM_SESSION_PEER_FROM_KEYID(keyId);
         if (peerId >= CSM_MAX_PEERS)
@@ -1027,7 +1028,8 @@ Std_ReturnType Csm_KeySetValid(uint32 keyId)
         return E_OK;
     }
 
-    if (CSM_KEYID_IS_SESSION(keyId) == TRUE)
+    /* cppcheck-suppress misra-c2012-10.4 */
+    if (CSM_KEYID_IS_SESSION(keyId) != 0)
     {
         peerId = CSM_SESSION_PEER_FROM_KEYID(keyId);
         if (peerId >= CSM_MAX_PEERS)

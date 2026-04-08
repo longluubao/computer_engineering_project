@@ -37,15 +37,7 @@
     #define TCPIP_PLATFORM_SOCKET_ERROR    (-1)
 #endif
 
-/* MISRA C:2012 Rule 17.3 - Platform socket prototypes (system headers may be unavailable to static analysis) */
-#if !defined(_SYS_SOCKET_H) && !defined(_WINSOCK2API_) && !defined(__SYS_SOCKET_H__)
-struct sockaddr;
-extern int bind(int sockfd, const struct sockaddr* addr, unsigned int addrlen);
-extern int listen(int sockfd, int backlog);
-extern int connect(int sockfd, const struct sockaddr* addr, unsigned int addrlen);
-extern int getsockname(int sockfd, struct sockaddr* addr, unsigned int* addrlen);
-extern int setsockopt(int sockfd, int level, int optname, const void* optval, unsigned int optlen);
-#endif
+/* Socket prototypes provided by ethernet.h (Rule 8.5 - no duplicate declarations) */
 #if !defined(_FCNTL_H) && !defined(__FCNTL_H__)
 extern int fcntl(int fd, int cmd, ...);
 #endif
@@ -525,6 +517,7 @@ Std_ReturnType TcpIp_Bind(
         bindAddr.sin_addr.s_addr = INADDR_ANY;
     }
 
+    /* cppcheck-suppress misra-c2012-17.3 */
     if (bind(TcpIp_SocketTable[SocketId].platformSocket,
              (struct sockaddr*)&bindAddr, sizeof(bindAddr)) == TCPIP_PLATFORM_SOCKET_ERROR)
     {
@@ -540,6 +533,7 @@ Std_ReturnType TcpIp_Bind(
 #else
         socklen_t addrLen = sizeof(assignedAddr);
 #endif
+        /* cppcheck-suppress misra-c2012-17.3 */
         if (getsockname(TcpIp_SocketTable[SocketId].platformSocket,
                         (struct sockaddr*)&assignedAddr, &addrLen) == 0)
         {
@@ -594,6 +588,7 @@ Std_ReturnType TcpIp_TcpConnect(
 
 #if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_SOCKETS)
     TcpIp_SockAddrToSockAddrIn(RemoteAddrPtr, &remoteAddr);
+    /* cppcheck-suppress misra-c2012-17.3 */
     if (connect(TcpIp_SocketTable[SocketId].platformSocket,
                 (struct sockaddr*)&remoteAddr, sizeof(remoteAddr)) == TCPIP_PLATFORM_SOCKET_ERROR)
     {
@@ -633,6 +628,7 @@ Std_ReturnType TcpIp_TcpListen(TcpIp_SocketIdType SocketId, uint16 MaxChannels)
 #endif
 
 #if (TCPIP_PAYLOAD_BACKEND == TCPIP_PAYLOAD_BACKEND_SOCKETS)
+    /* cppcheck-suppress misra-c2012-17.3 */
     if (listen(TcpIp_SocketTable[SocketId].platformSocket, (int)MaxChannels) == TCPIP_PLATFORM_SOCKET_ERROR)
     {
         return E_NOT_OK;

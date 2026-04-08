@@ -120,7 +120,8 @@ SecOC_MainFunctionRxType SecOCMainFunctionRx =
 
 
 // cppcheck-suppress misra-c2012-8.4
-SecOC_GeneralType SecOC_General = 
+/* cppcheck-suppress misra-c2012-9.3 */
+SecOC_GeneralType SecOC_General =
 {
     SECOC_DEFAULT_AUTHENTICATION_INFORMATION_PATTERN_VALUE,
     SECOC_DEV_ERROR_DETECT,

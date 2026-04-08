@@ -32,6 +32,7 @@ extern void EthDrv_ReceiveMainFunction(void);
 /********************************************************************************************************/
 
 /* cppcheck-suppress misra-c2012-7.4 */
+/* cppcheck-suppress misra-c2012-5.9 */
 static char ip_address_send[15] = "127.0.0.1";
 /* PdusCollections declared in SecOC_Lcfg.h */
 
@@ -155,7 +156,7 @@ Std_ReturnType EthDrv_Send(unsigned short id, unsigned char* data, uint16 dataLe
     }
 
     /* Prepare For Send */
-    uint8 sendData[BUS_LENGTH_RECEIVE + (uint16)sizeof(id)];
+    uint8 sendData[(uint16)BUS_LENGTH_RECEIVE + (uint16)sizeof(id)];
     (void)memcpy(sendData, data, dataLen);
     for (unsigned char indx = 0; indx < sizeof(id); indx++)
     {

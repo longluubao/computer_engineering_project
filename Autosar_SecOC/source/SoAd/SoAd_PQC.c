@@ -219,7 +219,7 @@ Std_ReturnType SoAd_PQC_KeyExchange(
         return E_NOT_OK;
     }
 
-    if (IsInitiator)
+    if (IsInitiator == TRUE)
     {
         return SoAd_PQC_KeyExchange_Initiator(PeerId);
     }

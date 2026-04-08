@@ -74,7 +74,11 @@ typedef uint8 BusTrcvErrorType;
 #define COMSTACKTYPE_AR_MAJOR_VERSION       0
 #define COMSTACKTYPE_AR_PATCH_VERSION       0
 
+#ifndef NETWORK_HANDLE_TYPE_DEFINED
+#define NETWORK_HANDLE_TYPE_DEFINED
+/* cppcheck-suppress misra-c2012-5.6 */
 typedef uint8 NetworkHandleType;
+#endif
 
 
 #endif /* INCLUDE_COMSTACK_TYPES_H_ */
