@@ -64,7 +64,7 @@ Std_ReturnType FVM_IncreaseCounter(uint16 SecOCFreshnessValueID) {
     /* Big Endian Increment: Start from the last byte (LSB) */
     for (int i = (int)maxBytes - 1; i >= 0; i--) {
         Freshness_Counter[SecOCFreshnessValueID][i]++;
-        if (Freshness_Counter[SecOCFreshnessValueID][i] != 0) {
+        if (Freshness_Counter[SecOCFreshnessValueID][i] != 0U) {
             break; 
         }
     }
@@ -80,7 +80,7 @@ Std_ReturnType FVM_GetTxFreshness(uint16 SecOCFreshnessValueID, uint8* SecOCFres
 
     uint32 currentLen = Freshness_Counter_length_bits[SecOCFreshnessValueID];
     /* If length is not initialized, default to maximum allowed size */
-    if (currentLen == 0) {
+    if (currentLen == 0U) {
         currentLen = SECOC_MAX_FRESHNESS_SIZE;
     }
 
@@ -104,7 +104,7 @@ Std_ReturnType FVM_GetRxFreshness(
     }
 
     uint32 configFullLength = Freshness_Counter_length_bits[SecOCFreshnessValueID];
-    if (configFullLength == 0) {
+    if (configFullLength == 0U) {
         configFullLength = SECOC_MAX_FRESHNESS_SIZE;
     }
     

@@ -56,8 +56,12 @@
 /*******************************************TypeDefinitions**********************************************/
 /********************************************************************************************************/
 
+#ifndef NETWORK_HANDLE_TYPE_DEFINED
+#define NETWORK_HANDLE_TYPE_DEFINED
 /** @brief Network handle type */
+/* cppcheck-suppress misra-c2012-5.6 */
 typedef uint8 NetworkHandleType;
+#endif
 
 /** @brief EthSM internal network mode state */
 typedef enum

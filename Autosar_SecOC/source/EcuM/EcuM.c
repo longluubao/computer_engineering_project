@@ -46,8 +46,11 @@ static uint8 EcuM_PostRunRequestCounter = 0U;
 static uint8 EcuM_PostRunRequestMask = 0U;
 static EcuM_WakeupSourceType EcuM_WakeupEdgeMask = 0U;
 static boolean EcuM_EthPathStarted = FALSE;
+/* cppcheck-suppress misra-c2012-11.4 */
 static EcuM_ResetCalloutType EcuM_ResetCallout = (EcuM_ResetCalloutType)0;
+/* cppcheck-suppress misra-c2012-11.4 */
 static EcuM_OffCalloutType EcuM_OffCallout = (EcuM_OffCalloutType)0;
+/* cppcheck-suppress misra-c2012-11.4 */
 static EcuM_WakeupValidationCalloutType EcuM_WakeupValidationCallout = (EcuM_WakeupValidationCalloutType)0;
 static BswM_GatewayHealthType EcuM_LastGatewayHealthSnapshot = {BSWM_GATEWAY_PROFILE_NORMAL, 0U, 0U, 0U, 0U};
 static boolean EcuM_HasGatewayHealthSnapshot = FALSE;
@@ -144,6 +147,7 @@ static void EcuM_StopComCommunicationPath(void)
 
 static Std_ReturnType EcuM_ExecuteResetCalloutHook(void)
 {
+    /* cppcheck-suppress misra-c2012-11.4 */
     if (EcuM_ResetCallout != (EcuM_ResetCalloutType)0)
     {
         return EcuM_ResetCallout();
@@ -154,6 +158,7 @@ static Std_ReturnType EcuM_ExecuteResetCalloutHook(void)
 
 static Std_ReturnType EcuM_ExecuteOffCalloutHook(void)
 {
+    /* cppcheck-suppress misra-c2012-11.4 */
     if (EcuM_OffCallout != (EcuM_OffCalloutType)0)
     {
         return EcuM_OffCallout();
@@ -164,6 +169,7 @@ static Std_ReturnType EcuM_ExecuteOffCalloutHook(void)
 
 static boolean EcuM_IsWakeupSourceValidFromHardware(EcuM_WakeupSourceType WakeupSource)
 {
+    /* cppcheck-suppress misra-c2012-11.4 */
     if (EcuM_WakeupValidationCallout != (EcuM_WakeupValidationCalloutType)0)
     {
         return EcuM_WakeupValidationCallout(WakeupSource);
@@ -267,8 +273,11 @@ static uint32 EcuM_EncodePersistentStateWord(void)
 
 static void EcuM_DecodePersistentStateWord(uint32 PackedState)
 {
+    /* cppcheck-suppress misra-c2012-10.8 */
     EcuM_ShutdownTargetType PersistedShutdownTarget = (EcuM_ShutdownTargetType)(PackedState & 0xFFUL);
+    /* cppcheck-suppress misra-c2012-10.8 */
     EcuM_BootTargetType PersistedBootTarget = (EcuM_BootTargetType)((PackedState >> 8U) & 0xFFUL);
+    /* cppcheck-suppress misra-c2012-10.8 */
     EcuM_SleepModeType PersistedSleepMode = (EcuM_SleepModeType)((PackedState >> 16U) & 0xFFUL);
 
     if (PersistedShutdownTarget <= ECUM_SHUTDOWN_TARGET_OFF)
@@ -306,6 +315,7 @@ static void EcuM_LoadPersistentStateFromNvM(void)
         (EcuM_WaitNvMBlockCompletion(NVM_BLOCK_ID_ECUM_DATASET, 128U, &NvMResult) == E_OK) &&
         (NvMResult == NVM_REQ_OK))
     {
+        /* cppcheck-suppress misra-c2012-10.8 */
         EcuM_LastShutdownTarget = (EcuM_ShutdownTargetType)(PersistedHistoryWord & 0xFFUL);
     }
     (void)NvM_SetDataIndex(NVM_BLOCK_ID_ECUM_DATASET, 0U);
@@ -344,6 +354,7 @@ static void EcuM_PersistGatewayHealthToNvM(void)
     }
 
     if ((EcuM_HasGatewayHealthSnapshot == FALSE) ||
+        /* cppcheck-suppress misra-c2012-21.16 */
         (memcmp(&CurrentGatewayHealth, &EcuM_LastGatewayHealthSnapshot, sizeof(BswM_GatewayHealthType)) != 0))
     {
         (void)NvM_SetRamBlockStatus(NVM_BLOCK_ID_GATEWAY_HEALTH, TRUE);
@@ -355,6 +366,7 @@ static void EcuM_PersistGatewayHealthToNvM(void)
 
 void EcuM_Init(const EcuM_ConfigType *ConfigPtr)
 {
+    /* cppcheck-suppress misra-c2012-11.4 */
     if (ConfigPtr != (const EcuM_ConfigType*)0)
     {
         EcuM_ResetCallout = ConfigPtr->EcuMResetCallout;

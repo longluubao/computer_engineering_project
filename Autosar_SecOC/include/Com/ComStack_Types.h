@@ -17,6 +17,7 @@
 /********************************************************************************************************/
 /******************************************DefinesAndTypedefs********************************************/
 /********************************************************************************************************/
+/* cppcheck-suppress misra-c2012-2.3 */
 typedef uint32 TPParameterType ;
 typedef uint16 PduIdType ;
 typedef uint32 PduLengthType ;
@@ -51,6 +52,7 @@ typedef struct
     PduLengthType TxTpDataCnt;
 } RetryInfoType;
 
+/* cppcheck-suppress misra-c2012-2.3 */
 typedef uint8 NotifResultType;
 
 #define NTFRSLT_OK                      0x00
@@ -60,6 +62,7 @@ typedef uint8 NotifResultType;
 #define NTFRSLT_E_NO_BUFFER             0x09
 
 
+/* cppcheck-suppress misra-c2012-2.3 */
 typedef uint8 BusTrcvErrorType;
 
 
@@ -71,7 +74,11 @@ typedef uint8 BusTrcvErrorType;
 #define COMSTACKTYPE_AR_MAJOR_VERSION       0
 #define COMSTACKTYPE_AR_PATCH_VERSION       0
 
+#ifndef NETWORK_HANDLE_TYPE_DEFINED
+#define NETWORK_HANDLE_TYPE_DEFINED
+/* cppcheck-suppress misra-c2012-5.6 */
 typedef uint8 NetworkHandleType;
+#endif
 
 
 #endif /* INCLUDE_COMSTACK_TYPES_H_ */

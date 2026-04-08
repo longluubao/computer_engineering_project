@@ -146,7 +146,7 @@ static boolean Com_IsValidSignalId(Com_SignalIdType SignalId)
     {
         return FALSE;
     }
-    return (boolean)(SignalId < Com_ConfigPtr->ComNumOfSignals);
+    return (SignalId < Com_ConfigPtr->ComNumOfSignals) ? TRUE : FALSE;
 }
 
 static boolean Com_IsValidSignalGroupId(Com_SignalGroupIdType SignalGroupId)
@@ -155,7 +155,7 @@ static boolean Com_IsValidSignalGroupId(Com_SignalGroupIdType SignalGroupId)
     {
         return FALSE;
     }
-    return (boolean)(SignalGroupId < Com_ConfigPtr->ComNumOfSignalGroups);
+    return (SignalGroupId < Com_ConfigPtr->ComNumOfSignalGroups) ? TRUE : FALSE;
 }
 
 static boolean Com_IsValidTxPduId(PduIdType TxPduId)
@@ -164,7 +164,7 @@ static boolean Com_IsValidTxPduId(PduIdType TxPduId)
     {
         return FALSE;
     }
-    return (boolean)(TxPduId < Com_ConfigPtr->ComNumOfTxIpdu);
+    return (TxPduId < Com_ConfigPtr->ComNumOfTxIpdu) ? TRUE : FALSE;
 }
 
 static boolean Com_IsValidRxPduId(PduIdType RxPduId)
@@ -173,7 +173,7 @@ static boolean Com_IsValidRxPduId(PduIdType RxPduId)
     {
         return FALSE;
     }
-    return (boolean)(RxPduId < Com_ConfigPtr->ComNumOfRxIpdu);
+    return (RxPduId < Com_ConfigPtr->ComNumOfRxIpdu) ? TRUE : FALSE;
 }
 
 static boolean Com_IsSignalGroupActive(Com_SignalGroupIdType SignalGroupId)
@@ -1012,7 +1012,7 @@ Std_ReturnType Com_TriggerIPDUSend(PduIdType TxPduId)
 void Com_TxConfirmation(PduIdType TxPduId, Std_ReturnType result)
 {
 #ifdef COM_DEBUG
-    printf("######## in Com_TxConfirmation\n");
+    (void)printf("######## in Com_TxConfirmation\n");
 #endif
     if ((Com_Initialized == FALSE) || (Com_IsValidTxPduId(TxPduId) == FALSE))
     {
@@ -1036,7 +1036,7 @@ void Com_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
     uint16 CopyLength;
 
 #ifdef COM_DEBUG
-    printf("######## in Com_RxIndication\n");
+    (void)printf("######## in Com_RxIndication\n");
 #endif
 
     if ((Com_Initialized == FALSE) || (PduInfoPtr == NULL) || (Com_IsValidRxPduId(RxPduId) == FALSE))
@@ -1231,7 +1231,7 @@ void Com_MainFunctionRx(void)
 void Com_MainTx(void)
 {
 #ifdef COM_DEBUG
-    printf("######## in Com_MainTx\n");
+    (void)printf("######## in Com_MainTx\n");
 #endif
     Com_MainFunctionTx();
 }

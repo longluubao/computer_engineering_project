@@ -53,7 +53,7 @@ static void HKDF_Extract(
     /* Concatenate salt and IKM */
     (void)memcpy(input, salt, salt_len);
     input_len += salt_len;
-    (void)memcpy(input + input_len, ikm, ikm_len);
+    (void)memcpy(&input[input_len], ikm, ikm_len);
     input_len += ikm_len;
 
     /* Hash using SHA-256 from liboqs */
@@ -80,16 +80,17 @@ static void HKDF_Expand(
     /* Concatenate PRK, info, and counter */
     (void)memcpy(input, prk, prk_len);
     input_len += prk_len;
-    (void)memcpy(input + input_len, info, info_len);
+    (void)memcpy(&input[input_len], info, info_len);
     input_len += info_len;
-    input[input_len++] = 0x01;  /* Counter byte */
+    input[input_len] = 0x01U;  /* Counter byte */
+    input_len++;
 
     /* Hash using SHA-256 from liboqs */
     uint8 hash[32];
     OQS_SHA2_sha256(hash, input, input_len);
 
     /* Copy desired length */
-    (void)memcpy(okm, hash, (okm_len < 32) ? okm_len : 32);
+    (void)memcpy(okm, hash, (okm_len < 32U) ? okm_len : 32U);
 }
 
 /**

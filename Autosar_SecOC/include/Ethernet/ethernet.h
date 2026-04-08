@@ -15,11 +15,11 @@
 /* MISRA C:2012 Rule 17.3 - Socket prototypes for static analysis when system headers are unavailable */
 #if !defined(_SYS_SOCKET_H) && !defined(__SYS_SOCKET_H__) && !defined(_WINSOCK2API_)
 struct sockaddr;
-extern int setsockopt(int, int, int, const void*, unsigned int);
-extern int bind(int, const struct sockaddr*, unsigned int);
-extern int listen(int, int);
-extern int connect(int, const struct sockaddr*, unsigned int);
-extern int getsockname(int, struct sockaddr*, unsigned int*);
+extern int setsockopt(int sockfd, int level, int optname, const void* optval, unsigned int optlen);
+extern int bind(int sockfd, const struct sockaddr* addr, unsigned int addrlen);
+extern int listen(int sockfd, int backlog);
+extern int connect(int sockfd, const struct sockaddr* addr, unsigned int addrlen);
+extern int getsockname(int sockfd, struct sockaddr* addr, unsigned int* addrlen);
 #endif
 
 /********************************************************************************************************/

@@ -222,7 +222,7 @@ void Can_MainFunction_Write(void)
         return;
     }
 
-    while (Can_TxQueueCount > 0)
+    while (Can_TxQueueCount > 0U)
     {
         PduIdType txPduId = Can_TxQueue[Can_TxQueueHead].TxPduId;
         Can_TxQueueHead = (uint8)((Can_TxQueueHead + 1U) % CAN_TX_QUEUE_LENGTH);
@@ -242,7 +242,7 @@ void Can_MainFunction_Read(void)
         return;
     }
 
-    while (Can_RxQueueCount > 0)
+    while (Can_RxQueueCount > 0U)
     {
         Can_RxQueueEntryType *entry = &Can_RxQueue[Can_RxQueueHead];
         Can_RxQueueHead = (uint8)((Can_RxQueueHead + 1U) % CAN_RX_QUEUE_LENGTH);

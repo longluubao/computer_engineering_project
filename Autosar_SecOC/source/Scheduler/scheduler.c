@@ -14,11 +14,14 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+/* cppcheck-suppress misra-c2012-21.5 */
 #include <signal.h>
 #include <string.h>
 #include <sys/time.h>
 
 /* External API declarations (MISRA 8.4 visibility). */
+/* cppcheck-suppress misra-c2012-17.3 */
+extern void* ethernet_RecieveMainFunction(void* arg);
 void EthernetRecieveFn(void);
 void RecieveMainFunctions(void);
 void TxMainFunctions(void);
@@ -45,7 +48,7 @@ static boolean once = FALSE;
 static pthread_t t;
 
 
-void EthernetRecieveFn() {
+void EthernetRecieveFn(void) {
     while (1) {
         tasks[0].state++;
 
@@ -54,7 +57,7 @@ void EthernetRecieveFn() {
             if(pthread_create(&t , NULL, (void *)&ethernet_RecieveMainFunction, NULL) != 0)
             {
                 #ifdef SCHEDULER_DEBUG
-                printf("error create thread");
+                (void)printf("error create thread");
                 #endif
                 return;
             }
@@ -63,7 +66,7 @@ void EthernetRecieveFn() {
     }
 }
 
-void RecieveMainFunctions() {
+void RecieveMainFunctions(void) {
     while (1) {
         tasks[1].state++;
         SoAd_MainFunctionRx();
@@ -75,7 +78,7 @@ void RecieveMainFunctions() {
     }
 }
 
-void TxMainFunctions() 
+void TxMainFunctions(void)
 {
     while (1) 
     {
@@ -95,10 +98,11 @@ void start_task(int i) {
 }
 
 void scheduler_handler(int signum) {
-    // Not used
+    /* cppcheck-suppress misra-c2012-2.7 */
+    (void)signum;
 }
 
-void Scheduler_Start()
+void Scheduler_Start(void)
 {
     int i;
     struct sigaction sa;

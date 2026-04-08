@@ -2,7 +2,7 @@
 /************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 
-#include "PduR_CanTp.h"
+#include "Pdur_CanTP.h"
 #include "SecOC.h"
 #include "SecOC_Debug.h"
 
@@ -34,7 +34,7 @@ BufReq_ReturnType PduR_CanTpCopyTxData(PduIdType id,
                                        PduLengthType* availableDataPtr)
 {
     #ifdef PDUR_DEBUG
-        printf("######## in PduR_CanTpCopyTxData \n");
+        (void)printf("######## in PduR_CanTpCopyTxData \n");
     #endif
     if ((id >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING) || (availableDataPtr == NULL))
     {
@@ -46,7 +46,7 @@ BufReq_ReturnType PduR_CanTpCopyTxData(PduIdType id,
 void PduR_CanTpTxConfirmation(PduIdType TxPduId, Std_ReturnType result)
 {
     #ifdef PDUR_DEBUG
-        printf("######## in PduR_CanTpTxConfirmation \n");
+        (void)printf("######## in PduR_CanTpTxConfirmation \n");
     #endif
     if (TxPduId >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING)
     {
@@ -60,7 +60,7 @@ BufReq_ReturnType PduR_CanTpCopyRxData(PduIdType id,
                                        PduLengthType* bufferSizePtr)
 {
     #ifdef PDUR_DEBUG
-        printf("######## in PduR_CanTpCopyRxData \n");
+        (void)printf("######## in PduR_CanTpCopyRxData \n");
     #endif
     if ((id >= (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING) || (bufferSizePtr == NULL))
     {
@@ -75,7 +75,7 @@ BufReq_ReturnType PduR_CanTpStartOfReception(PduIdType id,
                                              PduLengthType* bufferSizePtr)
 {
     #ifdef PDUR_DEBUG
-        printf("######## in PduR_CanTpStartOfReception \n");
+        (void)printf("######## in PduR_CanTpStartOfReception \n");
     #endif
     if ((id >= (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING) || (bufferSizePtr == NULL))
     {
@@ -87,7 +87,7 @@ BufReq_ReturnType PduR_CanTpStartOfReception(PduIdType id,
 void PduR_CanTpRxIndication(PduIdType id, Std_ReturnType result)
 {
     #ifdef PDUR_DEBUG
-        printf("######## in PduR_CanTpRxIndication \n");
+        (void)printf("######## in PduR_CanTpRxIndication \n");
     #endif
     if (id >= (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING)
     {

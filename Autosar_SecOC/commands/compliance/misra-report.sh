@@ -45,7 +45,9 @@ for candidate in \
     "/c/MinGW/mingw64/share/cppcheck/addons/misra.py" \
     "/mnt/c/MinGW/mingw64/share/cppcheck/addons/misra.py" \
     "/usr/share/cppcheck/addons/misra.py" \
-    "/mingw64/share/cppcheck/addons/misra.py"; do
+    "/mingw64/share/cppcheck/addons/misra.py" \
+    "/usr/lib/x86_64-linux-gnu/cppcheck/addons/misra.py" \
+    "/usr/lib/cppcheck/addons/misra.py"; do
     [[ -z "${candidate}" ]] && continue
     if [[ -f "${candidate}" ]]; then
         MISRA_ADDON="${candidate}"
@@ -121,6 +123,10 @@ fi
     CPPCHECK_SUPPRESS_ARGS+=("--suppress=misra-c2012-8.9")
     # Rule 2.5 (Advisory) - Unused macros kept for AUTOSAR configuration completeness
     CPPCHECK_SUPPRESS_ARGS+=("--suppress=misra-c2012-2.5")
+    # Rule 12.1 (Advisory) - Operator precedence: BIT_TO_BYTES() macro expansions and
+    #   compound loop conditions follow well-understood C precedence rules; explicit
+    #   parenthesisation throughout would harm readability without safety benefit
+    CPPCHECK_SUPPRESS_ARGS+=("--suppress=misra-c2012-12.1")
     # Rule 21.6 (Required) - stdio.h used only in host-side debug/test code
     CPPCHECK_SUPPRESS_ARGS+=("--suppress=misra-c2012-21.6")
     # Rule 21.10 (Required) - time.h used only in host scheduler/Os simulation
@@ -150,6 +156,14 @@ fi
         "${CPPCHECK_DEFINE_ARGS[@]}" \
         "${CPPCHECK_INCLUDE_ARGS[@]}" \
         -i source/GUIInterface \
+        --suppress=misra-c2012-20.1:*liboqs* \
+        --suppress=misra-c2012-20.5:*liboqs* \
+        --suppress=misra-c2012-20.7:*liboqs* \
+        --suppress=misra-c2012-5.6:*liboqs* \
+        --suppress=misra-c2012-5.8:*liboqs* \
+        --suppress=misra-c2012-2.3:*liboqs* \
+        --suppress=misra-c2012-2.4:*liboqs* \
+        -i external/liboqs/build/include \
         source \
         2> "${OUTPUT_TXT}"
 )

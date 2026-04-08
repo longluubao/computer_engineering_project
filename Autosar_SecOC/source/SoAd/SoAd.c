@@ -445,7 +445,7 @@ static boolean SoAd_IsRoutingAllowedForPdu(PduIdType PduId)
 {
     const SoAd_PduRouteConfigType* RouteCfgPtr = NULL;
 
-    if (PduId >= SOAD_MAX_PDU_PROCESSING)
+    if (PduId >= (PduIdType)SOAD_MAX_PDU_PROCESSING)
     {
         return FALSE;
     }
@@ -610,7 +610,7 @@ void SoAd_Init(const SoAd_ConfigType* ConfigPtr)
     (void)BswM_RequestMode(BSWM_REQUESTER_ID_AP_READY, (BswM_ModeType)SOAD_AP_BRIDGE_NOT_READY);
 
     #ifdef SOAD_DEBUG
-        printf("######## SoAd_Init completed\n");
+        (void)printf("######## SoAd_Init completed\n");
     #endif
 }
 
@@ -654,7 +654,7 @@ void SoAd_DeInit(void)
 Std_ReturnType SoAd_IfTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr)
 {
     #ifdef SOAD_DEBUG
-        printf("######## in SoAd_IfTransmit \n");
+        (void)printf("######## in SoAd_IfTransmit \n");
     #endif
 
     Std_ReturnType result = E_OK;
@@ -671,13 +671,13 @@ Std_ReturnType SoAd_IfTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr)
         (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_IF_TRANSMIT, SOAD_E_PARAM_POINTER);
         return E_NOT_OK;
     }
-    if (TxPduId >= SECOC_NUM_OF_TX_PDU_PROCESSING)
+    if (TxPduId >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING)
     {
         (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_IF_TRANSMIT, SOAD_E_INV_PDUID);
         return E_NOT_OK;
     }
 #else
-    if ((PduInfoPtr == NULL) || (TxPduId >= SECOC_NUM_OF_TX_PDU_PROCESSING))
+    if ((PduInfoPtr == NULL) || (TxPduId >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING))
     {
         return E_NOT_OK;
     }
@@ -709,14 +709,14 @@ Std_ReturnType SoAd_IfTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr)
     }
 
     #ifdef SOAD_DEBUG
-        printf("Secure PDU -->\n");
+        (void)printf("Secure PDU -->\n");
         {
             PduLengthType i;
             for (i = 0U; i < PduInfoPtr->SduLength; i++)
             {
-                printf("%d ", PduInfoPtr->SduDataPtr[i]);
+                (void)printf("%d ", PduInfoPtr->SduDataPtr[i]);
             }
-            printf("\n");
+            (void)printf("\n");
         }
     #endif
 
@@ -749,7 +749,7 @@ Std_ReturnType SoAd_IfTransmit(PduIdType TxPduId, const PduInfoType* PduInfoPtr)
 Std_ReturnType SoAd_TpTransmit(PduIdType SoAdTxSduId, const PduInfoType* SoAdTxInfoPtr)
 {
     #ifdef SOAD_DEBUG
-        printf("######## in SoAd_TpTransmit\n");
+        (void)printf("######## in SoAd_TpTransmit\n");
     #endif
 
 #if (SOAD_DEV_ERROR_DETECT == STD_ON)
@@ -763,13 +763,13 @@ Std_ReturnType SoAd_TpTransmit(PduIdType SoAdTxSduId, const PduInfoType* SoAdTxI
         (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_TP_TRANSMIT, SOAD_E_PARAM_POINTER);
         return E_NOT_OK;
     }
-    if (SoAdTxSduId >= SECOC_NUM_OF_TX_PDU_PROCESSING)
+    if (SoAdTxSduId >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING)
     {
         (void)Det_ReportError(SOAD_MODULE_ID, 0U, SOAD_SID_TP_TRANSMIT, SOAD_E_INV_PDUID);
         return E_NOT_OK;
     }
 #else
-    if ((SoAdTxInfoPtr == NULL) || (SoAdTxSduId >= SECOC_NUM_OF_TX_PDU_PROCESSING))
+    if ((SoAdTxInfoPtr == NULL) || (SoAdTxSduId >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING))
     {
         return E_NOT_OK;
     }
@@ -859,7 +859,7 @@ Std_ReturnType SoAd_OpenSoCon(SoAd_SoConIdType SoConId)
     SoAd_UpdateApReadinessStatus();
 
     #ifdef SOAD_DEBUG
-        printf("######## SoAd_OpenSoCon: SoConId=%u now ONLINE\n", SoConId);
+        (void)printf("######## SoAd_OpenSoCon: SoConId=%u now ONLINE\n", SoConId);
     #endif
 
     return E_OK;
@@ -901,7 +901,7 @@ Std_ReturnType SoAd_CloseSoCon(SoAd_SoConIdType SoConId, boolean Abort)
     SoAd_UpdateApReadinessStatus();
 
     #ifdef SOAD_DEBUG
-        printf("######## SoAd_CloseSoCon: SoConId=%u now OFFLINE\n", SoConId);
+        (void)printf("######## SoAd_CloseSoCon: SoConId=%u now OFFLINE\n", SoConId);
     #endif
 
     return E_OK;
@@ -1140,7 +1140,7 @@ void SoAd_RxIndication(
         return;
     }
 
-    if (rxPduId >= SECOC_NUM_OF_RX_PDU_PROCESSING)
+    if (rxPduId >= (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING)
     {
         return;
     }
@@ -1156,6 +1156,7 @@ void SoAd_RxIndication(
     /* Keep latest remote peer associated with the socket connection. */
     SoAd_SoConStates[soConId].RemoteAddr = *RemoteAddrPtr;
 
+    /* cppcheck-suppress misra-c2012-11.8 */
     pduInfo.SduDataPtr = (uint8*)BufPtr;
     pduInfo.MetaDataPtr = NULL;
     pduInfo.SduLength = (PduLengthType)Length;
@@ -1177,10 +1178,10 @@ void SoAd_RxIndication(
 void SoAdTp_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
 {
     #ifdef SOAD_DEBUG
-        printf("######## in SoAdTp_RxIndication\n");
+        (void)printf("######## in SoAdTp_RxIndication\n");
     #endif
 
-    if ((PduInfoPtr == NULL) || (RxPduId >= SECOC_NUM_OF_RX_PDU_PROCESSING))
+    if ((PduInfoPtr == NULL) || (RxPduId >= (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING))
     {
         return;
     }
@@ -1285,7 +1286,7 @@ void SoAdTp_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr)
 void SoAd_MainFunctionTx(void)
 {
     #ifdef SOAD_DEBUG
-        printf("######## in SoAd_MainFunctionTx\n");
+        (void)printf("######## in SoAd_MainFunctionTx\n");
     #endif
 
     uint8 sdata[BUS_LENGTH] = {0};
@@ -1300,7 +1301,7 @@ void SoAd_MainFunctionTx(void)
     PduLengthType availableDataPtr = 0U;
     PduIdType TxPduId;
 
-    for (TxPduId = 0U; TxPduId < SECOC_NUM_OF_TX_PDU_PROCESSING; TxPduId++)
+    for (TxPduId = 0U; TxPduId < (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING; TxPduId++)
     {
         if (SoAdTp_Buffer[TxPduId].SduLength > 0U)
         {
@@ -1309,40 +1310,40 @@ void SoAd_MainFunctionTx(void)
                 : ((SoAdTp_Buffer[TxPduId].SduLength / BUS_LENGTH) + 1U));
 
             #ifdef SOAD_DEBUG
-                printf("Start sending id = %d\n", TxPduId);
-                printf("PDU length = %ld\n", SoAdTp_Buffer[TxPduId].SduLength);
-                printf("All Data to be Sent: \n");
+                (void)printf("Start sending id = %d\n", TxPduId);
+                (void)printf("PDU length = %ld\n", SoAdTp_Buffer[TxPduId].SduLength);
+                (void)printf("All Data to be Sent: \n");
                 {
                     PduLengthType i;
                     for (i = 0U; i < SoAdTp_Buffer[TxPduId].SduLength; i++)
                     {
-                        printf("%d  ", SoAdTp_Buffer[TxPduId].SduDataPtr[i]);
+                        (void)printf("%d  ", SoAdTp_Buffer[TxPduId].SduDataPtr[i]);
                     }
-                    printf("\n\n\n");
+                    (void)printf("\n\n\n");
                 }
             #endif
 
-            int frameIndex;
+            uint8 frameIndex;
             uint8 retryBudget = 3U;
             boolean txFailed = FALSE;
-            for (frameIndex = 0; frameIndex < lastFrameIndex; frameIndex++)
+            for (frameIndex = 0U; frameIndex < lastFrameIndex; frameIndex++)
             {
-                if (frameIndex == (lastFrameIndex - 1))
+                if (frameIndex == (lastFrameIndex - 1U))
                 {
                     info.SduLength = ((SoAdTp_Buffer[TxPduId].SduLength % BUS_LENGTH) == 0U)
                         ? BUS_LENGTH
                         : (SoAdTp_Buffer[TxPduId].SduLength % BUS_LENGTH);
 
                     #ifdef SOAD_DEBUG
-                        printf("last frame PDU length = %ld\n", SoAdTp_Buffer[TxPduId].SduLength);
-                        printf("All Data to be Sent: \n");
+                        (void)printf("last frame PDU length = %ld\n", SoAdTp_Buffer[TxPduId].SduLength);
+                        (void)printf("All Data to be Sent: \n");
                         {
                             PduLengthType i;
                             for (i = 0U; i < info.SduLength; i++)
                             {
-                                printf("%d  ", info.SduDataPtr[i]);
+                                (void)printf("%d  ", info.SduDataPtr[i]);
                             }
-                            printf("\n");
+                            (void)printf("\n");
                         }
                     #endif
                 }
@@ -1368,7 +1369,7 @@ void SoAd_MainFunctionTx(void)
                 }
 
                 #ifdef SOAD_DEBUG
-                    printf("Transmit Result = %d\n", resultTransmit);
+                    (void)printf("Transmit Result = %d\n", resultTransmit);
                 #endif
             }
 
@@ -1393,14 +1394,14 @@ void SoAdTp_TxConfirmation(PduIdType TxPduId, Std_ReturnType result)
     (void)result;
 
     #ifdef SOAD_DEBUG
-        printf("######## in SoAd_TxConfirmation \n");
+        (void)printf("######## in SoAd_TxConfirmation \n");
     #endif
 }
 
 void SoAd_MainFunctionRx(void)
 {
     #ifdef SOAD_DEBUG
-        printf("######## in SoAd_MainFunctionRx\n");
+        (void)printf("######## in SoAd_MainFunctionRx\n");
     #endif
 
     /* Poll backend for incoming data. */
@@ -1411,10 +1412,11 @@ void SoAd_MainFunctionRx(void)
 #endif
 
     PduIdType RxPduId;
-    for (RxPduId = 0U; RxPduId < SECOC_NUM_OF_RX_PDU_PROCESSING; RxPduId++)
+    for (RxPduId = 0U; RxPduId < (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING; RxPduId++)
     {
         BufReq_ReturnType result = BUFREQ_OK;
-        while ((SoAdTp_RxQueueCount[RxPduId] > 0U) && (SoAdTp_Recieve_Counter[RxPduId] > 0U))
+        boolean loopExit = FALSE;
+        while (((SoAdTp_RxQueueCount[RxPduId] > 0U) && (SoAdTp_Recieve_Counter[RxPduId] > 0U)) && (loopExit == FALSE))
         {
             uint8 HeadIndex = SoAdTp_RxQueueHead[RxPduId];
             PduLengthType RemainingBytes;
@@ -1429,27 +1431,29 @@ void SoAd_MainFunctionRx(void)
             if (SoAdTp_ProcessedBytes[RxPduId] >= SoAdTp_secureLength_Recieve[RxPduId])
             {
                 SoAd_ResetTpReceptionState(RxPduId);
-                break;
+                loopExit = TRUE;
             }
 
+            if (loopExit == FALSE)
+            {
             RemainingBytes = (PduLengthType)(SoAdTp_secureLength_Recieve[RxPduId] - SoAdTp_ProcessedBytes[RxPduId]);
             if (SoAdTp_Buffer_Rx[RxPduId].SduLength > RemainingBytes)
             {
                 SoAd_ResetTpReceptionState(RxPduId);
-                break;
+                loopExit = TRUE;
             }
-            IsLastFrame = (boolean)(SoAdTp_Buffer_Rx[RxPduId].SduLength == RemainingBytes);
+            IsLastFrame = (SoAdTp_Buffer_Rx[RxPduId].SduLength == RemainingBytes) ? TRUE : FALSE;
 
             #ifdef SOAD_DEBUG
-                printf("######## in main Soad Rx  in id : %d\n", RxPduId);
-                printf("for id %d :", RxPduId);
+                (void)printf("######## in main Soad Rx  in id : %d\n", RxPduId);
+                (void)printf("for id %d :", RxPduId);
                 {
                     PduLengthType l;
                     for (l = 0U; l < SoAdTp_Buffer_Rx[RxPduId].SduLength; l++)
                     {
-                        printf("%d ", SoAdTp_Buffer_Rx[RxPduId].SduDataPtr[l]);
+                        (void)printf("%d ", SoAdTp_Buffer_Rx[RxPduId].SduDataPtr[l]);
                     }
-                    printf("\n");
+                    (void)printf("\n");
                 }
             #endif
 
@@ -1480,20 +1484,23 @@ void SoAd_MainFunctionRx(void)
                 PduR_SoAdTpRxIndication(RxPduId, E_NOT_OK);
                 SoAd_ResetTpReceptionState(RxPduId);
                 ApBridge_ReportServiceStatus(FALSE);
-                break;
+                loopExit = TRUE;
             }
-
-            if (IsLastFrame == TRUE)
+            else
             {
-                PduR_SoAdTpRxIndication(RxPduId, E_OK);
-                SoAd_ResetTpReceptionState(RxPduId);
-            }
+                if (IsLastFrame == TRUE)
+                {
+                    PduR_SoAdTpRxIndication(RxPduId, E_OK);
+                    SoAd_ResetTpReceptionState(RxPduId);
+                }
 
-            ApBridge_ReportServiceStatus((result == BUFREQ_OK) ? TRUE : FALSE);
+                ApBridge_ReportServiceStatus((result == BUFREQ_OK) ? TRUE : FALSE);
+            }
 
             #ifdef SCHEDULER_ON
                 pthread_mutex_unlock(&lock);
             #endif
+            } /* end if (loopExit == FALSE) */
         }
     }
 

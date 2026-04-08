@@ -4,7 +4,7 @@
 /********************************************************************************************************/
 
 #include "CanTP.h"
-#include "PduR_CanTp.h"
+#include "Pdur_CanTP.h"
 #include "SecOC.h"
 #include "CanIF.h"
 #include "Det.h"
@@ -61,7 +61,7 @@ void CanTp_MainFunctionRx(void);
 
 void CanTp_Init(void)
 {
-    for (PduIdType i = 0; i < SECOC_NUM_OF_TX_PDU_PROCESSING; i++)
+    for (PduIdType i = 0; i < (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING; i++)
     {
         CanTp_Buffer[i].SduLength = 0;
         CanTp_Buffer[i].SduDataPtr = NULL;
@@ -70,7 +70,7 @@ void CanTp_Init(void)
         CanTp_TxState[i] = CANTP_STATE_IDLE;
     }
 
-    for (PduIdType i = 0; i < SECOC_NUM_OF_RX_PDU_PROCESSING; i++)
+    for (PduIdType i = 0; i < (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING; i++)
     {
         CanTp_Buffer_Rx[i].SduLength = 0;
         CanTp_Buffer_Rx[i].SduDataPtr = NULL;
@@ -98,7 +98,7 @@ void CanTp_Shutdown(void)
 Std_ReturnType CanTp_Transmit(PduIdType CanTpTxSduId, const PduInfoType* CanTpTxInfoPtr)
 {
     #ifdef CANTP_DEBUG
-        printf("######## in CanTp_Transmit\n");
+        (void)printf("######## in CanTp_Transmit\n");
     #endif
 
     if (CanTp_Initialized == FALSE)
@@ -114,7 +114,7 @@ Std_ReturnType CanTp_Transmit(PduIdType CanTpTxSduId, const PduInfoType* CanTpTx
         return E_NOT_OK;
     }
 
-    if (CanTpTxSduId >= SECOC_NUM_OF_TX_PDU_PROCESSING)
+    if (CanTpTxSduId >= (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING)
     {
         (void)Det_ReportError(CANTP_MODULE_ID, CANTP_INSTANCE_ID, CANTP_SID_TRANSMIT, CANTP_E_PARAM_ID);
         return E_NOT_OK;
@@ -129,7 +129,7 @@ Std_ReturnType CanTp_Transmit(PduIdType CanTpTxSduId, const PduInfoType* CanTpTx
     CanTp_TxTimeoutCounter[CanTpTxSduId] = 0;
 
     /* Determine if Single Frame or First Frame */
-    if (CanTpTxInfoPtr->SduLength <= (PduLengthType)(BUS_LENGTH - 1U))
+    if (CanTpTxInfoPtr->SduLength <= ((PduLengthType)BUS_LENGTH - (PduLengthType)1U))
     {
         CanTp_TxState[CanTpTxSduId] = CANTP_STATE_TX_SF;
     }
@@ -145,7 +145,7 @@ Std_ReturnType CanTp_Transmit(PduIdType CanTpTxSduId, const PduInfoType* CanTpTx
 void CanTp_RxIndication (PduIdType RxPduId, const PduInfoType* PduInfoPtr)
 {
     #ifdef CANTP_DEBUG
-        printf("######## in CanTp_RxIndication\n");
+        (void)printf("######## in CanTp_RxIndication\n");
     #endif
 
     if (CanTp_Initialized == FALSE)
@@ -165,7 +165,7 @@ void CanTp_RxIndication (PduIdType RxPduId, const PduInfoType* PduInfoPtr)
         return;
     }
 
-    if (RxPduId >= SECOC_NUM_OF_RX_PDU_PROCESSING)
+    if (RxPduId >= (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING)
     {
         (void)Det_ReportError(CANTP_MODULE_ID, CANTP_INSTANCE_ID, CANTP_SID_RX_INDICATION, CANTP_E_PARAM_ID);
         return;
@@ -184,10 +184,10 @@ void CanTp_RxIndication (PduIdType RxPduId, const PduInfoType* PduInfoPtr)
         then add the Freshness , Mac and Header length
         to the the whole Secure Frame Length to recieve
     */
-    if(CanTp_Recieve_Counter[RxPduId] == 0)
+    if(CanTp_Recieve_Counter[RxPduId] == 0U)
     {
         uint8 AuthHeadlen = SecOCRxPduProcessing[RxPduId].SecOCRxSecuredPduLayer->SecOCRxSecuredPdu->SecOCAuthPduHeaderLength;
-        PduLengthType SecureDataframe = AuthHeadlen + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueTruncLength) + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCAuthInfoTruncLength);
+        PduLengthType SecureDataframe = (PduLengthType)AuthHeadlen + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCFreshnessValueTruncLength) + BIT_TO_BYTES(SecOCRxPduProcessing[RxPduId].SecOCAuthInfoTruncLength);
         if ((AuthHeadlen > 0U) &&
             ((AuthHeadlen > PduInfoPtr->SduLength) || (AuthHeadlen > (uint8)sizeof(PduLengthType))))
         {
@@ -195,7 +195,7 @@ void CanTp_RxIndication (PduIdType RxPduId, const PduInfoType* PduInfoPtr)
             CanTp_RxState[RxPduId] = CANTP_STATE_IDLE;
             return;
         }
-        if(AuthHeadlen > 0)
+        if(AuthHeadlen > 0U)
         {
             (void)memcpy((uint8*)&CanTp_secureLength_Recieve[RxPduId], PduInfoPtr->SduDataPtr, AuthHeadlen );
         }
@@ -218,7 +218,7 @@ void CanTp_RxIndication (PduIdType RxPduId, const PduInfoType* PduInfoPtr)
 void CanTp_MainFunctionTx(void)
 {
     #ifdef CANTP_DEBUG
-        printf("######## in CanTp_MainFunction\n");
+        (void)printf("######## in CanTp_MainFunction\n");
     #endif
 
     if (CanTp_Initialized == FALSE)
@@ -236,7 +236,7 @@ void CanTp_MainFunctionTx(void)
     RetryInfoType retry = {retrystate,retrycout};
 
     PduLengthType availableDataPtr = 0;
-    for(PduIdType TxPduId = 0 ; TxPduId < SECOC_NUM_OF_TX_PDU_PROCESSING ; TxPduId++)
+    for(PduIdType TxPduId = 0 ; TxPduId < (PduIdType)SECOC_NUM_OF_TX_PDU_PROCESSING ; TxPduId++)
     {
         if (CanTp_TxState[TxPduId] == CANTP_STATE_IDLE)
         {
@@ -254,32 +254,32 @@ void CanTp_MainFunctionTx(void)
             continue;
         }
 
-        if( CanTp_Buffer[TxPduId].SduLength > 0)
+        if( CanTp_Buffer[TxPduId].SduLength > 0U)
         {
-            uint8 lastFrameIndex = ((CanTp_Buffer[TxPduId].SduLength % BUS_LENGTH) == 0)  ? (CanTp_Buffer[TxPduId].SduLength / BUS_LENGTH) : ((CanTp_Buffer[TxPduId].SduLength / BUS_LENGTH) + 1);
+            PduLengthType lastFrameIndex = ((CanTp_Buffer[TxPduId].SduLength % (PduLengthType)BUS_LENGTH) == 0U)  ? (CanTp_Buffer[TxPduId].SduLength / (PduLengthType)BUS_LENGTH) : ((CanTp_Buffer[TxPduId].SduLength / (PduLengthType)BUS_LENGTH) + (PduLengthType)1U);
             #ifdef CANTP_DEBUG
-                printf("Start sending id = %d\n" , TxPduId);
-                printf("PDU length = %ld\n" , CanTp_Buffer[TxPduId].SduLength);
-                printf("All Data to be Sent: \n");
-                for(int i = 0 ; i < CanTp_Buffer[TxPduId].SduLength; i++)
+                (void)printf("Start sending id = %d\n" , TxPduId);
+                (void)printf("PDU length = %ld\n" , CanTp_Buffer[TxPduId].SduLength);
+                (void)printf("All Data to be Sent: \n");
+                for(PduLengthType i = 0U ; i < CanTp_Buffer[TxPduId].SduLength; i++)
                 {
-                    printf("%d  " , CanTp_Buffer[TxPduId].SduDataPtr[i]);
+                    (void)printf("%d  " , CanTp_Buffer[TxPduId].SduDataPtr[i]);
                 }
-                printf("\n\n\n");
+                (void)printf("\n\n\n");
             #endif
-            for(int frameIndex = 0; frameIndex < lastFrameIndex ; frameIndex++)
+            for(PduLengthType frameIndex = 0U; frameIndex < lastFrameIndex ; frameIndex++)
             {
-                if(frameIndex == (lastFrameIndex - 1))
+                if(frameIndex == (lastFrameIndex - 1U))
                 {
-                    info.SduLength = ((CanTp_Buffer[TxPduId].SduLength % BUS_LENGTH) == 0)  ? (BUS_LENGTH) : (CanTp_Buffer[TxPduId].SduLength % BUS_LENGTH);
+                    info.SduLength = ((CanTp_Buffer[TxPduId].SduLength % (PduLengthType)BUS_LENGTH) == 0U)  ? (BUS_LENGTH) : (CanTp_Buffer[TxPduId].SduLength % BUS_LENGTH);
                     #ifdef CANTP_DEBUG
-                    printf("last frame PDU length = %ld\n" , CanTp_Buffer[TxPduId].SduLength);
-                    printf("All Data to be Sent: \n");
-                    for(int i = 0 ; i < info.SduLength; i++)
+                    (void)printf("last frame PDU length = %ld\n" , CanTp_Buffer[TxPduId].SduLength);
+                    (void)printf("All Data to be Sent: \n");
+                    for(PduLengthType i = 0U ; i < info.SduLength; i++)
                     {
-                        printf("%d  " , info.SduDataPtr[i]);
+                        (void)printf("%d  " , info.SduDataPtr[i]);
                     }
-                    printf("\n");
+                    (void)printf("\n");
                     #endif
                 }
                 BufReq_ReturnType resultCopy = PduR_CanTpCopyTxData(TxPduId, &info, &retry, &availableDataPtr);
@@ -299,7 +299,7 @@ void CanTp_MainFunctionTx(void)
                 }
 
                 #ifdef CANTP_DEBUG
-                    printf("Transmit Result = %d\n" , resultTrasmit);
+                    (void)printf("Transmit Result = %d\n" , resultTrasmit);
                 #endif
             }
 
@@ -317,7 +317,7 @@ void CanTp_MainFunctionTx(void)
 void CanTp_TxConfirmation(PduIdType TxPduId, Std_ReturnType result)
 {
     #ifdef CANTP_DEBUG
-        printf("######## in CanTp_TxConfirmation \n");
+        (void)printf("######## in CanTp_TxConfirmation \n");
     #endif
 
     if (CanTp_Initialized == FALSE)
@@ -333,7 +333,7 @@ void CanTp_TxConfirmation(PduIdType TxPduId, Std_ReturnType result)
 void CanTp_MainFunctionRx(void)
 {
     #ifdef CANTP_DEBUG
-        printf("######## in CanTP_MainFunctionRx\n");
+        (void)printf("######## in CanTP_MainFunctionRx\n");
     #endif
 
     if (CanTp_Initialized == FALSE)
@@ -341,7 +341,7 @@ void CanTp_MainFunctionRx(void)
         return;
     }
 
-    for(PduIdType RxPduId = 0 ; RxPduId < SECOC_NUM_OF_RX_PDU_PROCESSING ; RxPduId++)
+    for(PduIdType RxPduId = 0 ; RxPduId < (PduIdType)SECOC_NUM_OF_RX_PDU_PROCESSING ; RxPduId++)
     {
         /* Check for N_Cr timeout on active Rx channels */
         if (CanTp_RxState[RxPduId] != CANTP_STATE_IDLE)
@@ -358,20 +358,20 @@ void CanTp_MainFunctionRx(void)
         }
 
         BufReq_ReturnType result = BUFREQ_OK;
-        if((CanTp_Recieve_Counter[RxPduId] > 0) && (CanTp_Buffer_Rx[RxPduId].SduLength > 0))
+        if((CanTp_Recieve_Counter[RxPduId] > 0U) && (CanTp_Buffer_Rx[RxPduId].SduLength > 0U))
         {
-            uint8 lastFrameIndex = ((CanTp_secureLength_Recieve[RxPduId] % BUS_LENGTH) == 0)  ? (CanTp_secureLength_Recieve[RxPduId] / BUS_LENGTH) : ((CanTp_secureLength_Recieve[RxPduId] / BUS_LENGTH) + 1);
+            PduLengthType lastFrameIndex = ((CanTp_secureLength_Recieve[RxPduId] % (PduLengthType)BUS_LENGTH) == 0U)  ? (CanTp_secureLength_Recieve[RxPduId] / (PduLengthType)BUS_LENGTH) : ((CanTp_secureLength_Recieve[RxPduId] / (PduLengthType)BUS_LENGTH) + (PduLengthType)1U);
             PduLengthType bufferSizePtr;
             #ifdef CANTP_DEBUG
-                printf("######## in main tp Rx  in id : %d\n", RxPduId);
-                printf("for id %d :",RxPduId);
-                for(int l = 0; l < CanTp_Buffer_Rx[RxPduId].SduLength; l++)
+                (void)printf("######## in main tp Rx  in id : %d\n", RxPduId);
+                (void)printf("for id %d :",RxPduId);
+                for(PduLengthType l = 0U; l < CanTp_Buffer_Rx[RxPduId].SduLength; l++)
                 {
-                    printf("%d ", CanTp_Buffer_Rx[RxPduId].SduDataPtr[l]);
+                    (void)printf("%d ", CanTp_Buffer_Rx[RxPduId].SduDataPtr[l]);
                 }
-                printf("\n");
+                (void)printf("\n");
             #endif
-            if(CanTp_Recieve_Counter[RxPduId] == 1)
+            if(CanTp_Recieve_Counter[RxPduId] == 1U)
             {
                 result = PduR_CanTpStartOfReception(RxPduId, &CanTp_Buffer_Rx[RxPduId], CanTp_secureLength_Recieve[RxPduId], &bufferSizePtr);
                 if (result == BUFREQ_OK)
@@ -387,7 +387,7 @@ void CanTp_MainFunctionRx(void)
             }
             else if (CanTp_Recieve_Counter[RxPduId] == lastFrameIndex)
             {
-                CanTp_Buffer_Rx[RxPduId].SduLength = ((CanTp_secureLength_Recieve[RxPduId] % BUS_LENGTH) == 0) ? (BUS_LENGTH) : (CanTp_secureLength_Recieve[RxPduId] % BUS_LENGTH);
+                CanTp_Buffer_Rx[RxPduId].SduLength = ((CanTp_secureLength_Recieve[RxPduId] % (PduLengthType)BUS_LENGTH) == 0U) ? (PduLengthType)(BUS_LENGTH) : (CanTp_secureLength_Recieve[RxPduId] % (PduLengthType)BUS_LENGTH);
                 result = PduR_CanTpCopyRxData(RxPduId, &CanTp_Buffer_Rx[RxPduId], &bufferSizePtr);
                 PduR_CanTpRxIndication(RxPduId, result);
                 CanTp_Recieve_Counter[RxPduId] = 0;

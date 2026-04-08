@@ -31,8 +31,10 @@ extern void EthDrv_ReceiveMainFunction(void);
 /******************************************GlobalVaribles************************************************/
 /********************************************************************************************************/
 
+/* cppcheck-suppress misra-c2012-7.4 */
+/* cppcheck-suppress misra-c2012-5.9 */
 static char ip_address_send[15] = "127.0.0.1";
-extern SecOC_PduCollection PdusCollections[SECOC_NUM_OF_PDU_COLLECTION];
+/* PdusCollections declared in SecOC_Lcfg.h */
 
 #ifdef WINDOWS
 static WSADATA wsa_data;
@@ -51,7 +53,7 @@ static Std_ReturnType winsock_init(void)
         if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0)
         {
             #ifdef ETHERNET_DEBUG
-                printf("WSAStartup failed\n");
+                (void)printf("WSAStartup failed\n");
             #endif
             return E_NOT_OK;
         }
@@ -87,7 +89,7 @@ void EthDrv_Init(void)
     if (fp == NULL)
     {
         #ifdef ETHERNET_DEBUG
-            printf("Error opening file, using default IP: %s\n", ip_address_send);
+            (void)printf("Error opening file, using default IP: %s\n", ip_address_send);
         #endif
         return;
     }
@@ -99,7 +101,7 @@ void EthDrv_Init(void)
     (void)fclose(fp);
 
     #ifdef ETHERNET_DEBUG
-        printf("IP is %s\n", ip_address_read);
+        (void)printf("IP is %s\n", ip_address_read);
     #endif
 
     /* Copy the IP address to the global variable */
@@ -114,7 +116,7 @@ void EthDrv_Init(void)
 Std_ReturnType EthDrv_Send(unsigned short id, unsigned char* data, uint16 dataLen)
 {
     #ifdef ETHERNET_DEBUG
-        printf("######## in Sent Ethernet\n");
+        (void)printf("######## in Sent Ethernet\n");
     #endif
 
     #ifdef WINDOWS
@@ -131,7 +133,7 @@ Std_ReturnType EthDrv_Send(unsigned short id, unsigned char* data, uint16 dataLe
     if (network_socket == INVALID_SOCKET)
     {
         #ifdef ETHERNET_DEBUG
-            printf("Create Socket Error: %d\n", WSAGetLastError());
+            (void)printf("Create Socket Error: %d\n", WSAGetLastError());
         #endif
         return E_NOT_OK;
     }
@@ -147,27 +149,27 @@ Std_ReturnType EthDrv_Send(unsigned short id, unsigned char* data, uint16 dataLe
     if (connection_status == SOCKET_ERROR)
     {
         #ifdef ETHERNET_DEBUG
-            printf("Connection Error: %d\n", WSAGetLastError());
+            (void)printf("Connection Error: %d\n", WSAGetLastError());
         #endif
         closesocket(network_socket);
         return E_NOT_OK;
     }
 
     /* Prepare For Send */
-    uint8 sendData[BUS_LENGTH_RECEIVE + sizeof(id)];
+    uint8 sendData[(uint16)BUS_LENGTH_RECEIVE + (uint16)sizeof(id)];
     (void)memcpy(sendData, data, dataLen);
     for (unsigned char indx = 0; indx < sizeof(id); indx++)
     {
-        sendData[dataLen + indx] = (id >> (8 * indx));
+        sendData[dataLen + indx] = (uint8)(id >> (8U * (unsigned int)indx));
     }
 
     #ifdef ETHERNET_DEBUG
-        printf("Sending %d bytes\n", dataLen + sizeof(id));
-        for (int j = 0; j < dataLen + sizeof(id) && j < 20; j++)
+        (void)printf("Sending %d bytes\n", dataLen + sizeof(id));
+        for (uint16 j = 0U; j < (uint16)dataLen + (uint16)sizeof(id) && j < 20U; j++)
         {
-            printf("%d\t", sendData[j]);
+            (void)printf("%d\t", sendData[j]);
         }
-        printf("\n");
+        (void)printf("\n");
     #endif
 
     send(network_socket, (const char*)sendData, dataLen + sizeof(id), 0);
@@ -181,7 +183,7 @@ Std_ReturnType EthDrv_Send(unsigned short id, unsigned char* data, uint16 dataLe
 Std_ReturnType EthDrv_Receive(unsigned char* data, uint16 dataLen, unsigned short* id, uint16* actualSize)
 {
     #ifdef ETHERNET_DEBUG
-        printf("######## in Receive Ethernet\n");
+        (void)printf("######## in Receive Ethernet\n");
     #endif
 
     #ifdef WINDOWS
@@ -199,7 +201,7 @@ Std_ReturnType EthDrv_Receive(unsigned char* data, uint16 dataLen, unsigned shor
     if (server_socket == INVALID_SOCKET)
     {
         #ifdef ETHERNET_DEBUG
-            printf("Create Socket Error: %d\n", WSAGetLastError());
+            (void)printf("Create Socket Error: %d\n", WSAGetLastError());
         #endif
         return E_NOT_OK;
     }
@@ -215,7 +217,7 @@ Std_ReturnType EthDrv_Receive(unsigned char* data, uint16 dataLen, unsigned shor
     if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt)) == SOCKET_ERROR)
     {
         #ifdef ETHERNET_DEBUG
-            printf("setsockopt Error: %d\n", WSAGetLastError());
+            (void)printf("setsockopt Error: %d\n", WSAGetLastError());
         #endif
         closesocket(server_socket);
         return E_NOT_OK;
@@ -225,7 +227,7 @@ Std_ReturnType EthDrv_Receive(unsigned char* data, uint16 dataLen, unsigned shor
     if (bind(server_socket, (struct sockaddr*)&server_address, sizeof(server_address)) == SOCKET_ERROR)
     {
         #ifdef ETHERNET_DEBUG
-            printf("Bind Error: %d\n", WSAGetLastError());
+            (void)printf("Bind Error: %d\n", WSAGetLastError());
         #endif
         closesocket(server_socket);
         return E_NOT_OK;
@@ -234,7 +236,7 @@ Std_ReturnType EthDrv_Receive(unsigned char* data, uint16 dataLen, unsigned shor
     if (listen(server_socket, 5) == SOCKET_ERROR)
     {
         #ifdef ETHERNET_DEBUG
-            printf("Listen Error: %d\n", WSAGetLastError());
+            (void)printf("Listen Error: %d\n", WSAGetLastError());
         #endif
         closesocket(server_socket);
         return E_NOT_OK;
@@ -244,7 +246,7 @@ Std_ReturnType EthDrv_Receive(unsigned char* data, uint16 dataLen, unsigned shor
     if (client_socket == INVALID_SOCKET)
     {
         #ifdef ETHERNET_DEBUG
-            printf("Accept Error: %d\n", WSAGetLastError());
+            (void)printf("Accept Error: %d\n", WSAGetLastError());
         #endif
         closesocket(server_socket);
         return E_NOT_OK;
@@ -257,7 +259,7 @@ Std_ReturnType EthDrv_Receive(unsigned char* data, uint16 dataLen, unsigned shor
     if (recv_result == SOCKET_ERROR)
     {
         #ifdef ETHERNET_DEBUG
-            printf("Receive Error: %d\n", WSAGetLastError());
+            (void)printf("Receive Error: %d\n", WSAGetLastError());
         #endif
         closesocket(client_socket);
         closesocket(server_socket);
@@ -268,19 +270,20 @@ Std_ReturnType EthDrv_Receive(unsigned char* data, uint16 dataLen, unsigned shor
     int actualPduSize = recv_result - (int)sizeof(unsigned short);
 
     #ifdef ETHERNET_DEBUG
-        printf("in Receive Ethernet \t");
-        printf("Received %d bytes total, PDU size = %d\n", recv_result, actualPduSize);
-        printf("Info Received (first 20 bytes): \n");
-        for (int j = 0; j < recv_result && j < 20; j++)
+        (void)printf("in Receive Ethernet \t");
+        (void)printf("Received %d bytes total, PDU size = %d\n", recv_result, actualPduSize);
+        (void)printf("Info Received (first 20 bytes): \n");
+        for (int j = 0; (j < recv_result) && (j < 20); j++)
         {
-            printf("%d ", recData[j]);
+            (void)printf("%d ", recData[j]);
         }
-        printf("\n\n\n");
+        (void)printf("\n\n\n");
     #endif
 
     /* Extract ID from END of received data (not from fixed buffer position!) */
-    /* cppcheck-suppress misra-c2012-18.4 ; pointer arithmetic required for buffer offset */
-    (void)memcpy(id, recData + actualPduSize, sizeof(unsigned short));
+    /* cppcheck-suppress misra-c2012-18.4 */
+    /* cppcheck-suppress misra-c2012-21.15 */
+    (void)memcpy(id, &recData[actualPduSize], sizeof(unsigned short));
     (void)memcpy(data, recData, actualPduSize);
 
     /* Return actual PDU size to caller */
@@ -290,7 +293,7 @@ Std_ReturnType EthDrv_Receive(unsigned char* data, uint16 dataLen, unsigned shor
     }
 
     #ifdef ETHERNET_DEBUG
-        printf("id = %d \n", *id);
+        (void)printf("id = %d \n", *id);
     #endif
 
     /* Close the socket */

@@ -102,6 +102,7 @@ SecOC_PduCollection PdusCollections[] =
 SecOC_MainFunctionTxType SecOC_MainFunctionTxConf = 
 {
     SECOC_MAIN_FUNCTION_PERIOD_TX,
+    /* cppcheck-suppress misra-c2012-11.5 */
     SECOC_MAIN_FUNCTION_TX_PARTITION_REF, /* NOT SURE ABOUT THAT TYPE */
 
 };
@@ -111,6 +112,7 @@ SecOC_MainFunctionTxType SecOC_MainFunctionTxConf =
 SecOC_MainFunctionRxType SecOCMainFunctionRx = 
 {
     SECOC_MAIN_FUNCTION_PERIOD_RX,
+    /* cppcheck-suppress misra-c2012-11.5 */
     SECOC_MAIN_FUNCTION_RX_PARTITION_REF, /* NOT SURE ABOUT THAT TYPE */
 
 };
@@ -118,14 +120,15 @@ SecOC_MainFunctionRxType SecOCMainFunctionRx =
 
 
 // cppcheck-suppress misra-c2012-8.4
-SecOC_GeneralType SecOC_General = 
+/* cppcheck-suppress misra-c2012-9.3 */
+SecOC_GeneralType SecOC_General =
 {
     SECOC_DEFAULT_AUTHENTICATION_INFORMATION_PATTERN_VALUE,
     SECOC_DEV_ERROR_DETECT,
     SECOC_ENABLE_FORCED_PASS_OVERRIDE,
     SECOC_ENABLE_SECURITY_EVENT_REPORTING,
     SECOC_IGNORE_VERIFICATION_RESULT,
-    SECOC_MAX_ALIGN_SCALAR_TYPE,
+    {SECOC_MAX_ALIGN_SCALAR_TYPE},
     SECOC_OVERRIDE_STATUS_WITH_DATA_ID,
     SECOC_PROPAGATE_ONLY_FINAL_VERIFICATION_STATUS,
     SECOC_QUERY_FRESHNESS_VALUE,
@@ -229,7 +232,7 @@ SecOC_RxAuthenticPduLayerType SecOC_RxAuthenticPduLayer[] =
             .SduLength =                ((PduLengthType) 19)
         }        
     },
-    { /*for /* for RxSecuredPduCollection" */
+    { /* for RxSecuredPduCollection */
         .SecOCPduType =                 SECOC_IFPDU,
         .SecOCRxAuthenticLayerPduId =   ((uint16)12),
         .SecOCRxAuthenticLayerPduRef = 
@@ -337,7 +340,8 @@ SecOC_RxSecuredPduLayerType SecOC_RxSecuredPduLayer[] =
 
 
 // cppcheck-suppress misra-c2012-8.4
-Csm_JobType CsmJob = 
+// cppcheck-suppress misra-c2012-5.8
+Csm_JobType CsmJob =
 {
     CSM_JOBID
 };

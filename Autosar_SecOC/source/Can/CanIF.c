@@ -159,7 +159,7 @@ Std_ReturnType CanIf_SetControllerMode(uint8 ControllerId, CanIf_ControllerModeT
 Std_ReturnType CanIf_Transmit(PduIdType TxPduId, const PduInfoType *PduInfoPtr)
 {
     #ifdef CANIF_DEBUG
-        printf("######## in CanIf_Transmit \n");
+        (void)printf("######## in CanIf_Transmit \n");
     #endif
 
     Std_ReturnType result;
@@ -177,7 +177,7 @@ Std_ReturnType CanIf_Transmit(PduIdType TxPduId, const PduInfoType *PduInfoPtr)
         (void)Det_ReportError(CANIF_MODULE_ID, CANIF_INSTANCE_ID, CANIF_SID_TRANSMIT, CANIF_E_PARAM_POINTER);
         return E_NOT_OK;
     }
-    if ((PduInfoPtr->SduLength > 0) && (PduInfoPtr->SduDataPtr == NULL))
+    if ((PduInfoPtr->SduLength > 0U) && (PduInfoPtr->SduDataPtr == NULL))
     {
         (void)Det_ReportError(CANIF_MODULE_ID, CANIF_INSTANCE_ID, CANIF_SID_TRANSMIT, CANIF_E_PARAM_POINTER);
         return E_NOT_OK;
@@ -190,12 +190,12 @@ Std_ReturnType CanIf_Transmit(PduIdType TxPduId, const PduInfoType *PduInfoPtr)
     }
 
     #ifdef CANIF_DEBUG
-        printf("Secure PDU -->\n");
-            for(int i = 0; i < PduInfoPtr->SduLength; i++)
+        (void)printf("Secure PDU -->\n");
+            for(PduLengthType i = 0U; i < PduInfoPtr->SduLength; i++)
             {
-                printf("%d ", PduInfoPtr->SduDataPtr[i]);
+                (void)printf("%d ", PduInfoPtr->SduDataPtr[i]);
             }
-        printf("\n");
+        (void)printf("\n");
     #endif
 
     canPdu.id = TxPduId;

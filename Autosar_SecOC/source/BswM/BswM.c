@@ -665,7 +665,7 @@ static void BswM_ExecuteActionList(BswM_ActionListIdType ActionListId)
     const BswM_ActionListType *ActionListsPtr = BswM_GetActionListsConfig();
     boolean IsValidActionList = TRUE;
 
-    if (ActionListId >= BSWM_MAX_ACTION_LISTS)
+    if ((uint8)ActionListId >= BSWM_MAX_ACTION_LISTS)
     {
         (void)Det_ReportError(BSWM_MODULE_ID, BSWM_INSTANCE_ID, BSWM_SID_MAIN_FUNCTION, BSWM_E_PARAM_INVALID);
         IsValidActionList = FALSE;

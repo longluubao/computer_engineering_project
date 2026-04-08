@@ -365,7 +365,7 @@ extern const SecOC_RxPduProcessingType *SecOCRxPduProcessing;
 extern const SecOC_GeneralType         *SecOCGeneral;
 
 #ifndef RELEASE
-extern PduLengthType authRecieveLength[];
+extern PduLengthType authRecieveLength[SECOC_NUM_OF_RX_PDU_PROCESSING];
 #endif
 
 #endif /* INCLUDE_SECOC_H_*/
