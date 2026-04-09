@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 3.20)
 set(CMAKE_BUILD_TYPE Debug)
 
+# ---- Code Coverage Option ----
+option(ENABLE_COVERAGE "Build with code coverage instrumentation (gcov)" OFF)
+if(ENABLE_COVERAGE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage -fprofile-arcs -ftest-coverage")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fprofile-arcs -ftest-coverage")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+    message(STATUS "Code coverage: ENABLED (gcov)")
+endif()
+
 # ---- MCAL Target Selection ----
 # Usage: cmake -DMCAL_TARGET=PI4 ..   (or SIM for simulation)
 # Default: PI4 on Linux, SIM on Windows
