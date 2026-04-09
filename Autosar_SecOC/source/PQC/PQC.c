@@ -11,11 +11,17 @@
 /************************************************INCLUDES************************************************/
 /********************************************************************************************************/
 #include "PQC/PQC.h"
+#include "SecOC/SecOC_PQC_Cfg.h"
 #include <string.h>
 #include <stdio.h>
 
 /* liboqs includes */
 #include <oqs/oqs.h>
+
+#if defined(LINUX)
+#include <sys/stat.h>
+#include <errno.h>
+#endif
 
 /* External API declarations (MISRA 8.4 visibility). */
 Std_ReturnType PQC_Init(void);
@@ -269,12 +275,35 @@ Std_ReturnType PQC_MLDSA_KeyGen(PQC_MLDSA_KeyPairType* KeyPair)
 }
 
 /**
+ * @brief Ensure the key storage directory exists (Linux only)
+ */
+static Std_ReturnType PQC_EnsureKeyDirectory(void)
+{
+#if defined(LINUX)
+    struct stat st;
+    if (stat(PQC_MLDSA_KEY_DIRECTORY, &st) != 0)
+    {
+        /* Attempt to create directory with owner-only permissions */
+        if (mkdir(PQC_MLDSA_KEY_DIRECTORY, 0700) != 0)
+        {
+            (void)printf("WARNING: Cannot create key directory %s (errno=%d)\n",
+                         PQC_MLDSA_KEY_DIRECTORY, errno);
+            return PQC_E_NOT_OK;
+        }
+        (void)printf("Created key directory: %s\n", PQC_MLDSA_KEY_DIRECTORY);
+    }
+#endif
+    return PQC_E_OK;
+}
+
+/**
  * @brief Save ML-DSA-65 key pair to files
+ * @details Keys are stored in PQC_MLDSA_KEY_DIRECTORY (configurable).
  */
 Std_ReturnType PQC_MLDSA_SaveKeys(const PQC_MLDSA_KeyPairType* KeyPair, const char* filePrefix)
 {
     FILE* fp;
-    char filename[256];
+    char filename[512];
     size_t written;
 
     if ((KeyPair == NULL) || (filePrefix == NULL))
@@ -282,8 +311,12 @@ Std_ReturnType PQC_MLDSA_SaveKeys(const PQC_MLDSA_KeyPairType* KeyPair, const ch
         return PQC_E_INVALID_PARAM;
     }
 
-    /* Save public key in current directory */
-    (void)snprintf(filename, sizeof(filename), "%s.pub", filePrefix);
+    /* Ensure key directory exists */
+    (void)PQC_EnsureKeyDirectory();
+
+    /* Save public key */
+    (void)snprintf(filename, sizeof(filename), "%s%s.pub",
+                   PQC_MLDSA_KEY_DIRECTORY, filePrefix);
     fp = fopen(filename, "wb");
     if (fp == NULL)
     {
@@ -298,8 +331,9 @@ Std_ReturnType PQC_MLDSA_SaveKeys(const PQC_MLDSA_KeyPairType* KeyPair, const ch
         return PQC_E_NOT_OK;
     }
 
-    /* Save secret key in current directory */
-    (void)snprintf(filename, sizeof(filename), "%s.key", filePrefix);
+    /* Save secret key */
+    (void)snprintf(filename, sizeof(filename), "%s%s.key",
+                   PQC_MLDSA_KEY_DIRECTORY, filePrefix);
     fp = fopen(filename, "wb");
     if (fp == NULL)
     {
@@ -314,17 +348,20 @@ Std_ReturnType PQC_MLDSA_SaveKeys(const PQC_MLDSA_KeyPairType* KeyPair, const ch
         return PQC_E_NOT_OK;
     }
 
-    (void)printf("ML-DSA keys saved to %s.pub and %s.key\n", filePrefix, filePrefix);
+    (void)printf("ML-DSA keys saved to %s%s.pub and %s%s.key\n",
+                 PQC_MLDSA_KEY_DIRECTORY, filePrefix,
+                 PQC_MLDSA_KEY_DIRECTORY, filePrefix);
     return PQC_E_OK;
 }
 
 /**
  * @brief Load ML-DSA-65 key pair from files
+ * @details Keys are loaded from PQC_MLDSA_KEY_DIRECTORY (configurable).
  */
 Std_ReturnType PQC_MLDSA_LoadKeys(PQC_MLDSA_KeyPairType* KeyPair, const char* filePrefix)
 {
     FILE* fp;
-    char filename[256];
+    char filename[512];
     size_t read_bytes;
 
     if ((KeyPair == NULL) || (filePrefix == NULL))
@@ -332,8 +369,9 @@ Std_ReturnType PQC_MLDSA_LoadKeys(PQC_MLDSA_KeyPairType* KeyPair, const char* fi
         return PQC_E_INVALID_PARAM;
     }
 
-    /* Load public key from current directory */
-    (void)snprintf(filename, sizeof(filename), "%s.pub", filePrefix);
+    /* Load public key from configured directory */
+    (void)snprintf(filename, sizeof(filename), "%s%s.pub",
+                   PQC_MLDSA_KEY_DIRECTORY, filePrefix);
     fp = fopen(filename, "rb");
     if (fp == NULL)
     {
@@ -348,8 +386,9 @@ Std_ReturnType PQC_MLDSA_LoadKeys(PQC_MLDSA_KeyPairType* KeyPair, const char* fi
         return PQC_E_NOT_OK;
     }
 
-    /* Load secret key from current directory */
-    (void)snprintf(filename, sizeof(filename), "%s.key", filePrefix);
+    /* Load secret key from configured directory */
+    (void)snprintf(filename, sizeof(filename), "%s%s.key",
+                   PQC_MLDSA_KEY_DIRECTORY, filePrefix);
     fp = fopen(filename, "rb");
     if (fp == NULL)
     {
@@ -364,7 +403,9 @@ Std_ReturnType PQC_MLDSA_LoadKeys(PQC_MLDSA_KeyPairType* KeyPair, const char* fi
         return PQC_E_NOT_OK;
     }
 
-    (void)printf("ML-DSA keys loaded from %s.pub and %s.key\n", filePrefix, filePrefix);
+    (void)printf("ML-DSA keys loaded from %s%s.pub and %s%s.key\n",
+                 PQC_MLDSA_KEY_DIRECTORY, filePrefix,
+                 PQC_MLDSA_KEY_DIRECTORY, filePrefix);
     return PQC_E_OK;
 }
 

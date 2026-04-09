@@ -25,6 +25,13 @@
 #include "SoAd/SoAd.h"
 #include "SoAd/SoAd_PQC.h"
 #include "TcpIp/TcpIp.h"
+#include "Mcal/Mcal_Cfg.h"
+#if MCAL_IS_PI4()
+    #include "Mcal/Mcu.h"
+    #include "Mcal/Gpt.h"
+    #include "Mcal/Wdg.h"
+    #include "Mcal/Dio.h"
+#endif
 #include <string.h>
 
 /********************************************************************************************************/
@@ -374,6 +381,14 @@ void EcuM_Init(const EcuM_ConfigType *ConfigPtr)
         EcuM_WakeupValidationCallout = ConfigPtr->EcuMWakeupValidationCallout;
     }
 
+    /* Phase 0: MCAL initialization (hardware drivers, lowest layer) */
+#if MCAL_IS_PI4()
+    Mcu_Init(NULL);
+    Gpt_Init(NULL);
+    Wdg_Init(NULL);
+    Dio_Init(NULL);
+#endif
+
     /* Phase 1: Basic SW initialization per AUTOSAR SWS_EcuM_02811 */
     Det_Init(NULL);
     Det_Start();
@@ -525,6 +540,12 @@ Std_ReturnType EcuM_Shutdown(void)
         EcuM_DeInitEthCommunicationPath();
 #endif
         EthSM_DeInit();
+#if MCAL_IS_PI4()
+        Dio_DeInit();
+        Wdg_DeInit();
+        Gpt_DeInit();
+        Mcu_DeInit();
+#endif
         (void)EcuM_ExecuteResetCalloutHook();
         EcuM_State = ECUM_STATE_OFF;
     }
@@ -550,6 +571,12 @@ Std_ReturnType EcuM_Shutdown(void)
         EcuM_DeInitEthCommunicationPath();
 #endif
         EthSM_DeInit();
+#if MCAL_IS_PI4()
+        Dio_DeInit();
+        Wdg_DeInit();
+        Gpt_DeInit();
+        Mcu_DeInit();
+#endif
         (void)EcuM_ExecuteOffCalloutHook();
         EcuM_State = ECUM_STATE_OFF;
     }
@@ -972,6 +999,11 @@ void EcuM_MainFunctionState(void)
     {
         return;
     }
+
+    /* Kick the hardware watchdog every cycle */
+#if MCAL_IS_PI4()
+    Wdg_Trigger();
+#endif
 
     if (EcuM_State == ECUM_STATE_SLEEP)
     {

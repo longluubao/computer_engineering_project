@@ -37,4 +37,25 @@
  */
 #define SECOC_PQC_MAX_PDU_SIZE          8192U
 
+/**
+ * @brief ML-DSA key storage directory
+ * Override via CMake: -DPQC_MLDSA_KEY_DIR="/custom/path/"
+ * Default: /etc/secoc/keys/ on Pi 4, CWD on simulation/Windows
+ * MUST end with a trailing slash.
+ */
+#ifndef PQC_MLDSA_KEY_DIRECTORY
+    #if defined(LINUX)
+        #define PQC_MLDSA_KEY_DIRECTORY     "/etc/secoc/keys/"
+    #else
+        #define PQC_MLDSA_KEY_DIRECTORY     "./"
+    #endif
+#endif
+
+/**
+ * @brief Automatic rekeying interval (in MainFunction cycles)
+ * At 10 ms MainFunction period: 360000 cycles = 1 hour
+ * Set to 0 to disable automatic rekeying.
+ */
+#define SOAD_PQC_REKEY_INTERVAL_CYCLES  360000U
+
 #endif /* SECOC_PQC_CFG_H */
