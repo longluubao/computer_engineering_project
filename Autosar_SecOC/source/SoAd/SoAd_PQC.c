@@ -13,6 +13,7 @@
 #include "SoAd.h"
 #include "TcpIp.h"
 #include "Csm.h"
+#include "SecOC/SecOC_PQC_Cfg.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -38,6 +39,10 @@ extern Std_ReturnType SoAd_PQC_ResetSession(Csm_PeerIdType PeerId);
 /********************************************************************************************************/
 static boolean SoAd_PQC_Initialized = FALSE;
 static SoAd_PQC_StateType SoAd_PQC_States[SOAD_PQC_MAX_PEERS];
+static uint32 SoAd_PQC_RekeyCycles[SOAD_PQC_MAX_PEERS];
+
+/* Forward declarations for static helpers */
+static Std_ReturnType SoAd_PQC_KeyExchange_Initiator(Csm_PeerIdType PeerId);
 
 static Std_ReturnType SoAd_PQC_DeriveSessionFromPeer(Csm_PeerIdType PeerId)
 {
@@ -125,10 +130,11 @@ Std_ReturnType SoAd_PQC_Init(void)
         return E_OK;
     }
 
-    /* Initialize session states */
+    /* Initialize session states and rekey counters */
     for (i = 0; i < SOAD_PQC_MAX_PEERS; i++)
     {
         SoAd_PQC_States[i] = SOAD_PQC_STATE_IDLE;
+        SoAd_PQC_RekeyCycles[i] = 0U;
     }
 
     SoAd_PQC_Initialized = TRUE;
@@ -159,9 +165,54 @@ void SoAd_PQC_DeInit(void)
     SoAd_PQC_Initialized = FALSE;
 }
 
+/**
+ * @brief Periodic main function for SoAd PQC
+ * @details Called cyclically by the scheduler. Tracks session age per peer
+ *          and triggers automatic rekeying when SOAD_PQC_REKEY_INTERVAL_CYCLES
+ *          is reached (set to 0 to disable). Also handles asynchronous
+ *          completion via SoAd_PQC_HandleControlMessage().
+ */
 void SoAd_PQC_MainFunction(void)
 {
-    /* Asynchronous completion happens on SoAd_PQC_HandleControlMessage(). */
+#if (SOAD_PQC_REKEY_INTERVAL_CYCLES > 0U)
+    Csm_PeerIdType peerId;
+
+    if (SoAd_PQC_Initialized == FALSE)
+    {
+        return;
+    }
+
+    for (peerId = 0U; peerId < SOAD_PQC_MAX_PEERS; peerId++)
+    {
+        if (SoAd_PQC_States[peerId] == SOAD_PQC_STATE_SESSION_ESTABLISHED)
+        {
+            SoAd_PQC_RekeyCycles[peerId]++;
+
+            if (SoAd_PQC_RekeyCycles[peerId] >= SOAD_PQC_REKEY_INTERVAL_CYCLES)
+            {
+                (void)printf("SoAd PQC: Rekeying triggered for peer %u (after %u cycles)\n",
+                             peerId, SoAd_PQC_RekeyCycles[peerId]);
+
+                /* Reset the current session */
+                (void)Csm_KeyExchangeReset(peerId);
+                (void)Csm_ClearSessionKeys(peerId);
+                SoAd_PQC_RekeyCycles[peerId] = 0U;
+
+                /* Re-initiate key exchange as initiator */
+                if (SoAd_PQC_KeyExchange_Initiator(peerId) != E_OK)
+                {
+                    (void)printf("SoAd PQC: Rekey initiation failed for peer %u\n", peerId);
+                    SoAd_PQC_States[peerId] = SOAD_PQC_STATE_FAILED;
+                }
+            }
+        }
+        else
+        {
+            /* Reset counter for non-established sessions */
+            SoAd_PQC_RekeyCycles[peerId] = 0U;
+        }
+    }
+#endif
 }
 
 /**
@@ -290,6 +341,7 @@ boolean SoAd_PQC_HandleControlMessage(const uint8* BufPtr, uint16 Length)
         }
 
         SoAd_PQC_States[peerId] = SOAD_PQC_STATE_SESSION_ESTABLISHED;
+        SoAd_PQC_RekeyCycles[peerId] = 0U;
         return TRUE;
     }
 
@@ -308,6 +360,7 @@ boolean SoAd_PQC_HandleControlMessage(const uint8* BufPtr, uint16 Length)
         }
 
         SoAd_PQC_States[peerId] = SOAD_PQC_STATE_SESSION_ESTABLISHED;
+        SoAd_PQC_RekeyCycles[peerId] = 0U;
         return TRUE;
     }
 
@@ -354,6 +407,7 @@ Std_ReturnType SoAd_PQC_ResetSession(Csm_PeerIdType PeerId)
     }
 
     SoAd_PQC_States[PeerId] = SOAD_PQC_STATE_IDLE;
+    SoAd_PQC_RekeyCycles[PeerId] = 0U;
 
     (void)printf("SoAd PQC session reset for peer %u\n", PeerId);
 

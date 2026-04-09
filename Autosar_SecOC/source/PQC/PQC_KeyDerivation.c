@@ -14,7 +14,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <oqs/oqs.h>
-#include <oqs/sha2.h>
+#include <openssl/evp.h>
+#include <openssl/core_names.h>
+#include <openssl/params.h>
 
 /********************************************************************************************************/
 /******************************************GLOBAL VARIABLES**********************************************/
@@ -34,7 +36,37 @@ static const char* HKDF_INFO_AUTHENTICATION = "Authentication-Key";
 /********************************************************************************************************/
 
 /**
+ * @brief Compute HMAC-SHA256 using OpenSSL 3.0 EVP_MAC API
+ * @param[in]  key      HMAC key
+ * @param[in]  key_len  Key length in bytes
+ * @param[in]  data     Data to authenticate
+ * @param[in]  data_len Data length in bytes
+ * @param[out] out      Output buffer (must be >= 32 bytes)
+ * @param[out] out_len  Actual output length
+ */
+static void PQC_HMAC_SHA256(
+    const uint8* key, uint32 key_len,
+    const uint8* data, uint32 data_len,
+    uint8* out, size_t* out_len)
+{
+    EVP_MAC* mac = EVP_MAC_fetch(NULL, "HMAC", NULL);
+    EVP_MAC_CTX* ctx = EVP_MAC_CTX_new(mac);
+    OSSL_PARAM params[2];
+
+    params[0] = OSSL_PARAM_construct_utf8_string(OSSL_MAC_PARAM_DIGEST, "SHA256", 0);
+    params[1] = OSSL_PARAM_construct_end();
+
+    (void)EVP_MAC_init(ctx, key, (size_t)key_len, params);
+    (void)EVP_MAC_update(ctx, data, (size_t)data_len);
+    (void)EVP_MAC_final(ctx, out, out_len, 32U);
+
+    EVP_MAC_CTX_free(ctx);
+    EVP_MAC_free(mac);
+}
+
+/**
  * @brief HKDF-Extract: Extract pseudorandom key from input key material
+ * @details RFC 5869 Section 2.2: PRK = HMAC-SHA256(salt, IKM)
  */
 static void HKDF_Extract(
     const uint8* salt,
@@ -43,25 +75,18 @@ static void HKDF_Extract(
     uint32 ikm_len,
     uint8* prk)            /* Output: Pseudorandom key (32 bytes) */
 {
-    /* HKDF-Extract: PRK = HMAC-SHA256(salt, IKM) */
-    /* For simplicity, we use SHA-256(salt || IKM) as approximation */
-    /* In production, should use proper HMAC-SHA256 from liboqs */
+    size_t prk_len = 32U;
 
-    uint8 input[1024];
-    uint32 input_len = 0;
-
-    /* Concatenate salt and IKM */
-    (void)memcpy(input, salt, salt_len);
-    input_len += salt_len;
-    (void)memcpy(&input[input_len], ikm, ikm_len);
-    input_len += ikm_len;
-
-    /* Hash using SHA-256 from liboqs */
-    OQS_SHA2_sha256(prk, input, input_len);
+    /* RFC 5869 Section 2.2: PRK = HMAC-Hash(salt, IKM) */
+    PQC_HMAC_SHA256(salt, salt_len, ikm, ikm_len, prk, &prk_len);
 }
 
 /**
  * @brief HKDF-Expand: Expand pseudorandom key to desired length
+ * @details RFC 5869 Section 2.3:
+ *          T(0) = empty string
+ *          T(i) = HMAC-SHA256(PRK, T(i-1) || info || i)
+ *          OKM  = first okm_len octets of T(1) || T(2) || ...
  */
 static void HKDF_Expand(
     const uint8* prk,      /* Pseudorandom key from Extract */
@@ -71,26 +96,55 @@ static void HKDF_Expand(
     uint8* okm,            /* Output key material */
     uint32 okm_len)        /* Desired output length */
 {
-    /* HKDF-Expand: OKM = HMAC-SHA256(PRK, info || 0x01) */
-    /* Simplified version - in production use proper HKDF */
+    uint8 t_prev[32];      /* T(i-1) - previous HMAC output */
+    uint32 t_prev_len = 0; /* 0 for first iteration (T(0) = empty) */
+    uint8 counter = 1U;
+    uint32 offset = 0U;
+    /* N = ceil(okm_len / 32) */
+    uint32 n = (okm_len + 31U) / 32U;
+    uint32 i;
 
-    uint8 input[1024];
-    uint32 input_len = 0;
+    for (i = 0U; i < n; i++)
+    {
+        EVP_MAC* mac = EVP_MAC_fetch(NULL, "HMAC", NULL);
+        EVP_MAC_CTX* ctx = EVP_MAC_CTX_new(mac);
+        OSSL_PARAM params[2];
+        uint8 t_out[32];
+        size_t t_out_len = 32U;
+        uint32 copy_len;
 
-    /* Concatenate PRK, info, and counter */
-    (void)memcpy(input, prk, prk_len);
-    input_len += prk_len;
-    (void)memcpy(&input[input_len], info, info_len);
-    input_len += info_len;
-    input[input_len] = 0x01U;  /* Counter byte */
-    input_len++;
+        params[0] = OSSL_PARAM_construct_utf8_string(OSSL_MAC_PARAM_DIGEST, "SHA256", 0);
+        params[1] = OSSL_PARAM_construct_end();
 
-    /* Hash using SHA-256 from liboqs */
-    uint8 hash[32];
-    OQS_SHA2_sha256(hash, input, input_len);
+        (void)EVP_MAC_init(ctx, prk, (size_t)prk_len, params);
 
-    /* Copy desired length */
-    (void)memcpy(okm, hash, (okm_len < 32U) ? okm_len : 32U);
+        /* T(i-1) - empty for first iteration per RFC 5869 */
+        if (t_prev_len > 0U)
+        {
+            (void)EVP_MAC_update(ctx, t_prev, (size_t)t_prev_len);
+        }
+
+        /* info */
+        (void)EVP_MAC_update(ctx, info, (size_t)info_len);
+
+        /* counter byte (1-indexed) */
+        (void)EVP_MAC_update(ctx, &counter, 1U);
+
+        (void)EVP_MAC_final(ctx, t_out, &t_out_len, 32U);
+        EVP_MAC_CTX_free(ctx);
+        EVP_MAC_free(mac);
+
+        /* Copy to output, clamping last block */
+        copy_len = (okm_len - offset < 32U) ? (okm_len - offset) : 32U;
+        (void)memcpy(&okm[offset], t_out, copy_len);
+
+        /* Save T(i) for next iteration */
+        (void)memcpy(t_prev, t_out, 32U);
+        t_prev_len = 32U;
+
+        offset += copy_len;
+        counter++;
+    }
 }
 
 /**
