@@ -1,0 +1,18 @@
+[       699 us][INFO ] logger initialised: scenario=mixed_bus seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260418T091946Z/raw git=ise
+[       817 us][INFO ] running scenario 'mixed_bus' (CAN-FD ↔ Ethernet gateway scenario)
+[      2807 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      2880 us][INFO ] bus[1] kind=3 bitrate=100000000 MTU=1500 ber=0.00e+00 prop_ns=1000
+[      5353 us][INFO ] ecu[tx-can] stack initialised (protection=2)
+[      5447 us][INFO ] ecu[gw-can] stack initialised (protection=2)
+[      5527 us][INFO ] ecu[gw-eth] stack initialised (protection=2)
+[      5602 us][INFO ] ecu[rx-eth] stack initialised (protection=2)
+[      5874 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 253.9 us
+[      5977 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 65.2 us
+[    297837 us][INFO ] =========== mixed_bus_can summary ===========
+[    297915 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[    297960 us][INFO ] e2e latency p50/p95/p99 = 1544.9 / 2579.4 / 2659.9 us
+[    298001 us][INFO ] SecOC auth   mean=127.4 us  verify mean=36.5 us
+[    298464 us][INFO ] =========== mixed_bus_eth summary ===========
+[    298500 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[    298525 us][INFO ] e2e latency p50/p95/p99 = 2628.6 / 3671.3 / 4254.7 us
+[    298561 us][INFO ] SecOC auth   mean=135.2 us  verify mean=34.6 us
