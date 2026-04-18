@@ -1,0 +1,52 @@
+{
+  "_comment": "Scenario catalogue for ise_runner. The driver shell script (run_all_scenarios.sh) currently hard-codes a sensible default; this file documents every available knob so a human can easily tweak a thesis run without touching C code.",
+  "scenarios": [
+    {
+      "name": "baseline",
+      "description": "Per-signal baseline latency and overhead table",
+      "iterations": 200,
+      "protection": ["hmac", "pqc", "hybrid"],
+      "attack": "none"
+    },
+    {
+      "name": "throughput",
+      "description": "Sustained 2 s throughput on a single bus",
+      "iterations": 0,
+      "protection": ["hmac", "pqc"],
+      "bus": ["canfd", "eth100", "eth1000"],
+      "attack": "none"
+    },
+    {
+      "name": "mixed_bus",
+      "description": "CAN-FD → gateway → 100BASE-T1 Ethernet",
+      "iterations": 200,
+      "protection": ["pqc", "hybrid"],
+      "attack": "none"
+    },
+    {
+      "name": "attacks",
+      "description": "Run every attack kind against a protected channel",
+      "iterations": 100,
+      "protection": ["hmac", "pqc"],
+      "attack": [
+        "replay",
+        "tamper_payload",
+        "tamper_auth",
+        "freshness_rollback",
+        "mitm_key_confuse",
+        "dos_flood",
+        "sig_fuzz",
+        "downgrade_hmac",
+        "harvest_now",
+        "timing_probe"
+      ]
+    },
+    {
+      "name": "rekey",
+      "description": "ML-KEM handshake stress (no bus traffic)",
+      "iterations": 200,
+      "protection": ["pqc"],
+      "attack": "none"
+    }
+  ]
+}
