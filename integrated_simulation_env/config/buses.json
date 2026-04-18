@@ -1,0 +1,10 @@
+{
+  "_comment": "Default physical parameters for each virtual bus kind. The scenarios can override these values (e.g. to increase BER for robustness tests).",
+  "buses": {
+    "can_20":    { "bitrate_bps":     1000000, "mtu_bytes":    8, "propagation_ns": 5000, "bit_error_rate": 0.0 },
+    "can_fd":    { "bitrate_bps":     5000000, "mtu_bytes":   64, "propagation_ns": 3000, "bit_error_rate": 0.0 },
+    "flexray":   { "bitrate_bps":    10000000, "mtu_bytes":  254, "propagation_ns": 2000, "bit_error_rate": 0.0, "slot_count": 64, "slot_duration_ns": 100000 },
+    "eth_100":   { "bitrate_bps":   100000000, "mtu_bytes": 1500, "propagation_ns": 1000, "bit_error_rate": 0.0, "tsn_enabled": true,  "priority_queues": 8 },
+    "eth_1000":  { "bitrate_bps":  1000000000, "mtu_bytes": 1500, "propagation_ns":  500, "bit_error_rate": 0.0, "tsn_enabled": true,  "priority_queues": 8 }
+  }
+}

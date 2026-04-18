@@ -1,0 +1,73 @@
+[      1486 us][INFO ] logger initialised: scenario=baseline seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260418T101627Z/raw git=ise
+[      1890 us][INFO ] running scenario 'baseline' (Baseline per-signal latency & overhead)
+[      3912 us][INFO ] bus[1] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      4271 us][INFO ] bus[0] kind=0 bitrate=1000000 MTU=8 ber=0.00e+00 prop_ns=5000
+[      4601 us][INFO ] bus[2] kind=2 bitrate=10000000 MTU=254 ber=0.00e+00 prop_ns=2000
+[      4716 us][INFO ] bus[3] kind=3 bitrate=100000000 MTU=1500 ber=0.00e+00 prop_ns=1000
+[      4871 us][INFO ] bus[4] kind=4 bitrate=1000000000 MTU=1500 ber=0.00e+00 prop_ns=500
+[      8537 us][INFO ] ecu[tx-ecu] stack initialised (protection=3)
+[      8727 us][INFO ] ecu[rx-ecu] stack initialised (protection=3)
+[      9191 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 402.8 us
+[      9246 us][INFO ] signal 0x01 (BrakeCmd): 80 iterations on bus_kind=1
+[    169574 us][INFO ] ecu[tx-ecu] stack initialised (protection=3)
+[    169799 us][INFO ] ecu[rx-ecu] stack initialised (protection=3)
+[    170013 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 140.8 us
+[    170088 us][INFO ] signal 0x02 (SteeringTorque): 80 iterations on bus_kind=1
+[    315127 us][INFO ] ecu[tx-ecu] stack initialised (protection=3)
+[    315377 us][INFO ] ecu[rx-ecu] stack initialised (protection=3)
+[    315651 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 169.2 us
+[    315707 us][INFO ] signal 0x03 (AirbagTrigger): 80 iterations on bus_kind=0
+[    499392 us][INFO ] ecu[tx-ecu] stack initialised (protection=3)
+[    499581 us][INFO ] ecu[rx-ecu] stack initialised (protection=3)
+[    499841 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 151.4 us
+[    499884 us][INFO ] signal 0x04 (Throttle): 80 iterations on bus_kind=1
+[    685107 us][INFO ] ecu[tx-ecu] stack initialised (protection=3)
+[    685263 us][INFO ] ecu[rx-ecu] stack initialised (protection=3)
+[    685442 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 125.7 us
+[    685532 us][INFO ] signal 0x05 (AbsWheelSpeed): 80 iterations on bus_kind=1
+[    853192 us][INFO ] ecu[tx-ecu] stack initialised (protection=3)
+[    853401 us][INFO ] ecu[rx-ecu] stack initialised (protection=3)
+[    853649 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 135.6 us
+[    853801 us][INFO ] signal 0x06 (InverterTorque): 80 iterations on bus_kind=2
+[   1030818 us][INFO ] ecu[tx-ecu] stack initialised (protection=3)
+[   1031019 us][INFO ] ecu[rx-ecu] stack initialised (protection=3)
+[   1031188 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 103.7 us
+[   1031238 us][INFO ] signal 0x07 (BodyMotion): 80 iterations on bus_kind=1
+[   1212293 us][INFO ] ecu[tx-ecu] stack initialised (protection=3)
+[   1212475 us][INFO ] ecu[rx-ecu] stack initialised (protection=3)
+[   1212624 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 97.7 us
+[   1212672 us][INFO ] signal 0x08 (DoorLockState): 80 iterations on bus_kind=0
+[   1367007 us][INFO ] ecu[tx-ecu] stack initialised (protection=3)
+[   1367246 us][INFO ] ecu[rx-ecu] stack initialised (protection=3)
+[   1367474 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 163.5 us
+[   1367578 us][INFO ] signal 0x09 (Speedometer): 80 iterations on bus_kind=1
+[   1553557 us][INFO ] ecu[tx-ecu] stack initialised (protection=3)
+[   1553715 us][INFO ] ecu[rx-ecu] stack initialised (protection=3)
+[   1553905 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 124.9 us
+[   1553954 us][INFO ] signal 0x0A (HVAC): 80 iterations on bus_kind=0
+[   1729137 us][INFO ] ecu[tx-ecu] stack initialised (protection=3)
+[   1729379 us][INFO ] ecu[rx-ecu] stack initialised (protection=3)
+[   1729667 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 178.0 us
+[   1729729 us][INFO ] signal 0x0B (InfotainmentGateway): 80 iterations on bus_kind=3
+[   1895267 us][INFO ] ecu[tx-ecu] stack initialised (protection=3)
+[   1895464 us][INFO ] ecu[rx-ecu] stack initialised (protection=3)
+[   1895750 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 170.8 us
+[   1895807 us][INFO ] signal 0x0C (ADAS_Camera_Meta): 80 iterations on bus_kind=3
+[   2079998 us][INFO ] ecu[tx-ecu] stack initialised (protection=3)
+[   2080177 us][INFO ] ecu[rx-ecu] stack initialised (protection=3)
+[   2080392 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 149.9 us
+[   2080475 us][INFO ] signal 0x0D (V2X_AuthenticatedMsg): 80 iterations on bus_kind=4
+[   2191997 us][INFO ] ecu[tx-ecu] stack initialised (protection=3)
+[   2192235 us][INFO ] ecu[rx-ecu] stack initialised (protection=3)
+[   2192411 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 124.3 us
+[   2192460 us][INFO ] signal 0x0E (OBD_Diagnostic): 80 iterations on bus_kind=3
+[   2375035 us][INFO ] =========== baseline summary ===========
+[   2375126 us][INFO ] messages   success=1120  verify_fail=0  drop=0
+[   2375537 us][INFO ] e2e latency p50/p95/p99 = 2194.1 / 3269.0 / 3348.5 us
+[   2375597 us][INFO ] SecOC auth   mean=182.2 us  verify mean=86.7 us
+[   2375642 us][INFO ] deadline D1 miss 0/240 (0.00%)
+[   2375675 us][INFO ] deadline D2 miss 0/240 (0.00%)
+[   2375694 us][INFO ] deadline D3 miss 0/240 (0.00%)
+[   2375725 us][INFO ] deadline D4 miss 0/160 (0.00%)
+[   2375741 us][INFO ] deadline D5 miss 0/160 (0.00%)
+[   2375766 us][INFO ] deadline D6 miss 0/80 (0.00%)

@@ -1,0 +1,19 @@
+{
+  "_comment": "Automotive signal catalogue used by the ISE. See src/sim_signals.c for the canonical in-code definition; this JSON is for documentation and external tools only.",
+  "signals": [
+    { "id": "0x01", "name": "BrakeCmd",              "asil": "D",  "deadline_class": 1, "cycle_ms":   5, "payload_bytes":    8, "bus": "can_fd",   "tp_mode": false },
+    { "id": "0x02", "name": "SteeringTorque",        "asil": "D",  "deadline_class": 1, "cycle_ms":   5, "payload_bytes":   16, "bus": "can_fd",   "tp_mode": false },
+    { "id": "0x03", "name": "AirbagTrigger",         "asil": "D",  "deadline_class": 1, "cycle_ms":   5, "payload_bytes":    4, "bus": "can_20",   "tp_mode": false },
+    { "id": "0x04", "name": "Throttle",              "asil": "C",  "deadline_class": 2, "cycle_ms":  10, "payload_bytes":    8, "bus": "can_fd",   "tp_mode": false },
+    { "id": "0x05", "name": "AbsWheelSpeed",         "asil": "C",  "deadline_class": 2, "cycle_ms":  10, "payload_bytes":   32, "bus": "can_fd",   "tp_mode": false },
+    { "id": "0x06", "name": "InverterTorque",        "asil": "C",  "deadline_class": 2, "cycle_ms":  10, "payload_bytes":   16, "bus": "flexray",  "tp_mode": false },
+    { "id": "0x07", "name": "BodyMotion",            "asil": "B",  "deadline_class": 3, "cycle_ms":  20, "payload_bytes":   24, "bus": "can_fd",   "tp_mode": false },
+    { "id": "0x08", "name": "DoorLockState",         "asil": "B",  "deadline_class": 3, "cycle_ms":  20, "payload_bytes":    8, "bus": "can_20",   "tp_mode": false },
+    { "id": "0x09", "name": "Speedometer",           "asil": "B",  "deadline_class": 4, "cycle_ms":  50, "payload_bytes":   16, "bus": "can_fd",   "tp_mode": false },
+    { "id": "0x0A", "name": "HVAC",                  "asil": "QM", "deadline_class": 4, "cycle_ms":  50, "payload_bytes":    8, "bus": "can_20",   "tp_mode": false },
+    { "id": "0x0B", "name": "InfotainmentGateway",   "asil": "QM", "deadline_class": 5, "cycle_ms": 100, "payload_bytes":  512, "bus": "eth_100",  "tp_mode": true  },
+    { "id": "0x0C", "name": "ADAS_Camera_Meta",      "asil": "C",  "deadline_class": 3, "cycle_ms":  20, "payload_bytes":  256, "bus": "eth_100",  "tp_mode": true  },
+    { "id": "0x0D", "name": "V2X_AuthenticatedMsg",  "asil": "B",  "deadline_class": 5, "cycle_ms": 100, "payload_bytes": 1024, "bus": "eth_1000", "tp_mode": true  },
+    { "id": "0x0E", "name": "OBD_Diagnostic",        "asil": "QM", "deadline_class": 6, "cycle_ms": 500, "payload_bytes":  128, "bus": "eth_100",  "tp_mode": true  }
+  ]
+}
