@@ -72,8 +72,13 @@ int sc_mixed_bus_run(const SimConfig *cfg)
     sim_ecu_share_keys(tx_can, gw_can_side);
     sim_ecu_share_keys(gw_eth_side, rx_eth);
 
+    /* Both hops use the same signal so the payload size seen by the rx
+     * side matches what the gateway actually forwarded. Using a different
+     * signal def on the eth hop would make the rx use the ADAS signal's
+     * declared payload_bytes (256) to locate the authenticator, which
+     * does not match the 8-byte CAN payload the gateway relayed. */
     const SimSignalDef *sig_can = sim_signal_find(0x04); /* Throttle, 8 B */
-    const SimSignalDef *sig_eth = sim_signal_find(0x0C); /* ADAS_Camera_Meta */
+    const SimSignalDef *sig_eth = sig_can;
 
     uint8_t payload[1024];
     for (uint32_t i = 0; i < sizeof(payload); ++i) payload[i] = (uint8_t)i;
@@ -88,6 +93,8 @@ int sc_mixed_bus_run(const SimConfig *cfg)
         uint16_t id = 0; uint32_t n = 0;
         if (sim_ecu_recv_signal(gw_can_side, &id, buf, sizeof(buf), &n,
                                 100000000ULL)) {
+            sim_hist_add(&m_can.e2e_latency, sim_now_ns() - t0);
+            m_can.success_count++;
             sim_ecu_send_signal(gw_eth_side, sig_eth, buf, n);
         }
 

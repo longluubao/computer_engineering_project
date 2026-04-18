@@ -40,7 +40,11 @@ static int run_one_attack(const SimConfig *cfg, SimAttackKind kind,
 
     SimAttackCfg ac = {0};
     ac.kind           = kind;
-    ac.period_ms      = 5;
+    /* period_ms=0 → fire on every eligible frame. The replay attack
+     * additionally self-gates on its internal cache depth (first 3
+     * frames are captured, not replayed) so injections still lag the
+     * iteration count slightly. */
+    ac.period_ms      = 0;
     ac.target_signal  = 0;
     ac.target_bus_id  = 0xFF;
     ac.seed           = cfg->seed;
@@ -71,12 +75,16 @@ static int run_one_attack(const SimConfig *cfg, SimAttackKind kind,
 
     uint32_t iters = cfg->iterations < 40 ? 40 : cfg->iterations;
     for (uint32_t it = 0; it < iters; ++it) {
+        uint64_t t0 = sim_now_ns();
         sim_ecu_send_signal(tx, sig, payload, sig->payload_bytes);
         uint8_t rxbuf[4096];
         uint16_t id = 0;
         uint32_t n = 0;
         bool ok = sim_ecu_recv_signal(rx, &id, rxbuf, sizeof(rxbuf), &n,
                                       20000000ULL);
+        /* Record e2e latency regardless of verify outcome so the thesis
+         * can compare baseline vs under-attack timing. */
+        sim_hist_add(&m.e2e_latency, sim_now_ns() - t0);
         sim_attacker_notify_verify_outcome(atk, ok, sig->id);
     }
 
@@ -94,6 +102,24 @@ static int run_one_attack(const SimConfig *cfg, SimAttackKind kind,
     agg->verify_fail_count += m.verify_fail_count;
     agg->success_count     += m.success_count;
 
+    /* Roll per-attack samples into the aggregate so the top-level
+     * "attacks_aggregate" row has real latency + PDU numbers. The
+     * reservoir holds at most SIM_METRICS_RESERVOIR samples; we stop
+     * adding once it's full (percentiles fall back to log2 buckets). */
+    #define MERGE_HIST(dst, src) \
+        do { \
+            for (uint32_t _i = 0; _i < (src).sample_count; ++_i) { \
+                sim_hist_add(&(dst), (src).samples[_i]); \
+            } \
+        } while (0)
+    MERGE_HIST(agg->e2e_latency,  m.e2e_latency);
+    MERGE_HIST(agg->secoc_auth,   m.secoc_auth);
+    MERGE_HIST(agg->secoc_verify, m.secoc_verify);
+    MERGE_HIST(agg->cantp,        m.cantp);
+    MERGE_HIST(agg->pdu_bytes,    m.pdu_bytes);
+    MERGE_HIST(agg->fragments,    m.fragments);
+    #undef MERGE_HIST
+
     sim_log(SIM_LOG_INFO,
             "attack[%s]  injected=%llu detected=%llu delivered=%llu  rate=%.2f%%",
             sim_attack_name(kind),
@@ -103,9 +129,15 @@ static int run_one_attack(const SimConfig *cfg, SimAttackKind kind,
             ast.injected ? 100.0 * (double)ast.detected / (double)ast.injected
                          : 0.0);
 
-    /* Write a per-attack summary alongside the aggregate. */
+    /* Write a per-attack summary alongside the aggregate. Tag with the
+     * protection mode so that attacks_pqc and attacks_hmac runs produce
+     * distinct output files instead of overwriting each other. */
+    const char *prot = (cfg->protection == SIM_PROT_PQC)    ? "pqc"
+                     : (cfg->protection == SIM_PROT_HYBRID) ? "hybrid"
+                                                            : "hmac";
     char label[64];
-    snprintf(label, sizeof(label), "attacks_%s", sim_attack_name(kind));
+    snprintf(label, sizeof(label), "attacks_%s_%s",
+             sim_attack_name(kind), prot);
     sim_scenario_finalise(&m, label, cfg);
 
     sim_ecu_destroy(tx);
@@ -144,6 +176,11 @@ int sc_attacks_run(const SimConfig *cfg)
     }
 
     agg.session_ns_end = sim_now_ns();
-    sim_scenario_finalise(&agg, "attacks_aggregate", cfg);
+    const char *agg_prot = (cfg->protection == SIM_PROT_PQC)    ? "pqc"
+                         : (cfg->protection == SIM_PROT_HYBRID) ? "hybrid"
+                                                                : "hmac";
+    char agg_label[64];
+    snprintf(agg_label, sizeof(agg_label), "attacks_aggregate_%s", agg_prot);
+    sim_scenario_finalise(&agg, agg_label, cfg);
     return 0;
 }

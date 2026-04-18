@@ -117,7 +117,11 @@ def write_attack_csv(
         inj = int(r.get("attacks_injected", 0))
         det = int(r.get("attacks_detected", 0))
         delv = int(r.get("attacks_delivered", 0))
-        rate = (100.0 * det / inj) if inj else 0.0
+        # Detection rate is message-level: of the messages the receiver
+        # observed, how many did SecOC reject. `inj` counts per-fragment
+        # hook activity and would distort the ratio on fragmented PDUs.
+        observed = det + delv
+        rate = (100.0 * det / observed) if observed else 0.0
         out_rows.append(
             [r["_name"], str(inj), str(det), str(delv), f"{rate:.2f}"]
         )

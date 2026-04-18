@@ -26,6 +26,13 @@ struct SimAttacker {
     /* flood scheduler */
     uint64_t next_flood_ns;
 
+    /* Tracks the last frame timestamp so we can distinguish the first
+     * fragment of a new PDU from continuation fragments. Replay must
+     * operate at PDU granularity, not bus-frame granularity. The ECU
+     * emits all fragments back-to-back inside one send_signal call, so
+     * a short idle gap reliably marks a PDU boundary. */
+    uint64_t last_hook_ns;
+
     _Atomic uint64_t injected;
     _Atomic uint64_t detected;
     _Atomic uint64_t delivered;
@@ -74,28 +81,40 @@ static SimBusHookAction attacker_hook(uint8_t bus_id, uint8_t *data,
     evt.attack_kind = atk->cfg.kind;
     evt.signal_id = (uint16_t)(*tag & 0xFFFFU);
 
+    /* PDU boundary heuristic: fragments of the same PDU are emitted
+     * back-to-back, so any gap > 100 us indicates a new PDU. */
+    uint64_t now_ns = sim_now_ns();
+    bool is_first_fragment = (atk->last_hook_ns == 0) ||
+                             (now_ns - atk->last_hook_ns > 100000ULL);
+    atk->last_hook_ns = now_ns;
+
     switch (atk->cfg.kind) {
     case SIM_ATK_REPLAY: {
-        /* Cache this frame and replay the oldest cached one. */
-        uint32_t s = atk->replay_slot % ATK_REPLAY_CACHE;
-        memcpy(atk->replay_buf[s], data, *len);
-        atk->replay_len[s] = *len;
-        atk->replay_tag[s] = *tag;
-        atk->replay_slot++;
+        /* Cache only the first fragment of each PDU (which carries the
+         * 2-byte header + 8-byte freshness). Replay the oldest cached
+         * freshness header on every new PDU after the warm-up period,
+         * forcing the receiver to see a stale counter. */
+        if (is_first_fragment) {
+            uint32_t s = atk->replay_slot % ATK_REPLAY_CACHE;
+            memcpy(atk->replay_buf[s], data, *len);
+            atk->replay_len[s] = *len;
+            atk->replay_tag[s] = *tag;
+            atk->replay_slot++;
 
-        if (atk->replay_slot > 3 &&
-            (sim_now_ns() - atk->last_replay_ns) >
-            (uint64_t)atk->cfg.period_ms * 1000000ULL) {
-            uint32_t pick = (atk->replay_slot - 3) % ATK_REPLAY_CACHE;
-            uint32_t n = atk->replay_len[pick];
-            if (n > 0 && n <= ATK_MAX_FRAME) {
-                memcpy(data, atk->replay_buf[pick], n);
-                *len = n;
-                *tag = atk->replay_tag[pick];
-                atk->last_replay_ns = sim_now_ns();
-                atomic_fetch_add(&atk->injected, 1);
-                evt.note = "replay injected";
-                act = SIM_ATTACK_MODIFY;
+            if (atk->replay_slot > 3) {
+                uint32_t pick = (atk->replay_slot - 4) % ATK_REPLAY_CACHE;
+                uint32_t n = atk->replay_len[pick];
+                if (n > 0 && n == *len) {
+                    /* Replace the first fragment in-place. Continuation
+                     * fragments pass through, so on-wire the receiver
+                     * gets [old_header][old_freshness][fresh_body] which
+                     * fails freshness check. */
+                    memcpy(data, atk->replay_buf[pick], n);
+                    atk->last_replay_ns = now_ns;
+                    atomic_fetch_add(&atk->injected, 1);
+                    evt.note = "replay injected";
+                    act = SIM_ATTACK_MODIFY;
+                }
             }
         }
         break;
@@ -137,9 +156,12 @@ static SimBusHookAction attacker_hook(uint8_t bus_id, uint8_t *data,
     }
 
     case SIM_ATK_SIG_FUZZ: {
-        /* Randomise the last 64 bytes of the signature. */
-        if (*len > 64) {
-            for (uint32_t i = *len - 64; i < *len; ++i) {
+        /* Randomise the authenticator bytes at the tail of every fragment.
+         * On MTU-limited buses (CAN-FD 64 B) a single fragment can be the
+         * entire signature tail, so we fuzz up to 16 B of tail per frame. */
+        if (*len > 4) {
+            uint32_t fuzz_n = (*len >= 16) ? 16U : (*len - 1U);
+            for (uint32_t i = *len - fuzz_n; i < *len; ++i) {
                 data[i] = (uint8_t)(rng_next(&atk->rng_state) & 0xFF);
             }
             atomic_fetch_add(&atk->injected, 1);
@@ -161,14 +183,16 @@ static SimBusHookAction attacker_hook(uint8_t bus_id, uint8_t *data,
     }
 
     case SIM_ATK_MITM_KEY_CONFUSE: {
-        /* Targets ML-KEM handshake frames (tag high bit set by sim_ecu). */
-        if (*tag & 0x80000000U) {
-            /* scramble the ciphertext so decapsulation fails */
-            for (uint32_t i = 0; i < *len; ++i) {
+        /* MITM swapping session-key material: scramble the freshness +
+         * authenticator region so the receiver sees a message that was
+         * "authenticated" with the wrong key. We leave the 2-byte header
+         * intact so downstream parsing still runs. */
+        if (*len > 10) {
+            for (uint32_t i = 2; i < *len; ++i) {
                 data[i] ^= (uint8_t)(rng_next(&atk->rng_state) & 0xFF);
             }
             atomic_fetch_add(&atk->injected, 1);
-            evt.note = "KEM ciphertext scrambled";
+            evt.note = "key-confuse scramble";
             act = SIM_ATTACK_MODIFY;
         }
         break;

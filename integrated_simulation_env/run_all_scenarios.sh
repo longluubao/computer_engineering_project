@@ -78,5 +78,14 @@ python3 "${HERE}/reports/generate_thesis_report.py" \
         --input  "${OUT}" \
         --output "${OUT}/report.md" || echo "[ise] (python report skipped)"
 
+echo "[ise] generating cross-environment comparison"
+python3 "${HERE}/reports/compare_environments.py" \
+        --ise     "${OUT}" \
+        --pi      "${HERE}/../PiTest" \
+        --win     "${HERE}/../Autosar_SecOC/test_logs" \
+        --output  "${OUT}/summary/cross_env_comparison.md" \
+        || echo "[ise] (cross-env comparison skipped)"
+
+
 echo
 echo "[ise] all scenarios complete. Results in: ${OUT}"

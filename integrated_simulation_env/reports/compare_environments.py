@@ -33,35 +33,67 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 
-SIGN_RE = re.compile(r"ML[-_]?DSA.*Sign.*?(\d+[\d,.]*)\s*(us|µs)", re.IGNORECASE)
-VERIFY_RE = re.compile(r"ML[-_]?DSA.*Verify.*?(\d+[\d,.]*)\s*(us|µs)", re.IGNORECASE)
-KEMGEN_RE = re.compile(r"ML[-_]?KEM.*KeyGen.*?(\d+[\d,.]*)\s*(us|µs)", re.IGNORECASE)
+# Require a ':' after the metric name so we only match log lines of the
+# form "ML-DSA-65 Sign:   10581.30 µs" and skip prose/tables that quote
+# theoretical numbers like "~370 us" inside README-style text.
+SIGN_RE = re.compile(
+    r"ML[-_]?DSA[\w\- ]*Sign[^\n:]*:\s*(\d+[\d,.]*)\s*(us|µs)",
+    re.IGNORECASE,
+)
+VERIFY_RE = re.compile(
+    r"ML[-_]?DSA[\w\- ]*Verify[^\n:]*:\s*(\d+[\d,.]*)\s*(us|µs)",
+    re.IGNORECASE,
+)
+KEMGEN_RE = re.compile(
+    r"ML[-_]?KEM[\w\- ]*KeyGen[^\n:]*:\s*(\d+[\d,.]*)\s*(us|µs)",
+    re.IGNORECASE,
+)
+
+# Lines containing a "~" prefix before the number are estimates from docs,
+# not measurements — drop them.
+APPROX_RE = re.compile(r"~\s*\d")
 
 
 def grep_microseconds(path: Path, regex: re.Pattern) -> float | None:
+    """Return the *median* of all measurement-like matches in the file.
+
+    Using median rather than min avoids being dragged down by docstrings
+    ("~370 us"); still stable against a single outlier measurement.
+    """
     try:
         text = path.read_text(errors="ignore")
     except OSError:
         return None
-    m = regex.search(text)
-    if not m:
+    values: List[float] = []
+    for line in text.splitlines():
+        if APPROX_RE.search(line):
+            continue
+        m = regex.search(line)
+        if not m:
+            continue
+        val = m.group(1).replace(",", "")
+        try:
+            values.append(float(val))
+        except ValueError:
+            pass
+    if not values:
         return None
-    val = m.group(1).replace(",", "")
-    try:
-        return float(val)
-    except ValueError:
-        return None
+    values.sort()
+    return values[len(values) // 2]
 
 
 def scan_dir_for_value(dir_: Path, regex: re.Pattern) -> float | None:
     if not dir_.exists():
         return None
-    best: float | None = None
+    samples: List[float] = []
     for p in dir_.rglob("*.txt"):
         v = grep_microseconds(p, regex)
         if v is not None:
-            best = v if best is None else min(best, v)
-    return best
+            samples.append(v)
+    if not samples:
+        return None
+    samples.sort()
+    return samples[len(samples) // 2]
 
 
 def load_ise_mean(ise_dir: Path, scenario: str, field: str) -> float | None:
