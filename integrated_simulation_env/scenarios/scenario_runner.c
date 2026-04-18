@@ -31,6 +31,8 @@ int sc_persistence_run    (const SimConfig *);
 int sc_bus_failure_run    (const SimConfig *);
 int sc_deadline_stress_run(const SimConfig *);
 int sc_multi_ecu_run      (const SimConfig *);
+int sc_keymismatch_run    (const SimConfig *);
+int sc_rollover_run       (const SimConfig *);
 
 static struct {
     const char *name;
@@ -46,6 +48,8 @@ static struct {
     { "bus_failure",     sc_bus_failure_run,     "Physical-layer BER / bus-error handling"},
     { "deadline_stress", sc_deadline_stress_run, "Deadline miss per ASIL class"           },
     { "multi_ecu",       sc_multi_ecu_run,       "1 TX : N RX broadcast verification"     },
+    { "keymismatch",     sc_keymismatch_run,     "Wrong-key rejection (SWS_SecOC_00046)"  },
+    { "rollover",        sc_rollover_run,        "Freshness counter wrap-around recovery" },
     { NULL, NULL, NULL }
 };
 

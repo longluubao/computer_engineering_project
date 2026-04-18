@@ -85,6 +85,14 @@ run_sc deadline_hmac     deadline_stress --protection hmac
 run_sc multi_ecu_pqc     multi_ecu    --protection pqc
 run_sc multi_ecu_hmac    multi_ecu    --protection hmac
 
+# 10. Wrong-key rejection (SWS_SecOC_00046 cryptographic binding)
+run_sc keymismatch_pqc   keymismatch  --protection pqc
+run_sc keymismatch_hmac  keymismatch  --protection hmac
+
+# 11. Freshness counter wrap-around + rekey recovery (SWS_SecOC_00033)
+run_sc rollover_pqc      rollover     --protection pqc
+run_sc rollover_hmac     rollover     --protection hmac
+
 echo
 # Some scenarios (attacks, mixed_bus) emit multiple summary files that
 # don't match their scenario name. Sweep everything into summary/.

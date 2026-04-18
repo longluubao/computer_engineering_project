@@ -83,22 +83,46 @@ int sc_mixed_bus_run(const SimConfig *cfg)
     uint8_t payload[1024];
     for (uint32_t i = 0; i < sizeof(payload); ++i) payload[i] = (uint8_t)i;
 
+    /*
+     * Per iteration we exercise the full two-hop SecOC re-authentication:
+     *
+     *   tx_can ──[SecOC(k_can)]──► bus_can ──► gw_can_side (verify)
+     *                                           │
+     *                                       payload
+     *                                           ▼
+     *   gw_eth_side ──[SecOC(k_eth)]──► bus_eth ──► rx_eth (verify)
+     *
+     * sim_ecu_recv_signal() on gw_can_side strips the CAN-side SecOC
+     * wrapper (returns plain payload). sim_ecu_send_signal() on
+     * gw_eth_side then calls build_secured_pdu() to produce a NEW
+     * secured PDU with a fresh freshness counter and a fresh ML-DSA
+     * signature derived from gw_eth's own keypair — i.e. genuine
+     * AUTOSAR PduR TpGateway re-authentication, not raw forwarding.
+     */
     for (uint32_t it = 0; it < cfg->iterations; ++it) {
-        /* CAN-side transmit */
+        /* Hop 1: CAN TX */
         uint64_t t0 = sim_now_ns();
         sim_ecu_send_signal(tx_can, sig_can, payload, sig_can->payload_bytes);
 
-        /* Gateway CAN side: receive, verify, forward */
+        /* Hop 1: Gateway CAN-side verify */
         uint8_t buf[4096];
         uint16_t id = 0; uint32_t n = 0;
         if (sim_ecu_recv_signal(gw_can_side, &id, buf, sizeof(buf), &n,
                                 100000000ULL)) {
-            sim_hist_add(&m_can.e2e_latency, sim_now_ns() - t0);
+            uint64_t t_hop1 = sim_now_ns() - t0;
+            sim_hist_add(&m_can.e2e_latency, t_hop1);
             m_can.success_count++;
+
+            /* Hop 2: Gateway ETH-side re-authenticate + TX.
+             * Timing the re-sign separately so the thesis can quote
+             * "gateway double-overhead" = verify(hop1) + sign(hop2). */
+            uint64_t t_resign0 = sim_now_ns();
             sim_ecu_send_signal(gw_eth_side, sig_eth, buf, n);
+            uint64_t t_resign = sim_now_ns() - t_resign0;
+            sim_hist_add(&m_eth.secoc_auth, t_resign);
         }
 
-        /* Eth receiver */
+        /* Hop 2: Eth RX verify */
         uint32_t n2 = 0;
         if (sim_ecu_recv_signal(rx_eth, &id, buf, sizeof(buf), &n2,
                                 100000000ULL)) {

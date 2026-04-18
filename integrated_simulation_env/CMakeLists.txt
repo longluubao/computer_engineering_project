@@ -61,6 +61,8 @@ set(ISE_SCENARIOS
     scenarios/sc_bus_failure.c
     scenarios/sc_deadline_stress.c
     scenarios/sc_multi_ecu.c
+    scenarios/sc_keymismatch.c
+    scenarios/sc_rollover.c
 )
 
 add_executable(ise_runner
@@ -128,6 +130,14 @@ add_test(NAME ise_multi_ecu
          COMMAND ise_runner --scenario multi_ecu --iterations 30
                             --protection pqc
                             --out "${CMAKE_BINARY_DIR}/ctest_out/multi_ecu")
+add_test(NAME ise_keymismatch
+         COMMAND ise_runner --scenario keymismatch --iterations 40
+                            --protection pqc
+                            --out "${CMAKE_BINARY_DIR}/ctest_out/keymismatch")
+add_test(NAME ise_rollover
+         COMMAND ise_runner --scenario rollover --iterations 20
+                            --protection pqc
+                            --out "${CMAKE_BINARY_DIR}/ctest_out/rollover")
 
 message(STATUS "ISE: ise_runner target configured")
 message(STATUS "ISE: AUTOSAR_ROOT = ${AUTOSAR_ROOT}")
