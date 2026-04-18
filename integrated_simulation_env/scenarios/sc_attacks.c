@@ -153,17 +153,23 @@ int sc_attacks_run(const SimConfig *cfg)
     sim_metrics_init(&agg);
     agg.session_ns_start = sim_now_ns();
 
+    /* Active attacks the simulation can evaluate via a detection rate.
+     *
+     * Excluded by design (each needs a different metric, not detection):
+     *   - DOS_FLOOD:    measured via throughput/drop impact, not detection
+     *   - HARVEST_NOW:  passive eavesdropping, mitigated by PQC algorithm
+     *                   choice (no runtime detection event)
+     *   - TIMING_PROBE: side-channel analysis, covered by liboqs constant
+     *                   time implementations, not SecOC verify
+     * These can still be invoked individually via --attack <kind>. */
     SimAttackKind attacks[] = {
         SIM_ATK_REPLAY,
         SIM_ATK_TAMPER_PAYLOAD,
         SIM_ATK_TAMPER_AUTH,
         SIM_ATK_FRESHNESS_ROLLBACK,
         SIM_ATK_MITM_KEY_CONFUSE,
-        SIM_ATK_DOS_FLOOD,
         SIM_ATK_SIG_FUZZ,
-        SIM_ATK_DOWNGRADE_HMAC,
-        SIM_ATK_HARVEST_NOW,
-        SIM_ATK_TIMING_PROBE
+        SIM_ATK_DOWNGRADE_HMAC
     };
 
     if (cfg->attack_kind != SIM_ATK_NONE) {

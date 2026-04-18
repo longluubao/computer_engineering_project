@@ -1,0 +1,12 @@
+[       816 us][INFO ] logger initialised: scenario=throughput seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260418T090020Z/raw git=ise
+[      1009 us][INFO ] running scenario 'throughput' (Sustained throughput stress test)
+[      1574 us][INFO ] bus[3] kind=3 bitrate=100000000 MTU=1500 ber=0.00e+00 prop_ns=1000
+[      4008 us][INFO ] ecu[tx-stress] stack initialised (protection=2)
+[      4095 us][INFO ] ecu[rx-stress] stack initialised (protection=2)
+[      4363 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 230.5 us
+[   2005940 us][INFO ] throughput  sent=911  received=911  elapsed=2.004s
+[   2006022 us][INFO ] throughput  msgs/s=454.5  MB/s=1.88  bus_tx_frames=2733
+[   2008325 us][INFO ] =========== throughput summary ===========
+[   2008353 us][INFO ] messages   success=911  verify_fail=0  drop=0
+[   2008606 us][INFO ] e2e latency p50/p95/p99 = 2186.9 / 2504.8 / 2588.3 us
+[   2008646 us][INFO ] SecOC auth   mean=169.7 us  verify mean=117.3 us
