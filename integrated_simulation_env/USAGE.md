@@ -144,6 +144,30 @@ results/20260418T090020Z/
 
 # ML-KEM rekey (keygen + encaps + decaps + HKDF)
 ./build/ise_runner --scenario rekey --iterations 200
+
+# NvM freshness persistence across reboot (SWS_SecOC_00194)
+# Two phases: no_nvm (breach) vs with_nvm (safe) — replay accepted/rejected
+./build/ise_runner --scenario persistence      --protection pqc  --iterations 200
+
+# Physical-layer BER sweep (CanSM / EthSM surface)
+# Three phases: clean, noisy (1e-6), heavy (1e-4)
+./build/ise_runner --scenario bus_failure      --protection pqc  --iterations 100
+
+# Deadline miss per ASIL class (D1=5ms .. D6=500ms)
+# Tight: BrakeCmd (ASIL-D, D1) on CAN 2.0 → 100% miss with PQC
+# Relaxed: Speedometer (ASIL-B, D4) on Eth 100 → 0% miss
+./build/ise_runner --scenario deadline_stress  --protection pqc  --iterations 100
+
+# Multi-ECU broadcast: 1 TX × N RX with shared freshness / signer key
+./build/ise_runner --scenario multi_ecu        --protection pqc  --iterations 80
+
+# Wrong-key rejection (SWS_SecOC_00046 cryptographic binding)
+# Phase A shared keys → 100% accept; Phase B independent keys → 100% reject
+./build/ise_runner --scenario keymismatch      --protection pqc  --iterations 50
+
+# Freshness counter wrap-around + rekey recovery (SWS_SecOC_00033)
+# approach UINT64_MAX → wrap (all rejected) → rekey epoch (channel restored)
+./build/ise_runner --scenario rollover         --protection pqc  --iterations 20
 ```
 
 ### Common flags
