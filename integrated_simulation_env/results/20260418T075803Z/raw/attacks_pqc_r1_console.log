@@ -1,0 +1,103 @@
+[       969 us][INFO ] logger initialised: scenario=attacks seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260418T075803Z/raw git=ise
+[      1132 us][INFO ] running scenario 'attacks' (All 10 attack scenarios, sequential)
+[      2751 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      2863 us][INFO ] attacker[replay] attached to bus
+[      6238 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[      6385 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[      6805 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 348.1 us
+[    370440 us][INFO ] attack[replay]  injected=61 detected=61 delivered=139  rate=100.00%
+[    371505 us][INFO ] =========== attacks_replay summary ===========
+[    371570 us][INFO ] messages   success=139  verify_fail=61  drop=0
+[    371622 us][INFO ] SecOC auth   mean=175.6 us  verify mean=74.0 us
+[    371653 us][INFO ] attacks injected=61 detected=61 delivered=139
+[    374260 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    374606 us][INFO ] attacker[tamper_payload] attached to bus
+[    374765 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[    374877 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[    375115 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 175.2 us
+[    776396 us][INFO ] attack[tamper_payload]  injected=10400 detected=200 delivered=0  rate=1.92%
+[    777217 us][INFO ] =========== attacks_tamper_payload summary ===========
+[    777254 us][INFO ] messages   success=0  verify_fail=200  drop=0
+[    777335 us][INFO ] SecOC auth   mean=179.6 us  verify mean=67.0 us
+[    777360 us][INFO ] attacks injected=10400 detected=200 delivered=0
+[    779447 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    779593 us][INFO ] attacker[tamper_auth] attached to bus
+[    779734 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[    779834 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[    779992 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 115.1 us
+[   1206073 us][INFO ] attack[tamper_auth]  injected=10400 detected=200 delivered=0  rate=1.92%
+[   1206945 us][INFO ] =========== attacks_tamper_auth summary ===========
+[   1206979 us][INFO ] messages   success=0  verify_fail=200  drop=0
+[   1206996 us][INFO ] SecOC auth   mean=180.9 us  verify mean=60.1 us
+[   1207052 us][INFO ] attacks injected=10400 detected=200 delivered=0
+[   1209655 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[   1209783 us][INFO ] attacker[freshness_rollback] attached to bus
+[   1209921 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[   1210051 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[   1210319 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 196.9 us
+[   1604224 us][INFO ] attack[freshness_rollback]  injected=10400 detected=200 delivered=0  rate=1.92%
+[   1604988 us][INFO ] =========== attacks_freshness_rollback summary ===========
+[   1605020 us][INFO ] messages   success=0  verify_fail=200  drop=0
+[   1605038 us][INFO ] SecOC auth   mean=182.1 us  verify mean=0.0 us
+[   1605076 us][INFO ] attacks injected=10400 detected=200 delivered=0
+[   1607343 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[   1607480 us][INFO ] attacker[mitm_key_confuse] attached to bus
+[   1607612 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[   1607782 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[   1608004 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 162.1 us
+[   2007590 us][INFO ] attack[mitm_key_confuse]  injected=0 detected=0 delivered=200  rate=0.00%
+[   2008466 us][INFO ] =========== attacks_mitm_key_confuse summary ===========
+[   2008497 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[   2008518 us][INFO ] SecOC auth   mean=162.9 us  verify mean=73.0 us
+[   2010738 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[   2010836 us][INFO ] attacker[dos_flood] attached to bus
+[   2010968 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[   2011090 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[   2011288 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 136.9 us
+[   2423230 us][INFO ] attack[dos_flood]  injected=10400 detected=0 delivered=200  rate=0.00%
+[   2423982 us][INFO ] =========== attacks_dos_flood summary ===========
+[   2424015 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[   2424035 us][INFO ] SecOC auth   mean=171.5 us  verify mean=74.9 us
+[   2424047 us][INFO ] attacks injected=10400 detected=0 delivered=200
+[   2426515 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[   2426605 us][INFO ] attacker[sig_fuzz] attached to bus
+[   2426709 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[   2426830 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[   2427006 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 124.5 us
+[   2816234 us][INFO ] attack[sig_fuzz]  injected=0 detected=0 delivered=200  rate=0.00%
+[   2817228 us][INFO ] =========== attacks_sig_fuzz summary ===========
+[   2817321 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[   2817364 us][INFO ] SecOC auth   mean=174.7 us  verify mean=77.5 us
+[   2819589 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[   2819684 us][INFO ] attacker[downgrade_hmac] attached to bus
+[   2819825 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[   2819942 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[   2820140 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 159.6 us
+[   3233029 us][INFO ] attack[downgrade_hmac]  injected=10400 detected=200 delivered=0  rate=1.92%
+[   3233875 us][INFO ] =========== attacks_downgrade_hmac summary ===========
+[   3233934 us][INFO ] messages   success=0  verify_fail=200  drop=0
+[   3233954 us][INFO ] SecOC auth   mean=167.3 us  verify mean=75.7 us
+[   3233970 us][INFO ] attacks injected=10400 detected=200 delivered=0
+[   3236131 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[   3236225 us][INFO ] attacker[harvest_now] attached to bus
+[   3236359 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[   3236465 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[   3236623 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 115.7 us
+[   3656783 us][INFO ] attack[harvest_now]  injected=10400 detected=0 delivered=200  rate=0.00%
+[   3657579 us][INFO ] =========== attacks_harvest_now summary ===========
+[   3657619 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[   3657656 us][INFO ] SecOC auth   mean=172.2 us  verify mean=74.6 us
+[   3657676 us][INFO ] attacks injected=10400 detected=0 delivered=200
+[   3659939 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[   3660033 us][INFO ] attacker[timing_probe] attached to bus
+[   3660142 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[   3660221 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[   3660413 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 167.7 us
+[   4077237 us][INFO ] attack[timing_probe]  injected=10400 detected=0 delivered=200  rate=0.00%
+[   4078101 us][INFO ] =========== attacks_timing_probe summary ===========
+[   4078145 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[   4078164 us][INFO ] SecOC auth   mean=164.8 us  verify mean=71.8 us
+[   4078178 us][INFO ] attacks injected=10400 detected=0 delivered=200
+[   4080552 us][INFO ] =========== attacks_aggregate summary ===========
+[   4080584 us][INFO ] messages   success=1139  verify_fail=861  drop=0
+[   4080638 us][INFO ] attacks injected=72861 detected=861 delivered=1139

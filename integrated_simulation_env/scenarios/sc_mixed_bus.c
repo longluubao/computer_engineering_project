@@ -68,9 +68,9 @@ int sc_mixed_bus_run(const SimConfig *cfg)
          * deployments would rotate distinct keys per link. */
         (void)sim_ecu_pqc_handshake(tx_can, gw_can_side);
         (void)sim_ecu_pqc_handshake(gw_eth_side, rx_eth);
-        sim_ecu_share_keys(tx_can, gw_can_side);
-        sim_ecu_share_keys(gw_eth_side, rx_eth);
     }
+    sim_ecu_share_keys(tx_can, gw_can_side);
+    sim_ecu_share_keys(gw_eth_side, rx_eth);
 
     const SimSignalDef *sig_can = sim_signal_find(0x04); /* Throttle, 8 B */
     const SimSignalDef *sig_eth = sim_signal_find(0x0C); /* ADAS_Camera_Meta */

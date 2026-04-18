@@ -19,6 +19,9 @@ extern "C" {
  */
 
 #define SIM_METRICS_BUCKETS 64
+/* Reservoir size — enough samples to compute accurate percentiles for
+ * any single scenario in the thesis (max scenario = ~20k samples). */
+#define SIM_METRICS_RESERVOIR 16384
 
 typedef struct {
     uint64_t count;
@@ -26,6 +29,10 @@ typedef struct {
     uint64_t min;
     uint64_t max;
     uint64_t buckets[SIM_METRICS_BUCKETS]; /* log2 buckets in ns */
+    /* Reservoir sample for accurate percentile computation. Samples
+     * beyond SIM_METRICS_RESERVOIR are kept only in the log2 buckets. */
+    uint64_t samples[SIM_METRICS_RESERVOIR];
+    uint32_t sample_count;
     /* Welford online variance */
     double   mean;
     double   m2;

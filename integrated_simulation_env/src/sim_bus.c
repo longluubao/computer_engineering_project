@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <time.h>
 
 #define BUS_MAX_QUEUE   4096
 #define BUS_MAX_FRAME   8192

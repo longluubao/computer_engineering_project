@@ -1,0 +1,7 @@
+build/
+*.o
+*.a
+__pycache__/
+*.pyc
+# Keep the initial sample campaign so the thesis can cite it; fresh
+# runs should commit new timestamped folders explicitly if needed.

@@ -61,8 +61,8 @@ int sc_throughput_run(const SimConfig *cfg)
     sim_ecu_init_stack(rx);
     if (cfg->protection == SIM_PROT_PQC || cfg->protection == SIM_PROT_HYBRID) {
         (void)sim_ecu_pqc_handshake(tx, rx);
-        sim_ecu_share_keys(tx, rx);
     }
+    sim_ecu_share_keys(tx, rx);
 
     /* Pick V2X-sized signal (id=0x0D, 1024 B) if running on Ethernet;
      * otherwise use throttle (id=0x04, 8 B). */

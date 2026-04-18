@@ -1,0 +1,93 @@
+[      1000 us][INFO ] logger initialised: scenario=attacks seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260418T075803Z/raw git=ise
+[      1089 us][INFO ] running scenario 'attacks' (All 10 attack scenarios, sequential)
+[      2581 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      2729 us][INFO ] attacker[replay] attached to bus
+[      2785 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[      2820 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[    416690 us][INFO ] attack[replay]  injected=62 detected=62 delivered=138  rate=100.00%
+[    417341 us][INFO ] =========== attacks_replay summary ===========
+[    417385 us][INFO ] messages   success=138  verify_fail=62  drop=0
+[    417402 us][INFO ] SecOC auth   mean=16.6 us  verify mean=7.5 us
+[    417414 us][INFO ] attacks injected=62 detected=62 delivered=138
+[    417929 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    418096 us][INFO ] attacker[tamper_payload] attached to bus
+[    418168 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[    418190 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[    857386 us][INFO ] attack[tamper_payload]  injected=200 detected=200 delivered=0  rate=100.00%
+[    858098 us][INFO ] =========== attacks_tamper_payload summary ===========
+[    858130 us][INFO ] messages   success=0  verify_fail=200  drop=0
+[    858158 us][INFO ] SecOC auth   mean=4.8 us  verify mean=11.3 us
+[    858175 us][INFO ] attacks injected=200 detected=200 delivered=0
+[    858627 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    858725 us][INFO ] attacker[tamper_auth] attached to bus
+[    858764 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[    858796 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[   1272587 us][INFO ] attack[tamper_auth]  injected=200 detected=200 delivered=0  rate=100.00%
+[   1273227 us][INFO ] =========== attacks_tamper_auth summary ===========
+[   1273261 us][INFO ] messages   success=0  verify_fail=200  drop=0
+[   1273274 us][INFO ] SecOC auth   mean=4.9 us  verify mean=11.3 us
+[   1273352 us][INFO ] attacks injected=200 detected=200 delivered=0
+[   1273839 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[   1273898 us][INFO ] attacker[freshness_rollback] attached to bus
+[   1273923 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[   1273939 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[   1697646 us][INFO ] attack[freshness_rollback]  injected=200 detected=200 delivered=0  rate=100.00%
+[   1698325 us][INFO ] =========== attacks_freshness_rollback summary ===========
+[   1698373 us][INFO ] messages   success=0  verify_fail=200  drop=0
+[   1698444 us][INFO ] SecOC auth   mean=11.4 us  verify mean=0.0 us
+[   1698486 us][INFO ] attacks injected=200 detected=200 delivered=0
+[   1699132 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[   1699233 us][INFO ] attacker[mitm_key_confuse] attached to bus
+[   1699302 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[   1699327 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[   2131627 us][INFO ] attack[mitm_key_confuse]  injected=0 detected=0 delivered=200  rate=0.00%
+[   2132495 us][INFO ] =========== attacks_mitm_key_confuse summary ===========
+[   2132672 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[   2132749 us][INFO ] SecOC auth   mean=4.9 us  verify mean=11.7 us
+[   2133516 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[   2133707 us][INFO ] attacker[dos_flood] attached to bus
+[   2133807 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[   2133840 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[   2529623 us][INFO ] attack[dos_flood]  injected=200 detected=0 delivered=200  rate=0.00%
+[   2530229 us][INFO ] =========== attacks_dos_flood summary ===========
+[   2530264 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[   2530279 us][INFO ] SecOC auth   mean=4.5 us  verify mean=10.8 us
+[   2530309 us][INFO ] attacks injected=200 detected=0 delivered=200
+[   2530950 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[   2531062 us][INFO ] attacker[sig_fuzz] attached to bus
+[   2531118 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[   2531142 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[   2946017 us][INFO ] attack[sig_fuzz]  injected=0 detected=0 delivered=200  rate=0.00%
+[   2946691 us][INFO ] =========== attacks_sig_fuzz summary ===========
+[   2946762 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[   2946783 us][INFO ] SecOC auth   mean=4.9 us  verify mean=10.9 us
+[   2947339 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[   2947420 us][INFO ] attacker[downgrade_hmac] attached to bus
+[   2947447 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[   2947460 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[   3355829 us][INFO ] attack[downgrade_hmac]  injected=200 detected=0 delivered=200  rate=0.00%
+[   3356482 us][INFO ] =========== attacks_downgrade_hmac summary ===========
+[   3356543 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[   3356588 us][INFO ] SecOC auth   mean=4.6 us  verify mean=11.1 us
+[   3356626 us][INFO ] attacks injected=200 detected=0 delivered=200
+[   3357156 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[   3357238 us][INFO ] attacker[harvest_now] attached to bus
+[   3357279 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[   3357305 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[   3790161 us][INFO ] attack[harvest_now]  injected=200 detected=0 delivered=200  rate=0.00%
+[   3790839 us][INFO ] =========== attacks_harvest_now summary ===========
+[   3790870 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[   3790903 us][INFO ] SecOC auth   mean=4.9 us  verify mean=11.2 us
+[   3790935 us][INFO ] attacks injected=200 detected=0 delivered=200
+[   3791503 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[   3791606 us][INFO ] attacker[timing_probe] attached to bus
+[   3791651 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[   3791686 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[   4207149 us][INFO ] attack[timing_probe]  injected=200 detected=0 delivered=200  rate=0.00%
+[   4207906 us][INFO ] =========== attacks_timing_probe summary ===========
+[   4207948 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[   4207997 us][INFO ] SecOC auth   mean=4.6 us  verify mean=11.3 us
+[   4208015 us][INFO ] attacks injected=200 detected=0 delivered=200
+[   4208587 us][INFO ] =========== attacks_aggregate summary ===========
+[   4208635 us][INFO ] messages   success=1338  verify_fail=662  drop=0
+[   4208669 us][INFO ] attacks injected=1462 detected=662 delivered=1338

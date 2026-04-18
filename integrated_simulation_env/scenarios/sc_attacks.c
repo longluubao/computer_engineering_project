@@ -62,8 +62,8 @@ static int run_one_attack(const SimConfig *cfg, SimAttackKind kind,
     sim_ecu_init_stack(rx);
     if (cfg->protection == SIM_PROT_PQC || cfg->protection == SIM_PROT_HYBRID) {
         (void)sim_ecu_pqc_handshake(tx, rx);
-        sim_ecu_share_keys(tx, rx);
     }
+    sim_ecu_share_keys(tx, rx);
 
     const SimSignalDef *sig = sim_signal_find(0x04); /* throttle */
     uint8_t payload[64];

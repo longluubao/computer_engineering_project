@@ -116,8 +116,10 @@ int sc_baseline_run(const SimConfig *cfg)
             cfg->protection == SIM_PROT_HYBRID) {
             /* Use tx's ML-DSA public key on the rx side (simulated bootstrap). */
             (void)sim_ecu_pqc_handshake(tx, rx);
-            sim_ecu_share_keys(tx, rx);
         }
+        /* HMAC and HYBRID also need a shared symmetric key; the share
+         * call is idempotent so we always run it after init. */
+        sim_ecu_share_keys(tx, rx);
 
         sim_log(SIM_LOG_INFO,
                 "signal 0x%02X (%s): %u iterations on bus_kind=%d",

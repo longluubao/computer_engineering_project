@@ -18,6 +18,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "PQC.h"
+#include "PQC_KeyDerivation.h"
+
 /* Scenario entry-points (see sc_*.c files). */
 int sc_baseline_run  (const SimConfig *);
 int sc_throughput_run(const SimConfig *);
@@ -150,6 +153,18 @@ int main(int argc, char **argv)
     lcfg.console_level = cfg.log_level;
     sim_logger_init(&lcfg);
     cfg.out_dir = out_dir;
+
+    /* Initialise the real AUTOSAR PQC module. Required once per process. */
+    if (PQC_Init() != PQC_E_OK) {
+        sim_log(SIM_LOG_ERROR, "PQC_Init() failed");
+        sim_logger_shutdown();
+        return 2;
+    }
+    if (PQC_KeyDerivation_Init() != PQC_E_OK) {
+        sim_log(SIM_LOG_ERROR, "PQC_KeyDerivation_Init() failed");
+        sim_logger_shutdown();
+        return 2;
+    }
 
     int rc = -1;
     for (int i = 0; g_scenarios[i].name; ++i) {

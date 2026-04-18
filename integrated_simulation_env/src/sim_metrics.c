@@ -31,12 +31,22 @@ void sim_hist_add(SimHistogram *h, uint64_t v)
     if (v > h->max) h->max = v;
     h->buckets[bucket_of(v)]++;
 
+    if (h->sample_count < SIM_METRICS_RESERVOIR) {
+        h->samples[h->sample_count++] = v;
+    }
+
     /* Welford */
     double dv = (double)v;
     double delta = dv - h->mean;
     h->mean += delta / (double)h->count;
     double delta2 = dv - h->mean;
     h->m2 += delta * delta2;
+}
+
+static int cmp_u64(const void *a, const void *b)
+{
+    uint64_t x = *(const uint64_t *)a, y = *(const uint64_t *)b;
+    return (x < y) ? -1 : (x > y) ? 1 : 0;
 }
 
 double sim_hist_mean(const SimHistogram *h)
@@ -56,12 +66,26 @@ uint64_t sim_hist_percentile(const SimHistogram *h, double pct)
     if (pct <= 0.0) return h->min;
     if (pct >= 1.0) return h->max;
 
+    /* Exact percentile from the reservoir when all samples fit. */
+    if (h->sample_count > 0 && h->count == h->sample_count) {
+        uint64_t *sorted = (uint64_t *)malloc((size_t)h->sample_count *
+                                              sizeof(uint64_t));
+        if (!sorted) return h->max;
+        memcpy(sorted, h->samples,
+               (size_t)h->sample_count * sizeof(uint64_t));
+        qsort(sorted, h->sample_count, sizeof(uint64_t), cmp_u64);
+        uint32_t idx = (uint32_t)((double)(h->sample_count - 1) * pct);
+        uint64_t r = sorted[idx];
+        free(sorted);
+        return r;
+    }
+
+    /* Fallback: coarse log2 bucket when we overflowed the reservoir. */
     uint64_t target = (uint64_t)((double)h->count * pct);
     uint64_t running = 0;
     for (uint32_t i = 0; i < SIM_METRICS_BUCKETS; ++i) {
         running += h->buckets[i];
         if (running >= target) {
-            /* Approximate percentile = midpoint of bucket. */
             uint64_t lo = (i == 0) ? 0 : (1ULL << i);
             uint64_t hi = 1ULL << (i + 1);
             return (lo + hi) / 2ULL;

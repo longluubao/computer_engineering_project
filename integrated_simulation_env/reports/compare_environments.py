@@ -94,10 +94,14 @@ def main() -> int:
     out_md = Path(args.output).resolve()
     out_md.parent.mkdir(parents=True, exist_ok=True)
 
-    ise_sign   = load_ise_mean(ise_dir, "rekey", "secoc_auth")    # encaps time in rekey
-    ise_verify = load_ise_mean(ise_dir, "rekey", "secoc_verify")  # decaps in rekey
-    ise_e2e    = load_ise_mean(ise_dir, "baseline_r1", "e2e_latency") or \
-                 load_ise_mean(ise_dir, "baseline", "e2e_latency")
+    # ML-DSA sign/verify come from the PQC baseline; ML-KEM keygen from rekey.
+    ise_sign   = load_ise_mean(ise_dir, "baseline_pqc", "secoc_auth")   or \
+                 load_ise_mean(ise_dir, "baseline",     "secoc_auth")
+    ise_verify = load_ise_mean(ise_dir, "baseline_pqc", "secoc_verify") or \
+                 load_ise_mean(ise_dir, "baseline",     "secoc_verify")
+    ise_kem    = load_ise_mean(ise_dir, "rekey",        "secoc_auth")
+    ise_e2e    = load_ise_mean(ise_dir, "baseline_pqc", "e2e_latency") or \
+                 load_ise_mean(ise_dir, "baseline",     "e2e_latency")
 
     pi_sign  = scan_dir_for_value(Path(args.pi),  SIGN_RE)   if args.pi  else None
     pi_ver   = scan_dir_for_value(Path(args.pi),  VERIFY_RE) if args.pi  else None
@@ -112,7 +116,7 @@ def main() -> int:
         ("ISE (full stack)",
          f"{ise_sign:.1f}" if ise_sign is not None else "n/a",
          f"{ise_verify:.1f}" if ise_verify is not None else "n/a",
-         "n/a",
+         f"{ise_kem:.1f}" if ise_kem is not None else "n/a",
          f"{ise_e2e:.1f}" if ise_e2e is not None else "n/a"),
         ("Pi 4 unit-only",
          f"{pi_sign:.1f}" if pi_sign is not None else "n/a",
