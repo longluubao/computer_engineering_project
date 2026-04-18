@@ -259,12 +259,20 @@ def pick_representative_frame(input_dir: Path) -> Dict[str, Any] | None:
 def write_flow_timeline_md(
     input_dir: Path, out_path: Path, representative: Dict[str, Any] | None
 ) -> None:
-    """Render an ASCII diagram of one PDU's journey through the stack."""
+    """Render a full-AUTOSAR-stack flow diagram for one representative PDU.
+
+    The diagram mirrors the actual call chain in ``Autosar_SecOC/source``:
+    Com → PduR → SecOC → Csm → CryIf → PQC/Encrypt → (bus driver), then
+    the same chain in reverse on the RX side. Each segment is annotated
+    with the measured microsecond cost when the ISE exposes it.
+    """
     lines: List[str] = []
     lines.append("# AUTOSAR Signal Flow — Per-Layer Latency Timeline\n")
     lines.append(
-        "Shows one representative PDU traversing the AUTOSAR BSW stack "
-        "in the ISE. Numbers are per-layer time in microseconds (µs).\n"
+        "Traces one representative PDU through the full AUTOSAR BSW "
+        "call chain implemented under `Autosar_SecOC/source/`. Each box "
+        "is a real module in the repository; the API function shown is "
+        "the one actually invoked by the caller on the left.\n"
     )
     if representative is None:
         lines.append("_No representative frame available._\n")
@@ -284,101 +292,207 @@ def write_flow_timeline_md(
     e2e = as_us("e2e_ns")
     residual = max(0.0, e2e - csm_sign - csm_verify - cantp - bus)
 
-    lines.append(f"**Source file:** `raw/{representative.get('_source','?')}`  ")
+    protection = int(representative.get("protected_mode", "2") or 2)
+    prot_label = {0: "NONE", 1: "HMAC", 2: "PQC (ML-DSA-65)",
+                  3: "HYBRID (HMAC + ML-DSA-65)"}.get(protection, "PQC")
+
     lines.append(
+        f"**Source file:** `raw/{representative.get('_source','?')}`  \n"
         f"**Signal:** id=0x{int(representative.get('signal_id','0') or 0):02X}, "
         f"ASIL={representative.get('asil','?')}, "
         f"deadline-class D{representative.get('deadline_class','?')}, "
         f"PDU={representative.get('pdu_bytes','?')} B, "
         f"auth={representative.get('auth_bytes','?')} B, "
         f"fragments={representative.get('fragments','?')}  \n"
+        f"**Protection mode:** {prot_label}\n"
     )
 
+    # ------------------------------------------------------------------
+    # TX PATH
+    # ------------------------------------------------------------------
+    lines.append("## TX path — application → bus\n")
     lines.append("```")
-    lines.append("TX side                                      RX side")
-    lines.append(
-        "┌──────────────────────┐                  ┌──────────────────────┐"
-    )
-    lines.append(
-        "│ Com / PduR           │  ← residual      │ Com / PduR           │"
-    )
-    lines.append(
-        f"│   (app → SecOC)      │  {residual:6.2f} µs     │   (SecOC → app)      │"
-    )
-    lines.append(
-        "├──────────────────────┤                  ├──────────────────────┤"
-    )
-    lines.append(
-        "│ SecOC build header   │                  │ SecOC parse header   │"
-    )
-    lines.append(
-        "│ + freshness counter  │                  │ + FVM check          │"
-    )
-    lines.append(
-        "├──────────────────────┤                  ├──────────────────────┤"
-    )
-    lines.append(
-        f"│ Csm / PQC sign       │  {csm_sign:6.2f} µs     │ Csm / PQC verify     │  {csm_verify:6.2f} µs"
-    )
-    lines.append(
-        "│ (ML-DSA-65 / HMAC)   │                  │ (ML-DSA-65 / HMAC)   │"
-    )
-    lines.append(
-        "├──────────────────────┤                  ├──────────────────────┤"
-    )
-    lines.append(
-        f"│ CanTP / SoAd frag.   │  {cantp:6.2f} µs     │ CanTP / SoAd reasm.  │"
-    )
-    lines.append(
-        "├──────────────────────┤                  ├──────────────────────┤"
-    )
-    lines.append(
-        f"│ CanIf / EthIf TX     │  {bus:6.2f} µs     │ CanIf / EthIf RX     │"
-    )
-    lines.append(
-        "└──────────┬───────────┘                  └──────────▲───────────┘"
-    )
-    lines.append(
-        "           │     ╔════════════════════════════════╗  │"
-    )
-    lines.append(
-        "           └────►║  Virtual bus (CAN-FD / Eth)   ║──┘"
-    )
-    lines.append(
-        "                 ╚════════════════════════════════╝"
-    )
+    lines.append("┌───────────────────────────────────────────────────────────────┐")
+    lines.append("│ [Application / SW-C]  runnable fires on period / event        │")
+    lines.append("│     Com_SendSignal(signal_id, data_ptr)                       │")
+    lines.append("└───────────────────────────────┬───────────────────────────────┘")
+    lines.append("                                ▼                                ─┐")
+    lines.append("┌───────────────────────────────────────────────────────────────┐ │")
+    lines.append("│ [Com]  source/Com/Com.c                                       │ │")
+    lines.append("│     Com_SendSignal   ───▶   PduR_ComTransmit(PduId, Info)     │ │")
+    lines.append("└───────────────────────────────┬───────────────────────────────┘ │")
+    lines.append("                                ▼                                 │ residual")
+    lines.append("┌───────────────────────────────────────────────────────────────┐ │ (Com + PduR")
+    lines.append("│ [PduR] source/PduR/PduR.c  —  central router (TX dispatch)    │ │  + SecOC hdr")
+    lines.append("│     PduR_ComTransmit ──▶ SecOC_IfTransmit (short PDUs) or     │ │  + FVM)")
+    lines.append("│                          SecOC_TpTransmit (PQC / large PDUs)  │ │")
+    lines.append("└───────────────────────────────┬───────────────────────────────┘ │")
+    lines.append("                                ▼                                 │")
+    lines.append("┌───────────────────────────────────────────────────────────────┐ │")
+    lines.append("│ [SecOC] source/SecOC/SecOC.c                                  │ │")
+    lines.append("│   1. FVM: next freshness = last_tx + 1  (8-byte counter)      │ │")
+    lines.append("│   2. Build Secured PDU = [hdr 2B | freshness 8B | payload]    │ │")
+    lines.append("│   3. Csm_SignatureGenerate() (PQC) / Csm_MacGenerate() (HMAC) │ │")
+    lines.append(f"└───────────────────────────────┬───────────────────────────────┘ │  {residual:6.2f} µs")
+    lines.append("                                ▼                                ─┘")
+    lines.append("┌───────────────────────────────────────────────────────────────┐ ─┐")
+    lines.append("│ [Csm] source/Csm/Csm.c  —  Crypto Service Manager             │  │")
+    lines.append("│     Csm_SignatureGenerate  ───▶  CryIf_SignatureGenerate      │  │")
+    lines.append("└───────────────────────────────┬───────────────────────────────┘  │")
+    lines.append("                                ▼                                  │")
+    lines.append("┌───────────────────────────────────────────────────────────────┐  │")
+    lines.append("│ [CryIf] source/CryIf/CryIf.c  —  Crypto I/F driver selector   │  │ csm_sign")
+    lines.append("│     CryIf_SignatureGenerate  ───▶  PQC_MLDSA_Sign()           │  │ (Csm +")
+    lines.append("│                              ───▶  startEncryption() (HMAC)   │  │  CryIf +")
+    lines.append("└───────────────────────────────┬───────────────────────────────┘  │  PQC +")
+    lines.append("                                ▼                                  │  liboqs)")
+    lines.append("┌───────────────────────────────────────────────────────────────┐  │")
+    lines.append("│ [PQC] source/PQC/PQC.c  —  ML-DSA-65 wrapper (FIPS 204)       │  │")
+    lines.append("│     PQC_MLDSA_Sign  ───▶  OQS_SIG_sign(alg_ml_dsa_65)         │  │")
+    lines.append("└───────────────────────────────┬───────────────────────────────┘  │")
+    lines.append("                                ▼                                  │")
+    lines.append("┌───────────────────────────────────────────────────────────────┐  │")
+    lines.append("│ [liboqs] external/liboqs  —  lattice signer                   │  │")
+    lines.append(f"│     OQS_SIG_sign → 3309-byte signature                        │  │  {csm_sign:6.2f} µs")
+    lines.append("└───────────────────────────────┬───────────────────────────────┘ ─┘")
+    lines.append("                                ▼")
+    lines.append("         (back to SecOC, authenticator appended to PDU)")
+    lines.append("                                ▼                                ─┐")
+    lines.append("┌───────────────────────────────────────────────────────────────┐ │")
+    lines.append("│ [SecOC] → PduR_SecOCTransmit()                                │ │")
+    lines.append("│ [PduR] → CanTp_Transmit() (CAN/CAN-FD) or                     │ │ cantp_frag")
+    lines.append("│         SoAd_IfTransmit()/SoAd_TpTransmit() (Ethernet)        │ │")
+    lines.append("│ [CanTp] source/Can/CanTp.c  —  ISO 15765-2 FF/CF fragments    │ │")
+    lines.append(f"│         → CanIf_Transmit(fragment[i])                         │ │  {cantp:6.2f} µs")
+    lines.append("└───────────────────────────────┬───────────────────────────────┘ ─┘")
+    lines.append("                                ▼                                ─┐")
+    lines.append("┌───────────────────────────────────────────────────────────────┐ │")
+    lines.append("│ [CanIf]  source/Can/CanIf.c    → Can_Write()                  │ │")
+    lines.append("│ [Can]    source/Can/Can.c      → hardware frame TX            │ │")
+    lines.append("│   OR                                                          │ │ bus_transit")
+    lines.append("│ [EthIf]  source/EthIf/EthIf.c  → EthDrv_Send()                │ │")
+    lines.append("│ [EthDrv] source/Ethernet/ethernet*.c → send()/sendto()        │ │")
+    lines.append(f"└───────────────────────────────┬───────────────────────────────┘ │  {bus:6.2f} µs")
+    lines.append("                                ▼                                ─┘")
+    lines.append("                ╔═══════════════════════════════╗")
+    lines.append("                ║  Virtual bus (CAN-FD / Eth)   ║")
+    lines.append("                ╚═══════════════╦═══════════════╝")
+    lines.append("```")
+    lines.append("")
+
+    # ------------------------------------------------------------------
+    # RX PATH
+    # ------------------------------------------------------------------
+    lines.append("## RX path — bus → application\n")
+    lines.append("```")
+    lines.append("                ╔═══════════════════════════════╗")
+    lines.append("                ║  Virtual bus (CAN-FD / Eth)   ║")
+    lines.append("                ╚═══════════════╦═══════════════╝")
+    lines.append("                                ▼")
+    lines.append("┌───────────────────────────────────────────────────────────────┐")
+    lines.append("│ [Can driver] Can_RxIndicationCallback() (ISR)                 │")
+    lines.append("│   OR [EthIf]  SoAd_RxIndication() (socket rx)                 │")
+    lines.append("└───────────────────────────────┬───────────────────────────────┘")
+    lines.append("                                ▼")
+    lines.append("┌───────────────────────────────────────────────────────────────┐")
+    lines.append("│ [CanIf] CanIf_RxIndication → CanTp_RxIndication               │")
+    lines.append("│ [CanTp] reassemble FF/CF → PduR_CanTpRxIndication             │")
+    lines.append("│ [SoAd]  SoAd_RxIndication → PduR_SoAdRxIndication             │")
+    lines.append("└───────────────────────────────┬───────────────────────────────┘")
+    lines.append("                                ▼")
+    lines.append("┌───────────────────────────────────────────────────────────────┐")
+    lines.append("│ [PduR] RX dispatch  →  SecOC_RxIndication(PduId, Info)        │")
+    lines.append("└───────────────────────────────┬───────────────────────────────┘")
+    lines.append("                                ▼                                ─┐")
+    lines.append("┌───────────────────────────────────────────────────────────────┐ │")
+    lines.append("│ [SecOC] source/SecOC/SecOC.c                                  │ │")
+    lines.append("│   1. Parse [hdr | freshness | payload | authenticator]        │ │")
+    lines.append("│   2. FVM check: freshness > last_rx ?  (replay reject)        │ │ csm_verify")
+    lines.append("│   3. Csm_SignatureVerify() (PQC) / Csm_MacVerify() (HMAC)     │ │")
+    lines.append("└───────────────────────────────┬───────────────────────────────┘ │")
+    lines.append("                                ▼                                 │")
+    lines.append("┌───────────────────────────────────────────────────────────────┐ │")
+    lines.append("│ [Csm] Csm_SignatureVerify   ───▶   CryIf_SignatureVerify      │ │")
+    lines.append("│ [CryIf] CryIf_SignatureVerify ───▶ PQC_MLDSA_Verify()         │ │")
+    lines.append("│ [PQC]   PQC_MLDSA_Verify    ───▶   OQS_SIG_verify             │ │")
+    lines.append(f"│ [liboqs] OQS_SIG_verify (constant-time)                       │ │  {csm_verify:6.2f} µs")
+    lines.append("└───────────────────────────────┬───────────────────────────────┘ ─┘")
+    lines.append("                                ▼")
+    lines.append("   If verify FAIL  →  SecOC drops PDU, DET_ReportError          ")
+    lines.append("   If verify PASS  →  update last_rx = freshness, continue      ")
+    lines.append("                                ▼")
+    lines.append("┌───────────────────────────────────────────────────────────────┐")
+    lines.append("│ [SecOC] → PduR_SecOCIfRxIndication()                          │")
+    lines.append("│ [PduR]  → Com_RxIndication()                                  │")
+    lines.append("│ [Com]   → deliver signal to SW-C (application)                │")
+    lines.append("└───────────────────────────────────────────────────────────────┘")
     lines.append("")
     lines.append(
-        f"End-to-end (application → application): {e2e:.2f} µs"
+        f"End-to-end (app Tx → app Rx): {e2e:.2f} µs"
     )
     lines.append("```")
     lines.append("")
+
+    # ------------------------------------------------------------------
+    # Budget table
+    # ------------------------------------------------------------------
     lines.append("## Layer budget verification\n")
     lines.append(
-        "| Layer | Measured (µs) | AUTOSAR-typical budget | Pass |\n"
-        "|-------|---------------|------------------------|------|"
+        "| AUTOSAR layer(s)                             | Measured (µs) "
+        "| Budget (µs) | Pass |\n"
+        "|----------------------------------------------|---------------"
+        "|-------------|------|"
     )
     budgets = [
-        ("Com / PduR + SecOC header", residual, 200.0),
-        ("Csm sign (ML-DSA / HMAC)",  csm_sign, 500.0),
-        ("CanTP / SoAd fragmentation", cantp,    300.0),
-        ("Physical bus transit",       bus,      2000.0),
-        ("Csm verify (ML-DSA / HMAC)", csm_verify, 500.0),
-        ("End-to-end",                 e2e,      5000.0),
+        ("Com + PduR + SecOC header + FVM (residual)",      residual,    200.0),
+        ("Csm + CryIf + PQC + liboqs sign",                   csm_sign,    500.0),
+        ("CanTp / SoAd fragmentation",                        cantp,       300.0),
+        ("CanIf / EthIf / driver + physical bus transit",     bus,        2000.0),
+        ("Csm + CryIf + PQC + liboqs verify",                 csm_verify,  500.0),
+        ("End-to-end (application → application)",            e2e,        5000.0),
     ]
     for name, measured, budget in budgets:
         ok = "PASS" if measured <= budget else "FAIL"
         lines.append(
-            f"| {name} | {measured:.2f} | ≤ {budget:.0f} | {ok} |"
+            f"| {name:<45} | {measured:13.2f} | ≤ {budget:9.0f} | {ok} |"
         )
 
     lines.append("")
     lines.append(
-        "Budgets are representative of production AUTOSAR deployments "
-        "(Com 100–200 µs, Csm PQC sign ≤ 500 µs on Cortex-A72, CAN-TP ≤ "
-        "300 µs per 8-byte fragment, physical bus ≤ 2 ms). "
-        "Tight real-time targets (ASIL-D brake-by-wire) may require a "
-        "lower end-to-end budget — see `summary/compliance_constraints.md`."
+        "Budgets reflect production AUTOSAR targets on Cortex-A72 "
+        "(Com/PduR/SecOC book-keeping 100–200 µs, Csm PQC sign/verify "
+        "≤ 500 µs, CanTP fragmentation ≤ 300 µs, physical bus transit "
+        "≤ 2 ms). Tighter real-time loops (ASIL-D brake-by-wire, D1 "
+        "class ≤ 1 ms end-to-end) require the ASIL-specific deadline "
+        "row in `summary/compliance_constraints.md`."
+    )
+    lines.append("")
+    lines.append(
+        "## Module call chain reference\n"
+        "\n"
+        "Each module in the diagram above is a real directory under "
+        "`Autosar_SecOC/source/`:\n"
+        "\n"
+        "| Layer    | TX function                        | Calls                                  |\n"
+        "|----------|------------------------------------|----------------------------------------|\n"
+        "| Com      | `Com_SendSignal`                   | `PduR_ComTransmit`                     |\n"
+        "| PduR     | `PduR_ComTransmit`                 | `SecOC_IfTransmit` / `SecOC_TpTransmit`|\n"
+        "| SecOC    | `SecOC_IfTransmit`                 | `Csm_MacGenerate` / `Csm_SignatureGenerate` |\n"
+        "| Csm      | `Csm_SignatureGenerate`            | `CryIf_SignatureGenerate`              |\n"
+        "| CryIf    | `CryIf_SignatureGenerate`          | `PQC_MLDSA_Sign` (PQC) / `startEncryption` (HMAC) |\n"
+        "| PQC      | `PQC_MLDSA_Sign`                   | `OQS_SIG_sign` (liboqs ML-DSA-65)      |\n"
+        "| SecOC    | `PduR_SecOCTransmit`               | `CanTp_Transmit` / `SoAd_TpTransmit`   |\n"
+        "| CanTp    | `CanTp_Transmit`                   | `CanIf_Transmit` (per FF/CF fragment)  |\n"
+        "| CanIf    | `CanIf_Transmit`                   | `Can_Write`                            |\n"
+        "| SoAd     | `SoAd_TpTransmit` / `SoAd_IfTransmit` | `EthIf_Transmit`                    |\n"
+        "| EthIf    | `EthIf_Transmit`                   | `EthDrv_Send`                          |\n"
+        "\n"
+        "RX path is the exact mirror: "
+        "`Can_RxIndicationCallback` / `SoAd_RxIndication` → `CanIf_RxIndication` → "
+        "`CanTp_RxIndication` → `PduR_CanTpRxIndication` → `SecOC_RxIndication` → "
+        "`SecOC_MainFunctionRx` → FVM check → `Csm_SignatureVerify` → "
+        "`CryIf_SignatureVerify` → `PQC_MLDSA_Verify` → `OQS_SIG_verify` → "
+        "`PduR_SecOCIfRxIndication` → `Com_RxIndication`."
     )
 
     out_path.write_text("\n".join(lines) + "\n")
