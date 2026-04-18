@@ -22,22 +22,30 @@
 #include "PQC_KeyDerivation.h"
 
 /* Scenario entry-points (see sc_*.c files). */
-int sc_baseline_run  (const SimConfig *);
-int sc_throughput_run(const SimConfig *);
-int sc_mixed_bus_run (const SimConfig *);
-int sc_attacks_run   (const SimConfig *);
-int sc_rekey_run     (const SimConfig *);
+int sc_baseline_run       (const SimConfig *);
+int sc_throughput_run     (const SimConfig *);
+int sc_mixed_bus_run      (const SimConfig *);
+int sc_attacks_run        (const SimConfig *);
+int sc_rekey_run          (const SimConfig *);
+int sc_persistence_run    (const SimConfig *);
+int sc_bus_failure_run    (const SimConfig *);
+int sc_deadline_stress_run(const SimConfig *);
+int sc_multi_ecu_run      (const SimConfig *);
 
 static struct {
     const char *name;
     int (*fn)(const SimConfig *);
     const char *desc;
 } g_scenarios[] = {
-    { "baseline",    sc_baseline_run,   "Baseline per-signal latency & overhead" },
-    { "throughput",  sc_throughput_run, "Sustained throughput stress test"       },
-    { "mixed_bus",   sc_mixed_bus_run,  "CAN-FD ↔ Ethernet gateway scenario"    },
-    { "attacks",     sc_attacks_run,    "All 10 attack scenarios, sequential"    },
-    { "rekey",       sc_rekey_run,      "Session rekey + key-exchange stress"    },
+    { "baseline",        sc_baseline_run,        "Baseline per-signal latency & overhead" },
+    { "throughput",      sc_throughput_run,      "Sustained throughput stress test"       },
+    { "mixed_bus",       sc_mixed_bus_run,       "CAN-FD <-> Ethernet gateway scenario"   },
+    { "attacks",         sc_attacks_run,         "All 10 attack scenarios, sequential"    },
+    { "rekey",           sc_rekey_run,           "Session rekey + key-exchange stress"    },
+    { "persistence",     sc_persistence_run,     "NvM freshness persistence across reboot"},
+    { "bus_failure",     sc_bus_failure_run,     "Physical-layer BER / bus-error handling"},
+    { "deadline_stress", sc_deadline_stress_run, "Deadline miss per ASIL class"           },
+    { "multi_ecu",       sc_multi_ecu_run,       "1 TX : N RX broadcast verification"     },
     { NULL, NULL, NULL }
 };
 

@@ -64,9 +64,26 @@ run_sc mixed_bus_pqc     mixed_bus  --protection pqc
 # 4. Attacks (runs all 10 kinds internally)
 run_sc attacks_pqc       attacks    --protection pqc
 run_sc attacks_hmac      attacks    --protection hmac
+run_sc attacks_hybrid    attacks    --protection hybrid
 
 # 5. Rekey stress
 run_sc rekey             rekey
+
+# 6. NvM freshness persistence (SWS_SecOC_00194)
+run_sc persistence_pqc   persistence  --protection pqc
+run_sc persistence_hmac  persistence  --protection hmac
+
+# 7. Physical-layer bus-error / BER sweep (CanSM / EthSM surface)
+run_sc bus_failure_pqc   bus_failure  --protection pqc
+run_sc bus_failure_hmac  bus_failure  --protection hmac
+
+# 8. Deadline-stress (per-ASIL class deadline miss counters)
+run_sc deadline_pqc      deadline_stress --protection pqc
+run_sc deadline_hmac     deadline_stress --protection hmac
+
+# 9. Multi-ECU broadcast (1 TX : N RX)
+run_sc multi_ecu_pqc     multi_ecu    --protection pqc
+run_sc multi_ecu_hmac    multi_ecu    --protection hmac
 
 echo
 # Some scenarios (attacks, mixed_bus) emit multiple summary files that

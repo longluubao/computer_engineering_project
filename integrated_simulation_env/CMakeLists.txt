@@ -57,6 +57,10 @@ set(ISE_SCENARIOS
     scenarios/sc_mixed_bus.c
     scenarios/sc_attacks.c
     scenarios/sc_rekey.c
+    scenarios/sc_persistence.c
+    scenarios/sc_bus_failure.c
+    scenarios/sc_deadline_stress.c
+    scenarios/sc_multi_ecu.c
 )
 
 add_executable(ise_runner
@@ -108,6 +112,22 @@ add_test(NAME ise_attacks
 add_test(NAME ise_rekey
          COMMAND ise_runner --scenario rekey    --iterations 50
                             --out "${CMAKE_BINARY_DIR}/ctest_out/rekey")
+add_test(NAME ise_persistence
+         COMMAND ise_runner --scenario persistence --iterations 40
+                            --protection pqc
+                            --out "${CMAKE_BINARY_DIR}/ctest_out/persistence")
+add_test(NAME ise_bus_failure
+         COMMAND ise_runner --scenario bus_failure --iterations 40
+                            --protection hmac
+                            --out "${CMAKE_BINARY_DIR}/ctest_out/bus_failure")
+add_test(NAME ise_deadline_stress
+         COMMAND ise_runner --scenario deadline_stress --iterations 30
+                            --protection pqc
+                            --out "${CMAKE_BINARY_DIR}/ctest_out/deadline_stress")
+add_test(NAME ise_multi_ecu
+         COMMAND ise_runner --scenario multi_ecu --iterations 30
+                            --protection pqc
+                            --out "${CMAKE_BINARY_DIR}/ctest_out/multi_ecu")
 
 message(STATUS "ISE: ise_runner target configured")
 message(STATUS "ISE: AUTOSAR_ROOT = ${AUTOSAR_ROOT}")

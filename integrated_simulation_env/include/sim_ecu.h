@@ -91,6 +91,28 @@ bool sim_ecu_pqc_handshake(SimEcu *tx, SimEcu *rx);
  */
 bool sim_ecu_share_keys(SimEcu *src, SimEcu *dst);
 
+/*
+ * Freshness introspection / restore helpers. Used by the persistence
+ * scenario to simulate the AUTOSAR NvM block that preserves the SecOC
+ * freshness counter across power cycles (SWS_SecOC_00194).
+ *
+ * get_freshness_tx  — last counter value used by the signer
+ * get_freshness_rx  — highest counter accepted by the verifier
+ * set_freshness_tx  — seed the signer counter (post-NvM-restore)
+ * set_freshness_rx  — seed the verifier counter (post-NvM-restore)
+ */
+uint64_t sim_ecu_get_freshness_tx(const SimEcu *ecu);
+uint64_t sim_ecu_get_freshness_rx(const SimEcu *ecu);
+void     sim_ecu_set_freshness_tx(SimEcu *ecu, uint64_t value);
+void     sim_ecu_set_freshness_rx(SimEcu *ecu, uint64_t value);
+
+/*
+ * Rebind the primary bus at runtime. Used by the multi-ECU broadcast
+ * scenario to hand the same signer to multiple virtual bus segments
+ * without recreating keys or session state.
+ */
+void sim_ecu_set_primary_bus(SimEcu *ecu, SimBus *bus);
+
 #ifdef __cplusplus
 }
 #endif

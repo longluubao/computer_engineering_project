@@ -516,3 +516,28 @@ bool sim_ecu_share_keys(SimEcu *src, SimEcu *dst)
     memcpy(dst->session_key, src->session_key, sizeof(dst->session_key));
     return true;
 }
+
+uint64_t sim_ecu_get_freshness_tx(const SimEcu *ecu)
+{
+    return ecu ? ecu->freshness_tx : 0;
+}
+
+uint64_t sim_ecu_get_freshness_rx(const SimEcu *ecu)
+{
+    return ecu ? ecu->freshness_rx : 0;
+}
+
+void sim_ecu_set_freshness_tx(SimEcu *ecu, uint64_t value)
+{
+    if (ecu) ecu->freshness_tx = value;
+}
+
+void sim_ecu_set_freshness_rx(SimEcu *ecu, uint64_t value)
+{
+    if (ecu) ecu->freshness_rx = value;
+}
+
+void sim_ecu_set_primary_bus(SimEcu *ecu, SimBus *bus)
+{
+    if (ecu) ecu->cfg.primary_bus = bus;
+}
