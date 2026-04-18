@@ -495,6 +495,204 @@ def write_flow_timeline_md(
         "`PduR_SecOCIfRxIndication` → `Com_RxIndication`."
     )
 
+    # ------------------------------------------------------------------
+    # Phases beyond the hot data path
+    # ------------------------------------------------------------------
+    lines.append("")
+    lines.append(
+        "## ECU startup chain (Phase 1 — EcuM orchestration)\n"
+        "\n"
+        "`main()` in `Autosar_SecOC/source/main.c` invokes `EcuM_Init`, "
+        "which walks the BSW init chain in AUTOSAR-mandated order. None "
+        "of the boxes below are exercised by the hot TX/RX measurements "
+        "— they run once at power-on.\n"
+    )
+    lines.append("```")
+    lines.append("main() ──► EcuM_Init() ─┐")
+    lines.append("                        │  Phase 0 — MCAL / Microcontroller")
+    lines.append("                        ├──► Mcal_Init → Mcu_Init, Gpt_Init,")
+    lines.append("                        │               Wdg_Init, Dio_Init")
+    lines.append("                        │  Phase 1 — Diagnostics + Memory")
+    lines.append("                        ├──► Det_Init,  Det_Start   (error tracer)")
+    lines.append("                        ├──► MemIf_Init → Ea, Fee   (EEPROM/Flash")
+    lines.append("                        │                            abstraction)")
+    lines.append("                        ├──► NvM_Init     + NvM_ReadAll")
+    lines.append("                        │        └─ restores freshness counters,")
+    lines.append("                        │           ML-DSA private key slot")
+    lines.append("                        ├──► Dem_Init              (DTC storage)")
+    lines.append("                        ├──► Dcm_Init              (UDS / OBD-II)")
+    lines.append("                        ├──► Csm_Init              (crypto svc mgr)")
+    lines.append("                        │  Phase 2 — Bus drivers / SM layer")
+    lines.append("                        ├──► Can_Init              (CAN driver)")
+    lines.append("                        ├──► CanNm_Init, CanSM_Init, ComM_Init")
+    lines.append("                        ├──► EthSM_Init, UdpNm_Init (Eth side)")
+    lines.append("                        ├──► BswM_Init             (mode mgr)")
+    lines.append("                        │  Phase 2b — EcuM_StartupTwo")
+    lines.append("                        ├──► EthIf_Init, TcpIp_Init, SoAd_Init")
+    lines.append("                        ├──► CanIf_Init, CanTp_Init")
+    lines.append("                        ├──► SecOC_Init(&SecOC_Config)")
+    lines.append("                        ├──► Com_Init              (IPDU groups)")
+    lines.append("                        ├──► ApBridge_Init         (gateway hc)")
+    lines.append("                        └──► EcuM_GotoRun  → BswM enables COM")
+    lines.append("```")
+
+    lines.append("")
+    lines.append(
+        "## Cross-cutting runtime modules (Phase 3 — always-on services)\n"
+        "\n"
+        "These modules are not in the linear TX/RX chain but are "
+        "consulted on every message (error paths), on periodic timers, "
+        "or on state transitions. The ISE simulates their contractual "
+        "behaviour rather than calling them through the real BSW stack.\n"
+    )
+    lines.append("```")
+    lines.append("              ┌──────────────────────────────────────┐")
+    lines.append("              │ [Det] Default Error Tracer           │")
+    lines.append("              │   Det_ReportError(moduleId,instId,   │")
+    lines.append("              │                   apiId, errorId)    │")
+    lines.append("              │ Called from EVERY module on bad args │")
+    lines.append("              │ / verify fail / freshness rollback.  │")
+    lines.append("              └──────────────────────────────────────┘")
+    lines.append("              ┌──────────────────────────────────────┐")
+    lines.append("              │ [Dem] Diagnostic Event Manager       │")
+    lines.append("              │   Dem_SetEventStatus(eventId, …)     │")
+    lines.append("              │ SecOC verify-fail, downgrade attack, │")
+    lines.append("              │ replay attempts → DTC + NvM block.   │")
+    lines.append("              └──────────────────────────────────────┘")
+    lines.append("              ┌──────────────────────────────────────┐")
+    lines.append("              │ [NvM] Non-Volatile Memory            │")
+    lines.append("              │   NvM_WriteBlock(FreshnessBlockId)   │")
+    lines.append("              │ Persist FVM counter across power     │")
+    lines.append("              │ cycles (SWS_SecOC_00194).            │")
+    lines.append("              │   NvM_ReadBlock(MLDSA_PrivKey)       │")
+    lines.append("              └──────────────────────────────────────┘")
+    lines.append("              ┌──────────────────────────────────────┐")
+    lines.append("              │ [Os] / [Scheduler]                   │")
+    lines.append("              │   SchM_Call_SecOC_MainFunctionTx()   │")
+    lines.append("              │   SchM_Call_SecOC_MainFunctionRx()   │")
+    lines.append("              │ Drives the 1 ms periodic MainFns.    │")
+    lines.append("              └──────────────────────────────────────┘")
+    lines.append("              ┌──────────────────────────────────────┐")
+    lines.append("              │ [BswM] + [ComM] + [CanSM] + [EthSM]  │")
+    lines.append("              │   BswM_RequestMode(…)                │")
+    lines.append("              │   ComM_RequestComMode(COMM_FULL)     │")
+    lines.append("              │   CanSM_RequestComMode(CANSM_ONLINE) │")
+    lines.append("              │   EthSM_RequestComMode(ETHSM_ONLINE) │")
+    lines.append("              │ Gates whether TX is even allowed.    │")
+    lines.append("              └──────────────────────────────────────┘")
+    lines.append("              ┌──────────────────────────────────────┐")
+    lines.append("              │ [CanNm] / [UdpNm]                    │")
+    lines.append("              │   NM vote frames keep the bus alive  │")
+    lines.append("              │   while application is idle.         │")
+    lines.append("              └──────────────────────────────────────┘")
+    lines.append("              ┌──────────────────────────────────────┐")
+    lines.append("              │ [Dcm] UDS diagnostics                │")
+    lines.append("              │   0x27 SecurityAccess, 0x2E WriteDID │")
+    lines.append("              │ Rekey / re-handshake request path    │")
+    lines.append("              │ (PQC_KeyExchange invoked via CryIf). │")
+    lines.append("              └──────────────────────────────────────┘")
+    lines.append("              ┌──────────────────────────────────────┐")
+    lines.append("              │ [ApBridge] Application bridge        │")
+    lines.append("              │   Monitors gateway health, toggles   │")
+    lines.append("              │   SoAd routing on fault.             │")
+    lines.append("              └──────────────────────────────────────┘")
+    lines.append("              ┌──────────────────────────────────────┐")
+    lines.append("              │ [GUIInterface] demo / debug hook     │")
+    lines.append("              │   Not exercised at runtime.          │")
+    lines.append("              └──────────────────────────────────────┘")
+    lines.append("```")
+
+    lines.append("")
+    lines.append(
+        "## ECU shutdown chain (Phase 4)\n"
+        "\n"
+        "On power-down request BswM calls `EcuM_GoDown`. The teardown "
+        "walks the init chain in reverse so that in-flight PDUs are "
+        "flushed and persistent state is saved before the MCU halts.\n"
+    )
+    lines.append("```")
+    lines.append("EcuM_GoDown  ──► ComM_CommunicationAllowed(FALSE)")
+    lines.append("             ──► Com_DeInit / Com_IpduGroupStop")
+    lines.append("             ──► SecOC_DeInit   (flush FVM counters)")
+    lines.append("             ──► SoAd_CloseSoCon / CanSM_RequestComMode(OFFLINE)")
+    lines.append("             ──► CanTp_Shutdown / CanIf_SetControllerMode(STOP)")
+    lines.append("             ──► NvM_WriteAll   (persist FVM + DTC blocks)")
+    lines.append("             ──► Dem_Shutdown / Dcm_DeInit / Csm_DeInit")
+    lines.append("             ──► Mcal_Wdg_Disable / Mcu_PerformReset")
+    lines.append("```")
+
+    lines.append("")
+    lines.append(
+        "## Module inventory — all 31 BSW modules under `Autosar_SecOC/source`\n"
+        "\n"
+        "Category legend: **D** = TX/RX data path, **S** = startup/mode, "
+        "**X** = diagnostics, **M** = memory stack, **B** = bus-state "
+        "manager, **H** = HAL, **U** = utility.\n"
+        "\n"
+        "| Module | Cat. | Main API | Called by | Calls |\n"
+        "|--------|------|----------|-----------|-------|\n"
+        "| Mcal        | H | `Mcu_Init`, `Gpt_Init`, `Wdg_Init`, `Dio_Init`  | EcuM          | Hardware registers |\n"
+        "| EcuM        | S | `EcuM_Init`, `EcuM_GoDown`                     | `main()`      | All BSW init funcs |\n"
+        "| Det         | X | `Det_ReportError`                              | Every module  | Console / log |\n"
+        "| BswM        | S | `BswM_Init`, `BswM_RequestMode`                | EcuM, ComM    | ComM, SoAd |\n"
+        "| ComM        | S | `ComM_RequestComMode`                          | EcuM, BswM    | CanSM, EthSM |\n"
+        "| CanSM       | B | `CanSM_RequestComMode`                         | ComM          | CanNm, CanIf |\n"
+        "| EthSM       | B | `EthSM_RequestComMode`                         | ComM          | EthIf, TcpIp |\n"
+        "| CanNm       | B | `CanNm_PassiveStartUp`                         | CanSM         | CanIf |\n"
+        "| UdpNm       | B | `UdpNm_PassiveStartUp`                         | EthSM         | TcpIp |\n"
+        "| Os          | S | `SchM_Call_*MainFunction*`                     | main / tick   | Task handlers |\n"
+        "| Scheduler   | S | cooperative task loop                          | main          | MainFunctions |\n"
+        "| MemIf       | M | `MemIf_Read/Write`                             | NvM           | Fee, Ea |\n"
+        "| Fee         | M | `Fee_Read/Write`                               | MemIf         | Mcal Flash |\n"
+        "| Ea          | M | `Ea_Read/Write`                                | MemIf         | Mcal EEPROM |\n"
+        "| NvM         | M | `NvM_ReadBlock`, `NvM_WriteBlock`, `NvM_ReadAll` | EcuM, Dem, SecOC | MemIf |\n"
+        "| Dem         | X | `Dem_SetEventStatus`                           | SecOC, BswM   | NvM |\n"
+        "| Dcm         | X | `Dcm_MainFunction`                             | Os/Scheduler  | PduR, NvM, PQC |\n"
+        "| Csm         | D | `Csm_SignatureGenerate/Verify`, `Csm_MacGenerate/Verify` | SecOC | CryIf |\n"
+        "| CryIf       | D | `CryIf_SignatureGenerate/Verify`               | Csm           | PQC, Encrypt |\n"
+        "| Encrypt     | D | HMAC / AES primitives                          | CryIf         | Mcal crypto (opt) |\n"
+        "| PQC         | D | `PQC_MLDSA_Sign/Verify`, `PQC_MLKEM_Encapsulate/Decapsulate` | CryIf | liboqs |\n"
+        "| Com         | D | `Com_SendSignal`, `Com_RxIndication`           | SW-C, SecOC   | PduR |\n"
+        "| PduR        | D | `PduR_ComTransmit`, `PduR_SecOCTransmit`, `PduR_*RxIndication` | Com, SecOC, CanIf, CanTp, SoAd | SecOC, CanTp, SoAd, Com |\n"
+        "| SecOC       | D | `SecOC_IfTransmit`, `SecOC_TpTransmit`, `SecOC_RxIndication`, `SecOC_MainFunctionTx/Rx` | PduR | Csm, PduR |\n"
+        "| CanTp       | D | `CanTp_Transmit`, `CanTp_RxIndication`         | PduR          | CanIf |\n"
+        "| CanIf       | D | `CanIf_Transmit`, `CanIf_RxIndication`         | CanTp, PduR   | Can |\n"
+        "| Can         | H | `Can_Write`, `Can_RxIndicationCallback`        | CanIf         | Mcal_Can |\n"
+        "| SoAd        | D | `SoAd_IfTransmit`, `SoAd_TpTransmit`, `SoAd_RxIndication` | SecOC, PduR | TcpIp |\n"
+        "| TcpIp       | D | `TcpIp_TcpTransmit`, `TcpIp_UdpTransmit`       | SoAd          | EthIf |\n"
+        "| EthIf       | H | `EthIf_Transmit`                               | TcpIp         | Ethernet drv |\n"
+        "| Ethernet    | H | raw socket / NIC driver                        | EthIf         | OS sockets |\n"
+        "| ApBridge    | B | `ApBridge_Init`, `ApBridge_ReportHeartbeat`    | SoAd, EcuM    | SoAd, Det |\n"
+        "| GUIInterface| U | demo hook                                      | main          | Dcm, Det |\n"
+    )
+
+    lines.append("")
+    lines.append(
+        "## ISE mapping — what the simulator actually exercises\n"
+        "\n"
+        "The ISE keeps the full hot-path (`Com → PduR → SecOC → Csm → "
+        "CryIf → PQC → liboqs → PduR → CanTp/SoAd → CanIf/EthIf → "
+        "driver → bus`) in C and measures each bucket directly. Other "
+        "modules are represented as follows:\n"
+        "\n"
+        "| Module     | ISE representation                                       |\n"
+        "|------------|----------------------------------------------------------|\n"
+        "| EcuM       | implicit — `sim_ecu_create` + `sim_ecu_init_stack`       |\n"
+        "| BswM/ComM  | implicit — buses are opened before the iteration loop    |\n"
+        "| CanSM/EthSM/CanNm/UdpNm | N/A — bus is always up for the duration     |\n"
+        "| Os/Scheduler | the scenario's for-loop stands in for the 1 ms MainFn  |\n"
+        "| Mcal       | replaced by `sim_bus.c` (deterministic bit-rate model)   |\n"
+        "| NvM/MemIf/Fee/Ea | freshness counters kept in RAM (no crash-safety in ISE) |\n"
+        "| Dem/Dcm    | attack detections logged to `raw/*_attacks.csv`          |\n"
+        "| Det        | `sim_log(SIM_LOG_ERROR, …)` on any failure               |\n"
+        "| ApBridge / GUIInterface | not exercised (no external UI in ISE)       |\n"
+        "\n"
+        "This keeps the thesis numbers honest: every µs reported in "
+        "`layer_latency.csv` corresponds to real code that runs on the "
+        "Pi 4 target; startup + cross-cutting services are documented "
+        "here for completeness but do not inflate the hot-path figures."
+    )
+
     out_path.write_text("\n".join(lines) + "\n")
 
 
