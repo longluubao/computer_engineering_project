@@ -329,22 +329,36 @@ bool sim_ecu_send_signal(SimEcu *ecu, const SimSignalDef *sig,
         case SIM_BUS_ETH_1000: mtu = 1500U; break;
     }
 
+    /*
+     * Split the TX-lower-stack timing into:
+     *   - t_bus      : time spent inside sim_bus_tx (physical bus transit)
+     *   - t_cantp    : CAN-TP fragmentation/book-keeping overhead only
+     *                  (total loop time minus bus_tx time)
+     * This matches the AUTOSAR layer boundaries used in
+     * summary/layer_latency.csv and summary/flow_timeline.md.
+     */
     uint64_t t_cantp_start = sim_now_ns();
+    uint64_t t_bus_accum = 0;
     uint32_t fragments = 0;
     bool all_ok = true;
     for (uint32_t off = 0; off < pdu_len; off += mtu, ++fragments) {
         uint32_t n = (pdu_len - off > mtu) ? mtu : (pdu_len - off);
+        uint64_t tb = sim_now_ns();
         if (!sim_bus_tx(ecu->cfg.primary_bus, sig->asil, &pdu[off], n, tag)) {
             all_ok = false;
             break;
         }
+        t_bus_accum += sim_now_ns() - tb;
     }
-    uint64_t t_cantp = sim_now_ns() - t_cantp_start;
+    uint64_t t_total_lower = sim_now_ns() - t_cantp_start;
+    uint64_t t_cantp = (t_total_lower > t_bus_accum)
+                       ? (t_total_lower - t_bus_accum) : 0;
     uint64_t t_app_done = sim_now_ns();
 
     if (ecu->cfg.metrics) {
         sim_hist_add(&ecu->cfg.metrics->secoc_auth,   t_auth_ns);
         sim_hist_add(&ecu->cfg.metrics->cantp,        t_cantp);
+        sim_hist_add(&ecu->cfg.metrics->bus_transit,  t_bus_accum);
         sim_hist_add(&ecu->cfg.metrics->pdu_bytes,    pdu_len);
         sim_hist_add(&ecu->cfg.metrics->fragments,    fragments);
         ecu->cfg.metrics->tx_bytes_total += pdu_len;
@@ -356,6 +370,7 @@ bool sim_ecu_send_signal(SimEcu *ecu, const SimSignalDef *sig,
     rec.rx_ns           = t_app_done;  /* populated again on rx side */
     rec.secoc_auth_ns   = t_auth_ns;
     rec.cantp_ns        = t_cantp;
+    rec.bus_ns          = t_bus_accum;
     rec.pdu_bytes       = pdu_len;
     rec.auth_bytes      = auth_bytes;
     rec.fragments       = fragments;
