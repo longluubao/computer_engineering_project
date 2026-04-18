@@ -1,0 +1,27 @@
+[       922 us][INFO ] logger initialised: scenario=multi_ecu seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260418T183016Z/raw git=ise
+[      1082 us][INFO ] running scenario 'multi_ecu' (1 TX : N RX broadcast verification)
+[      4431 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      4694 us][INFO ] bus[1] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      4888 us][INFO ] bus[2] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      7845 us][INFO ] ecu[tx-multi] stack initialised (protection=2)
+[      7960 us][INFO ] ecu[rx-multi-0] stack initialised (protection=2)
+[      8363 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 359.1 us
+[      8488 us][INFO ] ecu[rx-multi-1] stack initialised (protection=2)
+[      8627 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 86.1 us
+[      8733 us][INFO ] ecu[rx-multi-2] stack initialised (protection=2)
+[      8844 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 73.1 us
+[    284019 us][INFO ] =========== multi_ecu_rx0 summary ===========
+[    284094 us][INFO ] messages   success=50  verify_fail=0  drop=0
+[    284126 us][INFO ] e2e latency p50/p95/p99 = 1990.5 / 2235.7 / 2992.7 us
+[    284457 us][INFO ] =========== multi_ecu_rx1 summary ===========
+[    284501 us][INFO ] messages   success=50  verify_fail=0  drop=0
+[    284533 us][INFO ] e2e latency p50/p95/p99 = 2112.3 / 2559.2 / 2585.7 us
+[    284948 us][INFO ] =========== multi_ecu_rx2 summary ===========
+[    284979 us][INFO ] messages   success=50  verify_fail=0  drop=0
+[    284997 us][INFO ] e2e latency p50/p95/p99 = 2133.5 / 2271.7 / 2541.7 us
+[    285463 us][INFO ] =========== multi_ecu_tx summary ===========
+[    285493 us][INFO ] messages   success=0  verify_fail=0  drop=0
+[    285516 us][INFO ] SecOC auth   mean=155.6 us  verify mean=0.0 us
+[    285916 us][INFO ] =========== multi_ecu_aggregate summary ===========
+[    285951 us][INFO ] messages   success=150  verify_fail=0  drop=0
+[    285975 us][INFO ] multi_ecu: 50 iterations x 3 receivers = 150 expected verifies; aggregate success=150 verify_fail=0

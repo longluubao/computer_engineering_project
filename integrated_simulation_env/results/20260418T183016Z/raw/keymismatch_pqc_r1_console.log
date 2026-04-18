@@ -1,0 +1,23 @@
+[       907 us][INFO ] logger initialised: scenario=keymismatch seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260418T183016Z/raw git=ise
+[      1085 us][INFO ] running scenario 'keymismatch' (Wrong-key rejection (SWS_SecOC_00046))
+[      2595 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      5666 us][INFO ] ecu[tx-keymm] stack initialised (protection=2)
+[      5821 us][INFO ] ecu[rx-keymm] stack initialised (protection=2)
+[      6232 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 330.3 us
+[     92035 us][INFO ] =========== keymismatch_shared summary ===========
+[     92128 us][INFO ] messages   success=50  verify_fail=0  drop=0
+[     92174 us][INFO ] e2e latency p50/p95/p99 = 1569.6 / 2262.9 / 2272.5 us
+[     92200 us][INFO ] SecOC auth   mean=156.7 us  verify mean=75.4 us
+[     92224 us][INFO ] [shared] attempted=50 accepted=50 rejected=0 (expected accepted = 100%)
+[     93158 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[     93311 us][INFO ] ecu[tx-keymm] stack initialised (protection=2)
+[     93435 us][INFO ] ecu[rx-keymm] stack initialised (protection=2)
+[    193152 us][INFO ] =========== keymismatch_mismatch summary ===========
+[    193244 us][INFO ] messages   success=0  verify_fail=50  drop=0
+[    193283 us][INFO ] SecOC auth   mean=169.0 us  verify mean=71.9 us
+[    193312 us][INFO ] attacks injected=50 detected=50 delivered=0
+[    193333 us][INFO ] [mismatch] attempted=50 accepted=0 rejected=50 (expected accepted = 0%)
+[    194338 us][INFO ] =========== keymismatch_aggregate summary ===========
+[    194373 us][INFO ] messages   success=50  verify_fail=50  drop=0
+[    194395 us][INFO ] attacks injected=50 detected=50 delivered=0
+[    194441 us][INFO ] keymismatch summary: shared=success, mismatch=100% rejection (SWS_SecOC_00046 binding proven)

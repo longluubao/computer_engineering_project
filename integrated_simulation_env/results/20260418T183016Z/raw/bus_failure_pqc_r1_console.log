@@ -1,0 +1,31 @@
+[       855 us][INFO ] logger initialised: scenario=bus_failure seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260418T183016Z/raw git=ise
+[      1040 us][INFO ] running scenario 'bus_failure' (Physical-layer BER / bus-error handling)
+[      2456 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      5581 us][INFO ] ecu[tx-ber] stack initialised (protection=2)
+[      5719 us][INFO ] ecu[rx-ber] stack initialised (protection=2)
+[      6198 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 413.7 us
+[    197214 us][INFO ] bus_failure[clean] BER=0.00e+00  tx=5200 rx=5200 ber_flipped=0 queue_drops=0  success=100 verify_fail=0
+[    198038 us][INFO ] =========== bus_failure_clean summary ===========
+[    198100 us][INFO ] messages   success=100  verify_fail=0  drop=0
+[    198142 us][INFO ] e2e latency p50/p95/p99 = 2153.8 / 2560.9 / 3254.9 us
+[    198164 us][INFO ] SecOC auth   mean=154.6 us  verify mean=71.4 us
+[    199355 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=1.00e-06 prop_ns=3000
+[    199500 us][INFO ] ecu[tx-ber] stack initialised (protection=2)
+[    199654 us][INFO ] ecu[rx-ber] stack initialised (protection=2)
+[    199846 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 129.9 us
+[    391735 us][INFO ] bus_failure[noisy] BER=1.00e-06  tx=5200 rx=5200 ber_flipped=1 queue_drops=0  success=99 verify_fail=1
+[    392440 us][INFO ] =========== bus_failure_noisy summary ===========
+[    392471 us][INFO ] messages   success=99  verify_fail=1  drop=0
+[    392498 us][INFO ] e2e latency p50/p95/p99 = 2170.4 / 2561.3 / 3329.3 us
+[    392514 us][INFO ] SecOC auth   mean=154.9 us  verify mean=73.8 us
+[    393893 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=1.00e-04 prop_ns=3000
+[    394029 us][INFO ] ecu[tx-ber] stack initialised (protection=2)
+[    394151 us][INFO ] ecu[rx-ber] stack initialised (protection=2)
+[    394343 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 140.2 us
+[    581549 us][INFO ] bus_failure[heavy] BER=1.00e-04  tx=5200 rx=5200 ber_flipped=248 queue_drops=0  success=7 verify_fail=93
+[    582254 us][INFO ] =========== bus_failure_heavy summary ===========
+[    582314 us][INFO ] messages   success=7  verify_fail=93  drop=0
+[    582408 us][INFO ] e2e latency p50/p95/p99 = 2209.8 / 2419.8 / 2419.8 us
+[    582472 us][INFO ] SecOC auth   mean=147.6 us  verify mean=72.8 us
+[    584166 us][INFO ] =========== bus_failure_aggregate summary ===========
+[    584205 us][INFO ] messages   success=206  verify_fail=94  drop=0

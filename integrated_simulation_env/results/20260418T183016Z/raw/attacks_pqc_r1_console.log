@@ -1,0 +1,84 @@
+[      1053 us][INFO ] logger initialised: scenario=attacks seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260418T183016Z/raw git=ise
+[      1198 us][INFO ] running scenario 'attacks' (All 10 attack scenarios, sequential)
+[      2671 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      2784 us][INFO ] attacker[replay] attached to bus
+[      5658 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[      5767 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[      6151 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 328.6 us
+[    104858 us][INFO ] attack[replay]  injected=55 detected=47 delivered=3  rate=85.45%
+[    105499 us][INFO ] =========== attacks_replay_pqc summary ===========
+[    105556 us][INFO ] messages   success=3  verify_fail=47  drop=0
+[    105585 us][INFO ] e2e latency p50/p95/p99 = 2180.2 / 2612.5 / 3221.7 us
+[    105620 us][INFO ] SecOC auth   mean=156.7 us  verify mean=71.0 us
+[    105634 us][INFO ] attacks injected=55 detected=47 delivered=3
+[    106463 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    106656 us][INFO ] attacker[tamper_payload] attached to bus
+[    106790 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[    106889 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[    107050 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 112.7 us
+[    203432 us][INFO ] attack[tamper_payload]  injected=2600 detected=50 delivered=0  rate=1.92%
+[    204037 us][INFO ] =========== attacks_tamper_payload_pqc summary ===========
+[    204090 us][INFO ] messages   success=0  verify_fail=50  drop=0
+[    204132 us][INFO ] e2e latency p50/p95/p99 = 2132.4 / 2661.5 / 3224.5 us
+[    204156 us][INFO ] SecOC auth   mean=183.0 us  verify mean=73.1 us
+[    204177 us][INFO ] attacks injected=2600 detected=50 delivered=0
+[    204755 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    204903 us][INFO ] attacker[tamper_auth] attached to bus
+[    205047 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[    205161 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[    205429 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 179.5 us
+[    305615 us][INFO ] attack[tamper_auth]  injected=2600 detected=50 delivered=0  rate=1.92%
+[    306170 us][INFO ] =========== attacks_tamper_auth_pqc summary ===========
+[    306203 us][INFO ] messages   success=0  verify_fail=50  drop=0
+[    306255 us][INFO ] e2e latency p50/p95/p99 = 2168.9 / 2349.3 / 2550.2 us
+[    306303 us][INFO ] SecOC auth   mean=165.4 us  verify mean=57.7 us
+[    306327 us][INFO ] attacks injected=2600 detected=50 delivered=0
+[    306826 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    306894 us][INFO ] attacker[freshness_rollback] attached to bus
+[    306968 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[    307056 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[    307241 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 135.4 us
+[    406840 us][INFO ] attack[freshness_rollback]  injected=2600 detected=50 delivered=0  rate=1.92%
+[    407470 us][INFO ] =========== attacks_freshness_rollback_pqc summary ===========
+[    407502 us][INFO ] messages   success=0  verify_fail=50  drop=0
+[    407522 us][INFO ] e2e latency p50/p95/p99 = 2167.3 / 2274.4 / 3190.1 us
+[    407546 us][INFO ] SecOC auth   mean=184.2 us  verify mean=0.0 us
+[    407560 us][INFO ] attacks injected=2600 detected=50 delivered=0
+[    408051 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    408122 us][INFO ] attacker[mitm_key_confuse] attached to bus
+[    408238 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[    408363 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[    408503 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 100.4 us
+[    510131 us][INFO ] attack[mitm_key_confuse]  injected=2600 detected=50 delivered=0  rate=1.92%
+[    510776 us][INFO ] =========== attacks_mitm_key_confuse_pqc summary ===========
+[    510821 us][INFO ] messages   success=0  verify_fail=50  drop=0
+[    510849 us][INFO ] e2e latency p50/p95/p99 = 2180.9 / 2230.9 / 3252.7 us
+[    510902 us][INFO ] SecOC auth   mean=162.4 us  verify mean=39.5 us
+[    510921 us][INFO ] attacks injected=2600 detected=50 delivered=0
+[    511515 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    511647 us][INFO ] attacker[sig_fuzz] attached to bus
+[    511758 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[    511849 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[    512050 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 141.0 us
+[    605574 us][INFO ] attack[sig_fuzz]  injected=2600 detected=50 delivered=0  rate=1.92%
+[    606293 us][INFO ] =========== attacks_sig_fuzz_pqc summary ===========
+[    606383 us][INFO ] messages   success=0  verify_fail=50  drop=0
+[    606431 us][INFO ] e2e latency p50/p95/p99 = 2156.9 / 2280.8 / 2441.5 us
+[    606457 us][INFO ] SecOC auth   mean=173.9 us  verify mean=38.4 us
+[    606485 us][INFO ] attacks injected=2600 detected=50 delivered=0
+[    607100 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    607213 us][INFO ] attacker[downgrade_hmac] attached to bus
+[    607388 us][INFO ] ecu[tx-atk] stack initialised (protection=2)
+[    607492 us][INFO ] ecu[rx-atk] stack initialised (protection=2)
+[    607669 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 117.7 us
+[    711556 us][INFO ] attack[downgrade_hmac]  injected=2600 detected=50 delivered=0  rate=1.92%
+[    712198 us][INFO ] =========== attacks_downgrade_hmac_pqc summary ===========
+[    712260 us][INFO ] messages   success=0  verify_fail=50  drop=0
+[    712307 us][INFO ] e2e latency p50/p95/p99 = 2181.6 / 2253.1 / 3268.8 us
+[    712348 us][INFO ] SecOC auth   mean=176.5 us  verify mean=76.7 us
+[    712380 us][INFO ] attacks injected=2600 detected=50 delivered=0
+[    713704 us][INFO ] =========== attacks_aggregate_pqc summary ===========
+[    713758 us][INFO ] messages   success=3  verify_fail=347  drop=0
+[    713872 us][INFO ] e2e latency p50/p95/p99 = 2174.5 / 2441.5 / 3252.7 us
+[    713937 us][INFO ] SecOC auth   mean=171.7 us  verify mean=50.9 us
+[    713964 us][INFO ] attacks injected=15655 detected=347 delivered=3
