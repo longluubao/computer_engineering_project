@@ -222,8 +222,7 @@ jobs:
           # succeeds and the Security tab shows "no findings".
           if [ ! -s grype-results.sarif ] \
              || ! python3 -c "import json,sys; d=json.load(open('grype-results.sarif')); sys.exit(0 if 'runs' in d else 1)"; then
-            echo "::warning::Grype produced no valid SARIF (likely DB download \
-failure); emitting empty placeholder for Security tab upload"
+            echo "::warning::Grype produced no valid SARIF (DB download failure); emitting empty placeholder for Security tab upload"
             cat > grype-results.sarif <<'SARIF'
           {
             "version": "2.1.0",
