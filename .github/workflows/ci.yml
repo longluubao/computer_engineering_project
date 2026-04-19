@@ -195,15 +195,35 @@ jobs:
       - name: Install cppcheck + misra addon
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends cppcheck cmake build-essential libssl-dev python3
+          sudo apt-get install -y --no-install-recommends \
+            cppcheck cmake ninja-build build-essential libssl-dev python3
           # Verify misra.py addon is installed (shipped with cppcheck 2.x)
           test -f /usr/share/cppcheck/addons/misra.py \
             || test -f /usr/lib/x86_64-linux-gnu/cppcheck/addons/misra.py \
             || { echo "::error::misra.py addon not found"; exit 1; }
 
+      - name: Cache liboqs
+        id: cache-liboqs
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PROJECT_DIR }}/external/liboqs/build
+          key: liboqs-${{ runner.os }}-gcc-${{ hashFiles('Autosar_SecOC/external/liboqs/CMakeLists.txt') }}
+
+      - name: Build liboqs (if cache miss)
+        if: steps.cache-liboqs.outputs.cache-hit != 'true'
+        working-directory: ${{ env.PROJECT_DIR }}/external/liboqs
+        run: |
+          rm -rf build && mkdir -p build && cd build
+          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
+            -DOQS_BUILD_ONLY_LIB=ON \
+            -DOQS_ENABLE_KEM_ml_kem_768=ON \
+            -DOQS_ENABLE_SIG_ml_dsa_65=ON \
+            -DOQS_USE_OPENSSL=OFF ..
+          cmake --build . --parallel
+
       - name: Configure (generates cppcheck_includes.txt)
         working-directory: ${{ env.PROJECT_DIR }}
-        run: cmake -B build -DMCAL_TARGET=SIM
+        run: cmake -B build -DMCAL_TARGET=SIM -DBUILD_TESTS=OFF
 
       - name: Run MISRA scan
         working-directory: ${{ env.PROJECT_DIR }}
