@@ -342,17 +342,21 @@ def scan_iso21434(section: Section) -> None:
     # Timing side-channel on MAC compare
     csm_c = (SOURCE_DIR / "Csm" / "Csm.c")
     mac_cmp_plain = False
+    ct_helper = False
     if csm_c.exists():
         txt = csm_c.read_text(errors="ignore")
         mac_cmp_plain = bool(re.search(r"memcmp\s*\([^)]*generatedMacBuffer", txt))
+        ct_helper = "Csm_ConstantTimeMemcmp" in txt
     section.findings.append(Finding(
         "ISO/SAE 21434", "RQ-05-04 side-channel resistance",
         "MAC comparison uses constant-time primitive",
         "WARN" if mac_cmp_plain else "PASS",
         ("memcmp() used in Csm_MacVerify – non-constant-time. Consider "
          "constant-time compare helper for ASIL-B targets.")
-        if mac_cmp_plain else "constant-time compare in use",
-        location="source/Csm/Csm.c:774",
+        if mac_cmp_plain
+        else ("Csm_ConstantTimeMemcmp helper in use on MAC verify path"
+              if ct_helper else "constant-time compare in use"),
+        location="source/Csm/Csm.c",
     ))
 
     # Key-length / algorithm strength (RQ-05-03)
