@@ -51,9 +51,10 @@ elseif(UNIX)
     # Keep scheduler path disabled when OS task-based dispatch is active
     list(REMOVE_ITEM SCR_FILES "${CMAKE_SOURCE_DIR}/source/Scheduler/scheduler.c")
     list(REMOVE_ITEM HDR_FILES "${CMAKE_SOURCE_DIR}/include/Scheduler/scheduler.h")
-    set( CMAKE_CXX_COMPILER "/usr/bin/g++" )
-    set( CMAKE_C_COMPILER "/usr/bin/gcc" )
-    set (CMAKE_GENERATOR "Unix Makefiles" CACHE INTERNAL "" FORCE)
+    # Compiler + generator selection: respect the environment. Forcing
+    # gcc/g++ and "Unix Makefiles" here breaks CI invocations that pass
+    # -GNinja or CC=clang (the googletest FetchContent sub-build then
+    # tries to feed a Makefile to Ninja).
 
     # ---- MCAL Target-specific source selection ----
     if(MCAL_TARGET STREQUAL "PI4")
