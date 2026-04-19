@@ -1,0 +1,26 @@
+# clang-tidy configuration for AUTOSAR SecOC
+#
+# Rationale: ISO 26262-6 §9.4.2 recommends additional static analysis beyond
+# MISRA. Checks below map to MISRA Directive 4.1 (minimise undefined behaviour),
+# ISO 21434 RQ-05-04 (side-channel), and CERT-C secure coding.
+#
+# Magic numbers and identifier-length checks are disabled — the AUTOSAR
+# BSWGeneral naming convention mandates short keywords like `p`, `i`, and
+# numeric values directly from SWS clauses.
+
+Checks: >
+  bugprone-*,
+  cert-*,
+  clang-analyzer-*,
+  readability-*,
+  portability-*,
+  -readability-magic-numbers,
+  -readability-identifier-length,
+  -readability-function-cognitive-complexity,
+  -bugprone-easily-swappable-parameters,
+  -cert-dcl37-c,
+  -cert-dcl51-cpp
+
+WarningsAsErrors: ''
+HeaderFilterRegex: '^(source|include)/(SecOC|Csm|PQC)/.*'
+FormatStyle: none

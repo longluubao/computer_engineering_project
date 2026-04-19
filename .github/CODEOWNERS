@@ -1,0 +1,20 @@
+# CODEOWNERS — ISO/SAE 21434 §9 supplier-side review + ASPICE SUP.1 policy
+#
+# Any change to cryptographic, SecOC core or compliance-gating surfaces must
+# be reviewed. This enforces four-eyes approval on security-sensitive code.
+
+# Post-Quantum Cryptography module
+/Autosar_SecOC/source/PQC/                  @longluubao
+/Autosar_SecOC/include/PQC/                 @longluubao
+
+# Crypto Service Manager (MAC compare, key elements, session keys)
+/Autosar_SecOC/source/Csm/                  @longluubao
+/Autosar_SecOC/include/Csm/                 @longluubao
+
+# SecOC core (freshness, authentication, verification)
+/Autosar_SecOC/source/SecOC/                @longluubao
+/Autosar_SecOC/include/SecOC/               @longluubao
+
+# Compliance gates + CI definitions
+/.github/workflows/                         @longluubao
+/Autosar_SecOC/commands/compliance/         @longluubao
