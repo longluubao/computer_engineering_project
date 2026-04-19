@@ -102,6 +102,27 @@ extern Std_ReturnType Csm_GetSessionKeys(uint8 peerId, Csm_SessionKeysType* sess
 extern Std_ReturnType Csm_ClearSessionKeys(uint8 peerId);
 
 /********************************************************************************************************/
+/******************************************StaticHelpers*************************************************/
+/********************************************************************************************************/
+
+/* [SWS_SecOC_00222 rationale] [ISO/SAE 21434 RQ-05-04]
+ * Constant-time comparison of two byte buffers. Unlike memcmp(), the runtime
+ * of this helper is independent of the position of the first mismatching
+ * byte, preventing timing side-channel attacks that would otherwise let an
+ * adversary recover the expected MAC byte-by-byte. Returns 0 iff the buffers
+ * are equal. */
+static uint8 Csm_ConstantTimeMemcmp(const uint8* a, const uint8* b, uint32 n)
+{
+    uint8 diff = 0U;
+    uint32 i;
+    for (i = 0U; i < n; ++i)
+    {
+        diff |= (uint8)(a[i] ^ b[i]);
+    }
+    return diff;
+}
+
+/********************************************************************************************************/
 /*******************************************TypeDefinitions**********************************************/
 /********************************************************************************************************/
 
@@ -772,7 +793,7 @@ Std_ReturnType Csm_MacVerify(
     }
 
     if ((generatedMacLength == BIT_TO_BYTES(macLength)) &&
-        (memcmp(generatedMacBuffer, macPtr, generatedMacLength) == 0))
+        (Csm_ConstantTimeMemcmp(generatedMacBuffer, macPtr, generatedMacLength) == 0U))
     {
         *verifyPtr = CRYPTO_E_VER_OK;
         return E_OK;

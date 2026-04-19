@@ -1,0 +1,37 @@
+# Gitleaks configuration — ISO 21434 §9.4
+# Extends the default ruleset; adds repo-specific allowlist so
+# the scanner doesn't false-positive on liboqs test vectors
+# (NIST FIPS 203/204 KAT files contain hex-encoded key material
+# that matches generic high-entropy rules).
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Third-party + generated artefacts + PQC docs"
+paths = [
+  # Post-quantum crypto library (upstream test vectors, KAT hex strings)
+  '''Autosar_SecOC/external/liboqs/.*''',
+  # Generated SBOMs and compliance matrices (hashes look like secrets)
+  '''.*\.cyclonedx\.json$''',
+  '''compliance_reports/.*''',
+  '''Autosar_SecOC/compliance_reports/.*''',
+  # Build outputs
+  '''.*/build/.*''',
+  # PQC design / implementation docs — contain AUTOSAR identifiers like
+  # MLDSA65_SIGNATURE_BYTES which trip generic-api-key heuristics.
+  '''.*PQC_RESEARCH\.md$''',
+  '''.*PQC_IMPLEMENTATION_ROADMAP\.md$''',
+  '''.*QUICK_START\.md$''',
+  '''.*PQC_TESTING_GUIDE\.md$''',
+  '''.*PQC_MODE_INSTRUCTIONS\.md$''',
+]
+
+# NIST ML-KEM / ML-DSA constant names — these are public algorithm
+# parameters (FIPS 203 / 204), not secrets. The generic-api-key rule
+# occasionally matches them because of capitalised underscore patterns.
+regexes = [
+  '''MLDSA65_[A-Z_]+''',
+  '''MLKEM768_[A-Z_]+''',
+  '''OQS_(KEM|SIG)_(ml_kem_768|ml_dsa_65)_[A-Za-z_]+''',
+]

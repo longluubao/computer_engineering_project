@@ -3,6 +3,7 @@ set(CMAKE_BUILD_TYPE Debug)
 
 # ---- Code Coverage Option ----
 option(ENABLE_COVERAGE "Build with code coverage instrumentation (gcov)" OFF)
+option(BUILD_TESTS "Build GoogleTest unit tests (pulls googletest via FetchContent)" ON)
 if(ENABLE_COVERAGE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage -fprofile-arcs -ftest-coverage")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fprofile-arcs -ftest-coverage")
@@ -50,9 +51,10 @@ elseif(UNIX)
     # Keep scheduler path disabled when OS task-based dispatch is active
     list(REMOVE_ITEM SCR_FILES "${CMAKE_SOURCE_DIR}/source/Scheduler/scheduler.c")
     list(REMOVE_ITEM HDR_FILES "${CMAKE_SOURCE_DIR}/include/Scheduler/scheduler.h")
-    set( CMAKE_CXX_COMPILER "/usr/bin/g++" )
-    set( CMAKE_C_COMPILER "/usr/bin/gcc" )
-    set (CMAKE_GENERATOR "Unix Makefiles" CACHE INTERNAL "" FORCE)
+    # Compiler + generator selection: respect the environment. Forcing
+    # gcc/g++ and "Unix Makefiles" here breaks CI invocations that pass
+    # -GNinja or CC=clang (the googletest FetchContent sub-build then
+    # tries to feed a Makefile to Ninja).
 
     # ---- MCAL Target-specific source selection ----
     if(MCAL_TARGET STREQUAL "PI4")
@@ -122,17 +124,21 @@ elseif(UNIX)
 endif()
 
 
-# Adding unit tests
-include(CTest)
+# Adding unit tests (skippable via -DBUILD_TESTS=OFF for static-analysis builds
+# like CodeQL where FetchContent googletest's Makefile sub-build clashes with
+# a Ninja parent build).
+if(BUILD_TESTS)
+    include(CTest)
 
-include(FetchContent)
+    include(FetchContent)
 
-FetchContent_Declare(
-    googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG        v1.15.2
-)
-FetchContent_MakeAvailable(googletest)
+    FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG        v1.15.2
+    )
+    FetchContent_MakeAvailable(googletest)
+endif()
 
 # Extract include directories from main target SecOC
 set(headerDirs "")
@@ -184,8 +190,10 @@ elseif(UNIX)
 endif()
 add_test(NAME Phase3_Complete_Integration COMMAND Phase3_Complete_Test)
 
-# Add our test folder cmakelists
-add_subdirectory(test)
+# Add our test folder cmakelists (requires googletest, gated by BUILD_TESTS)
+if(BUILD_TESTS)
+    add_subdirectory(test)
+endif()
 
 
 
