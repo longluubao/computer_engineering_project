@@ -101,6 +101,24 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{ matrix.language }}"
+          # GitHub Advanced Security / Code Scanning is an Organization-only
+          # feature and this repository lives under a personal account, so the
+          # analyze step's default SARIF upload gets rejected with
+          # "Code scanning is not enabled for this repository". `upload: never`
+          # keeps the analysis running (useful as a compile-time sanity check
+          # and for the artifact upload below) while skipping the API call
+          # that would fail. If the repo is later moved under an org with
+          # GHAS, flip this back to the default.
+          upload: never
+          output: codeql-results
+
+      - name: Upload CodeQL SARIF artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-${{ matrix.language }}-sarif
+          path: codeql-results
+          if-no-files-found: ignore
 
   # ---------------------------------------------------------------------------
   # Gitleaks secret scanning — ISO 21434 §9.4
