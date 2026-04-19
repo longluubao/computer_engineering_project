@@ -1,0 +1,59 @@
+[       783 us][INFO ] logger initialised: scenario=baseline seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260419T043003Z/raw git=ise
+[       987 us][INFO ] running scenario 'baseline' (Baseline per-signal latency & overhead)
+[      1760 us][INFO ] bus[1] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      1901 us][INFO ] bus[0] kind=0 bitrate=1000000 MTU=8 ber=0.00e+00 prop_ns=5000
+[      1957 us][INFO ] bus[2] kind=2 bitrate=10000000 MTU=254 ber=0.00e+00 prop_ns=2000
+[      2132 us][INFO ] bus[3] kind=3 bitrate=100000000 MTU=1500 ber=0.00e+00 prop_ns=1000
+[      2224 us][INFO ] bus[4] kind=4 bitrate=1000000000 MTU=1500 ber=0.00e+00 prop_ns=500
+[      2290 us][INFO ] ecu[tx-ecu] stack initialised (protection=1)
+[      2304 us][INFO ] ecu[rx-ecu] stack initialised (protection=1)
+[      2316 us][INFO ] signal 0x01 (BrakeCmd): 50 iterations on bus_kind=1
+[    113495 us][INFO ] ecu[tx-ecu] stack initialised (protection=1)
+[    113693 us][INFO ] ecu[rx-ecu] stack initialised (protection=1)
+[    113740 us][INFO ] signal 0x02 (SteeringTorque): 50 iterations on bus_kind=1
+[    228060 us][INFO ] ecu[tx-ecu] stack initialised (protection=1)
+[    228196 us][INFO ] ecu[rx-ecu] stack initialised (protection=1)
+[    228244 us][INFO ] signal 0x03 (AirbagTrigger): 50 iterations on bus_kind=0
+[    337643 us][INFO ] ecu[tx-ecu] stack initialised (protection=1)
+[    337717 us][INFO ] ecu[rx-ecu] stack initialised (protection=1)
+[    337745 us][INFO ] signal 0x04 (Throttle): 50 iterations on bus_kind=1
+[    442304 us][INFO ] ecu[tx-ecu] stack initialised (protection=1)
+[    442557 us][INFO ] ecu[rx-ecu] stack initialised (protection=1)
+[    442697 us][INFO ] signal 0x05 (AbsWheelSpeed): 50 iterations on bus_kind=1
+[    556233 us][INFO ] ecu[tx-ecu] stack initialised (protection=1)
+[    556311 us][INFO ] ecu[rx-ecu] stack initialised (protection=1)
+[    556343 us][INFO ] signal 0x06 (InverterTorque): 50 iterations on bus_kind=2
+[    635788 us][INFO ] ecu[tx-ecu] stack initialised (protection=1)
+[    635879 us][INFO ] ecu[rx-ecu] stack initialised (protection=1)
+[    635930 us][INFO ] signal 0x07 (BodyMotion): 50 iterations on bus_kind=1
+[    737490 us][INFO ] ecu[tx-ecu] stack initialised (protection=1)
+[    737801 us][INFO ] ecu[rx-ecu] stack initialised (protection=1)
+[    737879 us][INFO ] signal 0x08 (DoorLockState): 50 iterations on bus_kind=0
+[    833153 us][INFO ] ecu[tx-ecu] stack initialised (protection=1)
+[    833372 us][INFO ] ecu[rx-ecu] stack initialised (protection=1)
+[    833429 us][INFO ] signal 0x09 (Speedometer): 50 iterations on bus_kind=1
+[    941725 us][INFO ] ecu[tx-ecu] stack initialised (protection=1)
+[    941903 us][INFO ] ecu[rx-ecu] stack initialised (protection=1)
+[    941998 us][INFO ] signal 0x0A (HVAC): 50 iterations on bus_kind=0
+[   1042487 us][INFO ] ecu[tx-ecu] stack initialised (protection=1)
+[   1042644 us][INFO ] ecu[rx-ecu] stack initialised (protection=1)
+[   1042758 us][INFO ] signal 0x0B (InfotainmentGateway): 50 iterations on bus_kind=3
+[   1154028 us][INFO ] ecu[tx-ecu] stack initialised (protection=1)
+[   1154240 us][INFO ] ecu[rx-ecu] stack initialised (protection=1)
+[   1154305 us][INFO ] signal 0x0C (ADAS_Camera_Meta): 50 iterations on bus_kind=3
+[   1222012 us][INFO ] ecu[tx-ecu] stack initialised (protection=1)
+[   1222251 us][INFO ] ecu[rx-ecu] stack initialised (protection=1)
+[   1222395 us][INFO ] signal 0x0D (V2X_AuthenticatedMsg): 50 iterations on bus_kind=4
+[   1279865 us][INFO ] ecu[tx-ecu] stack initialised (protection=1)
+[   1280062 us][INFO ] ecu[rx-ecu] stack initialised (protection=1)
+[   1280113 us][INFO ] signal 0x0E (OBD_Diagnostic): 50 iterations on bus_kind=3
+[   1340747 us][INFO ] =========== baseline summary ===========
+[   1340806 us][INFO ] messages   success=700  verify_fail=0  drop=0
+[   1340967 us][INFO ] e2e latency p50/p95/p99 = 2308.8 / 2487.7 / 2551.1 us
+[   1341008 us][INFO ] SecOC auth   mean=5.0 us  verify mean=12.9 us
+[   1341058 us][INFO ] deadline D1 miss 0/150 (0.00%)
+[   1341076 us][INFO ] deadline D2 miss 0/150 (0.00%)
+[   1341105 us][INFO ] deadline D3 miss 0/150 (0.00%)
+[   1341115 us][INFO ] deadline D4 miss 0/100 (0.00%)
+[   1341131 us][INFO ] deadline D5 miss 0/100 (0.00%)
+[   1341146 us][INFO ] deadline D6 miss 0/50 (0.00%)

@@ -1,4 +1,0 @@
-environment,ML-DSA Sign [us],ML-DSA Verify [us],ML-KEM KeyGen [us],end-to-end (ISE only) [us]
-ISE (full stack),171.9,74.2,28.3,2108.2
-Pi 4 unit-only,10581.3,517.9,n/a,—
-x86_64 unit-only,2047.6,129.1,n/a,—

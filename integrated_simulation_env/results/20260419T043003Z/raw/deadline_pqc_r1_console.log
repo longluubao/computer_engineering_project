@@ -1,0 +1,72 @@
+[       984 us][INFO ] logger initialised: scenario=deadline_stress seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260419T043003Z/raw git=ise
+[      1083 us][INFO ] running scenario 'deadline_stress' (Deadline miss per ASIL class)
+[      3291 us][INFO ] bus[0] kind=0 bitrate=1000000 MTU=8 ber=0.00e+00 prop_ns=5000
+[      6494 us][INFO ] ecu[tx-dl] stack initialised (protection=2)
+[      6689 us][INFO ] ecu[rx-dl] stack initialised (protection=2)
+[      7080 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 321.2 us
+[      7246 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[     58739 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    109862 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    160503 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    211077 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    262206 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    313477 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    364742 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    415636 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    466207 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    517905 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    568934 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    619873 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    670407 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    721415 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    772268 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    822878 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    873507 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    924814 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[    976148 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1027542 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1078723 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1129609 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1180854 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1231197 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1282159 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1333536 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1384419 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1435342 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1486405 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1538233 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1589459 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1640214 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1691805 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1743515 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1794117 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1844626 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1895539 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1946815 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   1997690 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   2048397 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   2099436 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   2150869 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   2202328 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   2252930 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   2303631 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   2354946 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   2405807 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   2456467 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   2507090 us][WARN ] bus[0] payload 64 > MTU 8 (dropped)
+[   2558019 us][INFO ] bus[3] kind=3 bitrate=100000000 MTU=1500 ber=0.00e+00 prop_ns=1000
+[   2558211 us][INFO ] ecu[tx-dl] stack initialised (protection=2)
+[   2558507 us][INFO ] ecu[rx-dl] stack initialised (protection=2)
+[   2558662 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 96.9 us
+[   2621142 us][INFO ] deadline_tight   D1 miss=50 / 50
+[   2621254 us][INFO ] deadline_relaxed D4 miss=0 / 50
+[   2621994 us][INFO ] =========== deadline_tight summary ===========
+[   2622029 us][INFO ] messages   success=0  verify_fail=0  drop=0
+[   2622078 us][INFO ] e2e latency p50/p95/p99 = 50945.7 / 51587.1 / 51673.4 us
+[   2622120 us][INFO ] SecOC auth   mean=229.5 us  verify mean=0.0 us
+[   2622139 us][INFO ] deadline D1 miss 50/50 (100.00%)
+[   2622557 us][INFO ] =========== deadline_relaxed summary ===========
+[   2622593 us][INFO ] messages   success=50  verify_fail=0  drop=0
+[   2622619 us][INFO ] e2e latency p50/p95/p99 = 1119.6 / 2184.5 / 2225.7 us
+[   2622630 us][INFO ] SecOC auth   mean=140.4 us  verify mean=39.6 us
+[   2622641 us][INFO ] deadline D4 miss 0/50 (0.00%)
