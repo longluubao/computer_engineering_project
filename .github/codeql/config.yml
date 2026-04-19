@@ -1,0 +1,8 @@
+name: "SecOC CodeQL config"
+
+# Scope extraction to repository-owned code. liboqs is upstream PQC
+# reference material and its ctypes FFI shims confuse the Python extractor;
+# build/ is transient compiler output.
+paths-ignore:
+  - Autosar_SecOC/external/**
+  - "**/build/**"

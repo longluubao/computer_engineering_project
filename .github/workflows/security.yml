@@ -63,10 +63,15 @@ jobs:
         run: |
           if [ ! -f build/lib/liboqs.a ]; then
             rm -rf build && mkdir -p build && cd build
+            # OQS_USE_OPENSSL=OFF matches ci.yml so both workflows share a
+            # consistent cache entry. Without it, liboqs auto-enables OpenSSL
+            # because libssl-dev is present, producing an artifact that
+            # diverges from the one ci.yml cached.
             cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
               -DOQS_BUILD_ONLY_LIB=ON \
               -DOQS_ENABLE_KEM_ml_kem_768=ON \
-              -DOQS_ENABLE_SIG_ml_dsa_65=ON ..
+              -DOQS_ENABLE_SIG_ml_dsa_65=ON \
+              -DOQS_USE_OPENSSL=OFF ..
             cmake --build . --parallel
           fi
 
@@ -79,13 +84,9 @@ jobs:
           # pack-fetch failures on ubuntu-22.04 runners; defaults cover
           # UN R155 §7.3.3 and ISO 21434 §10.4.2 mandatory CWE checks.
           queries: security-extended
-          # Scope extraction to our own sources — liboqs' upstream scripts
-          # are out of scope for cybersecurity gating and their ctypes FFI
-          # shims confuse the Python extractor.
-          config: |
-            paths-ignore:
-              - Autosar_SecOC/external/**
-              - '**/build/**'
+          # paths-ignore is defined in a checked-in config file to avoid
+          # the inline-YAML-inside-YAML footgun of the `config:` input.
+          config-file: ./.github/codeql/config.yml
 
       - name: Build C/C++ for CodeQL
         if: matrix.language == 'cpp'
