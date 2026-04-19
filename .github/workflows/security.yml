@@ -119,6 +119,7 @@ jobs:
         run: |
           gitleaks detect \
             --source . \
+            --config .gitleaks.toml \
             --no-banner \
             --redact \
             --report-path gitleaks-report.json \
@@ -185,16 +186,18 @@ jobs:
         id: grype
         run: |
           set +e
+          # No --fail-on: we report findings via SARIF to the Security tab
+          # (UN R155 §7.3.7 supply-chain monitoring) rather than blocking the
+          # pipeline — the compliance-scan job in ci.yml is the hard gate.
+          # This also avoids grype's rc=1 on HIGH findings propagating through
+          # bash's pipefail/errexit and failing the job.
           grype dir:. \
             --output sarif \
-            --file grype-results.sarif \
-            --fail-on high
+            --file grype-results.sarif
           rc=$?
-          # Informational mode: don't fail the job on findings — track via
-          # SARIF in the Security tab. Exit codes: 0 = no findings at/above
-          # threshold, 1 = findings, 2 = tool error. Fail only on 2.
-          if [ $rc -eq 2 ]; then
-            echo "::error::grype scanner error (exit 2)"
+          # Exit codes: 0 = success, 2 = scanner error. Fail only on 2.
+          if [ $rc -ne 0 ]; then
+            echo "::error::grype scanner error (exit $rc)"
             exit 1
           fi
           echo "scan_rc=$rc" >> "$GITHUB_OUTPUT"

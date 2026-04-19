@@ -1,0 +1,24 @@
+# Gitleaks configuration — ISO 21434 §9.4
+# Extends the default ruleset; adds repo-specific allowlist so
+# the scanner doesn't false-positive on liboqs test vectors
+# (NIST FIPS 203/204 KAT files contain hex-encoded key material
+# that matches generic high-entropy rules).
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Third-party + generated artefacts"
+paths = [
+  # Post-quantum crypto library (upstream test vectors, KAT hex strings)
+  '''Autosar_SecOC/external/liboqs/.*''',
+  # Generated SBOMs and compliance matrices (hashes look like secrets)
+  '''.*\.cyclonedx\.json$''',
+  '''compliance_reports/.*''',
+  '''Autosar_SecOC/compliance_reports/.*''',
+  # Build outputs
+  '''.*/build/.*''',
+  # Documentation files with sample keys / example hashes
+  '''.*PQC_RESEARCH\.md$''',
+  '''.*QUICK_START\.md$''',
+]
