@@ -164,7 +164,11 @@ fi
         --suppress=misra-c2012-2.3:*liboqs* \
         --suppress=misra-c2012-2.4:*liboqs* \
         -i external/liboqs/build/include \
-        source \
+        -i external \
+        -i test \
+        -i build \
+        -i GUI \
+        include source \
         2> "${OUTPUT_TXT}"
 )
 
