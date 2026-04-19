@@ -90,26 +90,37 @@ static SimBusHookAction attacker_hook(uint8_t bus_id, uint8_t *data,
 
     switch (atk->cfg.kind) {
     case SIM_ATK_REPLAY: {
-        /* Cache only the first fragment of each PDU (which carries the
-         * 2-byte header + 8-byte freshness). Replay the oldest cached
-         * freshness header on every new PDU after the warm-up period,
-         * forcing the receiver to see a stale counter. */
+        /* Capture the FIRST PDU's first fragment once and replay it on
+         * every subsequent PDU after a short warm-up. Using a fixed
+         * ancient snapshot (slot 0) guarantees the replayed freshness
+         * stays strictly below the receiver's last-accepted counter,
+         * regardless of how many frames have gone by. Earlier versions
+         * used a sliding 4-back window, which worked for multi-fragment
+         * PQC/HYBRID PDUs (signature mismatch caught it) but let
+         * single-fragment HMAC PDUs slip through because the "old" pick
+         * was still ahead of RX after a few iterations. */
         if (is_first_fragment) {
-            uint32_t s = atk->replay_slot % ATK_REPLAY_CACHE;
-            memcpy(atk->replay_buf[s], data, *len);
-            atk->replay_len[s] = *len;
-            atk->replay_tag[s] = *tag;
+            if (atk->replay_slot == 0) {
+                /* First-ever PDU: snapshot into slot 0 and let it pass
+                 * untouched so the receiver records this freshness
+                 * value. Subsequent replays will then be strictly
+                 * older. */
+                memcpy(atk->replay_buf[0], data, *len);
+                atk->replay_len[0] = *len;
+                atk->replay_tag[0] = *tag;
+            }
             atk->replay_slot++;
 
             if (atk->replay_slot > 3) {
-                uint32_t pick = (atk->replay_slot - 4) % ATK_REPLAY_CACHE;
-                uint32_t n = atk->replay_len[pick];
+                uint32_t n = atk->replay_len[0];
                 if (n > 0 && n == *len) {
-                    /* Replace the first fragment in-place. Continuation
-                     * fragments pass through, so on-wire the receiver
-                     * gets [old_header][old_freshness][fresh_body] which
-                     * fails freshness check. */
-                    memcpy(data, atk->replay_buf[pick], n);
+                    /* Replace the current fragment with the ancient
+                     * snapshot. For HMAC (single fragment) this is a
+                     * wholesale replay → freshness check must reject.
+                     * For PQC/HYBRID (multi-fragment) only the header
+                     * is old while continuation fragments are fresh,
+                     * so signature verification catches it too. */
+                    memcpy(data, atk->replay_buf[0], n);
                     atk->last_replay_ns = now_ns;
                     atomic_fetch_add(&atk->injected, 1);
                     evt.note = "replay injected";

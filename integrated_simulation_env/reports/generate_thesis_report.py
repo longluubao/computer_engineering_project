@@ -807,12 +807,18 @@ def write_compliance_constraints_md(
     lines.append(
         "| Clause | Requirement | Evidence |\n"
         "|--------|-------------|----------|\n"
+        "| SWS_SecOC_00033 | Freshness counter strict monotonicity | "
+        "`rollover_*_summary.json` (wrap rejected, rekey recovers) |\n"
+        "| SWS_SecOC_00046 | Verifier uses the configured SecOCKeyId | "
+        "`keymismatch_mismatch_summary.json` (100 % rejection) |\n"
         "| SWS_SecOC_00106 | `SecOC_Init` initialises module state | "
         "`baseline_*_summary.json` (session_duration > 0) |\n"
         "| SWS_SecOC_00112 | `SecOC_IfTransmit` transmits secured PDU | "
         "`baseline_*_frames.csv` (non-zero `secoc_auth_ns`) |\n"
         "| SWS_SecOC_00177 | `SecOC_TpTransmit` handles large PDUs | "
         "`mixed_bus_*` + `tput_pqc_eth*` (fragments > 1) |\n"
+        "| SWS_SecOC_00194 | Persist freshness across reboot via NvM | "
+        "`persistence_no_nvm` breach vs `persistence_with_nvm` 0 delivered |\n"
         "| SWS_SecOC_00209 | Freshness management rejects stale PDUs | "
         "`attacks_replay_*` (detection ≥ 95 %) |\n"
         "| SWS_SecOC_00221 | Authenticator generation via Csm | "
@@ -871,9 +877,12 @@ chapters on standards conformance (AUTOSAR SWS SecOC R21-11, NIST FIPS
 
 | Standard / Clause              | Requirement                               | ISE evidence                                   |
 |--------------------------------|-------------------------------------------|------------------------------------------------|
+| AUTOSAR SWS_SecOC_00033        | Freshness counter strict monotonicity     | rollover_{pqc,hmac}_summary.json               |
+| AUTOSAR SWS_SecOC_00046        | Verifier uses the configured SecOCKeyId   | keymismatch_mismatch_summary.json              |
 | AUTOSAR SWS_SecOC_00106        | `SecOC_Init` initialises module state     | baseline + throughput summaries                |
 | AUTOSAR SWS_SecOC_00112        | `SecOC_IfTransmit` transmits secured PDU  | baseline_frames.csv                            |
 | AUTOSAR SWS_SecOC_00177        | `SecOC_TpTransmit` handles large PDUs     | mixed_bus + throughput (Eth) frames            |
+| AUTOSAR SWS_SecOC_00194        | Persist freshness across reboot via NvM   | persistence_{no_nvm,with_nvm}_summary.json     |
 | AUTOSAR SWS_SecOC_00209        | Freshness management                      | attacks_replay_summary.json                    |
 | AUTOSAR SWS_SecOC_00221        | Authenticator generation via Csm          | baseline summary (secoc_auth histogram)        |
 | AUTOSAR SWS_SecOC_00230        | Drop PDU on verify failure                | every attacks_*_summary.json (detected count)  |

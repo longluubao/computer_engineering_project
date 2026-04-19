@@ -1,0 +1,28 @@
+[       818 us][INFO ] logger initialised: scenario=bus_failure seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260419T043003Z/raw git=ise
+[      1039 us][INFO ] running scenario 'bus_failure' (Physical-layer BER / bus-error handling)
+[      2442 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      2502 us][INFO ] ecu[tx-ber] stack initialised (protection=1)
+[      2519 us][INFO ] ecu[rx-ber] stack initialised (protection=1)
+[    213202 us][INFO ] bus_failure[clean] BER=0.00e+00  tx=100 rx=100 ber_flipped=0 queue_drops=0  success=100 verify_fail=0
+[    213906 us][INFO ] =========== bus_failure_clean summary ===========
+[    213943 us][INFO ] messages   success=100  verify_fail=0  drop=0
+[    213970 us][INFO ] e2e latency p50/p95/p99 = 2356.2 / 2476.9 / 2593.2 us
+[    214085 us][INFO ] SecOC auth   mean=19.6 us  verify mean=16.2 us
+[    214622 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=1.00e-06 prop_ns=3000
+[    214747 us][INFO ] ecu[tx-ber] stack initialised (protection=1)
+[    214831 us][INFO ] ecu[rx-ber] stack initialised (protection=1)
+[    427237 us][INFO ] bus_failure[noisy] BER=1.00e-06  tx=100 rx=100 ber_flipped=0 queue_drops=0  success=100 verify_fail=0
+[    427921 us][INFO ] =========== bus_failure_noisy summary ===========
+[    427958 us][INFO ] messages   success=100  verify_fail=0  drop=0
+[    427980 us][INFO ] e2e latency p50/p95/p99 = 2344.4 / 2460.8 / 2516.3 us
+[    428018 us][INFO ] SecOC auth   mean=2.3 us  verify mean=13.6 us
+[    428486 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=1.00e-04 prop_ns=3000
+[    428548 us][INFO ] ecu[tx-ber] stack initialised (protection=1)
+[    428596 us][INFO ] ecu[rx-ber] stack initialised (protection=1)
+[    633507 us][INFO ] bus_failure[heavy] BER=1.00e-04  tx=100 rx=100 ber_flipped=0 queue_drops=0  success=100 verify_fail=0
+[    634302 us][INFO ] =========== bus_failure_heavy summary ===========
+[    634346 us][INFO ] messages   success=100  verify_fail=0  drop=0
+[    634373 us][INFO ] e2e latency p50/p95/p99 = 2324.6 / 2457.9 / 2480.3 us
+[    634401 us][INFO ] SecOC auth   mean=2.3 us  verify mean=11.0 us
+[    634856 us][INFO ] =========== bus_failure_aggregate summary ===========
+[    634894 us][INFO ] messages   success=300  verify_fail=0  drop=0
