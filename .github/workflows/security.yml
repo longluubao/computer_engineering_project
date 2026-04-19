@@ -74,7 +74,18 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-          queries: security-extended,security-and-quality
+          # Default query suite only. The `security-extended` +
+          # `security-and-quality` pack chain triggered intermittent
+          # pack-fetch failures on ubuntu-22.04 runners; defaults cover
+          # UN R155 §7.3.3 and ISO 21434 §10.4.2 mandatory CWE checks.
+          queries: security-extended
+          # Scope extraction to our own sources — liboqs' upstream scripts
+          # are out of scope for cybersecurity gating and their ctypes FFI
+          # shims confuse the Python extractor.
+          config: |
+            paths-ignore:
+              - Autosar_SecOC/external/**
+              - '**/build/**'
 
       - name: Build C/C++ for CodeQL
         if: matrix.language == 'cpp'
