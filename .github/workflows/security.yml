@@ -76,7 +76,10 @@ jobs:
         if: matrix.language == 'cpp'
         working-directory: Autosar_SecOC
         run: |
-          cmake -B build -GNinja -DMCAL_TARGET=SIM
+          # BUILD_TESTS=OFF skips FetchContent(googletest) — its Makefile
+          # sub-build clashes with the Ninja parent under CodeQL's tracer.
+          # Production code (SecOCLib + Phase3_Complete_Test) still builds.
+          cmake -B build -GNinja -DMCAL_TARGET=SIM -DBUILD_TESTS=OFF
           cmake --build build --parallel
 
       - name: Perform CodeQL Analysis
@@ -140,17 +143,32 @@ jobs:
         with:
           name: sbom
 
-      - name: Scan SBOM with Grype
-        uses: anchore/scan-action@v4
+      # Scan the workspace filesystem directly. This is more reliable than
+      # scanning a CycloneDX SBOM — when Grype finds zero vulnerabilities in
+      # an SBOM, scan-action@v4 can produce an empty SARIF file that fails
+      # the subsequent upload-sarif step with "Unexpected end of JSON input".
+      - name: Scan filesystem with Grype
+        uses: anchore/scan-action@v6
         id: grype
         with:
-          sbom: sbom.cyclonedx.json
+          path: "."
           fail-build: false        # informational first; set true after baselining
           severity-cutoff: high
           output-format: sarif
 
+      - name: Validate SARIF is non-empty
+        id: validate-sarif
+        run: |
+          sarif="${{ steps.grype.outputs.sarif }}"
+          if [ -z "$sarif" ] || [ ! -s "$sarif" ]; then
+            echo "has_sarif=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Grype produced no SARIF output; skipping upload."
+          else
+            echo "has_sarif=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Upload Grype SARIF
-        if: always()
+        if: steps.validate-sarif.outputs.has_sarif == 'true'
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ${{ steps.grype.outputs.sarif }}
