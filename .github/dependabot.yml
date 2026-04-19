@@ -1,0 +1,17 @@
+# Dependabot — keeps GitHub Actions + Python deps current for UN R155 §7.3.6
+# (cybersecurity update management).
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "security"]
+
+  - package-ecosystem: "pip"
+    directory: "/Autosar_SecOC/GUI"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    labels: ["dependencies"]
