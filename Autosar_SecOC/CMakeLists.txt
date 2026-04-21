@@ -73,6 +73,21 @@ endif()
 
 project(SecOC)
 
+# gcc 14 promotes -Wimplicit-function-declaration and
+# -Wincompatible-pointer-types from warning to hard error by default.
+# A lot of AUTOSAR C relies on forward-declared extern functions and
+# header pathing that built cleanly on gcc 13 but trips those checks
+# on gcc 14+ (e.g. Raspberry Pi OS "Bookworm" and later).
+# Downgrade to warnings so the Pi build keeps working while we clean
+# up the underlying missing includes incrementally.
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU"
+   AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "14")
+    add_compile_options(
+        -Wno-error=implicit-function-declaration
+        -Wno-error=incompatible-pointer-types
+    )
+endif()
+
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
 

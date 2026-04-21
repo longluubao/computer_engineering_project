@@ -24,6 +24,16 @@
 #include "BswM.h"
 #include "PQC.h"
 
+/* Declarations for LINUX-only calls inside the DEBUG_ALL SecOC_test() loop
+ * (EthDrv_ReceiveMainFunction, SoAd_MainFunctionRx). gcc 14+ turns
+ * -Wimplicit-function-declaration into a hard error by default, so these
+ * headers must be visible even when DEBUG_ALL is not defined on some
+ * toolchains that still parse them. */
+#ifdef LINUX
+#include "ethernet.h"
+#include "SoAd.h"
+#endif
+
 #include <string.h>
 
 #define SECOC_BSWM_STATUS_OK              ((BswM_ModeType)0U)
