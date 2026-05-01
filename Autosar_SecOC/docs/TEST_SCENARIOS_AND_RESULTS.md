@@ -74,14 +74,39 @@ flowchart TB
 | CAN stack | `CanIfTests.cpp`, `CanTpTests.cpp`, `CanNmTests.cpp`, `CanSMTests.cpp` | 60+ |
 | ComM / BswM | `ComMTests.cpp`, `BswMTests.cpp` | 30 |
 
-### 2.4 System & Memory
+### 2.4 Mode and Network State Management
 
-| Suite | File | # Cases |
-|-------|------|---------|
-| OS / EcuM | `OsTests.cpp`, `EcuMTests.cpp` | 50+ |
-| Diagnostics | `DcmTests.cpp`, `DemTests.cpp`, `DetTests.cpp` | 50+ |
-| Memory | `NvMTests.cpp`, `FeeTests.cpp`, `EaTests.cpp`, `MemIfTests.cpp` | 50+ |
-| Misc | `ApBridgeTests.cpp`, `EncryptTests.cpp`, `McalTests.cpp` | 40+ |
+| Suite | File | Module LOC | What it covers |
+|-------|------|-----------:|----------------|
+| EcuM | `EcuMTests.cpp` | 1118 | Init, StartupTwo, shutdown request, wakeup callouts, MainFunction |
+| BswM | `BswMTests.cpp` | 997 | Mode requests, current-mode read-back, MainFunction tick |
+| ComM | `ComMTests.cpp` | 253 | RequestComMode, GetCurrentComMode, GetState |
+| CanSM | `CanSMTests.cpp` | 240 | RequestComMode, GetBsmState |
+| CanNm | `CanNmTests.cpp` | 350 | NetworkRequest/Release, GetState, MainFunction |
+| EthSM | `EthSMTests.cpp` | 423 | RequestComMode, GetCurrentInternalMode |
+| UdpNm | `UdpNmTests.cpp` | 699 | PassiveStartUp, NetworkRequest/Release, mode arbitration |
+
+### 2.5 OS, Scheduling and HAL
+
+| Suite | File | Module LOC | What it covers |
+|-------|------|-----------:|----------------|
+| OS | `OsTests.cpp` | 2135 | StartOS / ShutdownOS, ActivateTask, SetEvent / WaitEvent, GetResource |
+| Scheduler | (covered through `OsTests.cpp` and main-cycle integration) | 147 | Periodic tick driving every `*_MainFunction` |
+| Mcal | `McalTests.cpp` | 1515 | Dio_Pi4, Gpt_Pi4, Mcu_Pi4, Wdg_Pi4, Can_Pi4 — read/write/init/timer/watchdog |
+
+### 2.6 Diagnostics, Memory and Crypto Auxiliaries
+
+| Suite | File | Module LOC | What it covers |
+|-------|------|-----------:|----------------|
+| Det | `DetTests.cpp` | 159 | ReportError, ReportRuntimeError, ReportTransientFault |
+| Dem | `DemTests.cpp` | 438 | ReportErrorStatus, GetLastEvent, MainFunction |
+| Dcm | `DcmTests.cpp` | 340 | ProcessRequest, TpTxConfirmation, MainFunction |
+| NvM | `NvMTests.cpp` | 1126 | ReadAll/WriteAll, ReadBlock/WriteBlock, MainFunction |
+| Fee | `FeeTests.cpp` | 217 | Read/Write through flash emulation |
+| Ea | `EaTests.cpp` | 373 | EEPROM abstraction Read/Write |
+| MemIf | `MemIfTests.cpp` | 182 | Routing layer above Fee/Ea |
+| Encrypt | `EncryptTests.cpp` | 341 | AES-128 round operations (AddRoundKey, SubBytes, ShiftRows, MixColumns) |
+| ApBridge | `ApBridgeTests.cpp` | 245 | Health reporting, forced-state injection, status read-back |
 
 ### 2.5 Standalone Integration Programs
 
@@ -356,7 +381,126 @@ evidence base for the verification chapter of the thesis.
 
 ---
 
-## 9. Pointers Into the Codebase
+## 9. Full AUTOSAR BSW Stack — Coverage Matrix
+
+The PQC work sits on top of a complete AUTOSAR BSW stack implemented in this
+project. The matrix below is intended for the thesis chapter on system
+architecture; it shows every module, its size, and the test file that
+exercises it.
+
+```mermaid
+flowchart TB
+    subgraph APP["Application & RTE"]
+        AP1[Com 1237]
+        AP2[ApBridge 245]
+        AP3[GUIInterface 434]
+    end
+
+    subgraph SVC["Service Layer"]
+        SV1[SecOC + FVM 1958]
+        SV2[Csm 1237]
+        SV3[NvM 1126]
+        SV4[Dem 438]
+        SV5[Dcm 340]
+        SV6[Det 159]
+        SV7[ComM 253]
+        SV8[BswM 997]
+        SV9[EcuM 1118]
+        SV10[CanSM 240]
+        SV11[CanNm 350]
+        SV12[EthSM 423]
+        SV13[UdpNm 699]
+    end
+
+    subgraph ECUA["ECU Abstraction"]
+        EA1[CryIf 261]
+        EA2[PduR 6 sub-files]
+        EA3[SoAd 1534]
+        EA4[SoAd_PQC 415]
+        EA5[EthIf 486]
+        EA6[CanIf]
+        EA7[CanTp]
+        EA8[TcpIp 1104]
+        EA9[MemIf 182]
+        EA10[Fee 217]
+        EA11[Ea 373]
+    end
+
+    subgraph CRYPTO["Crypto Suite"]
+        CR1[PQC core 509]
+        CR2[PQC_KeyExchange 305]
+        CR3[PQC_KeyDerivation 320]
+        CR4[Encrypt AES 341]
+    end
+
+    subgraph OS["OS / Scheduling"]
+        OS1[Os 2135]
+        OS2[Scheduler 147]
+    end
+
+    subgraph HAL["MCAL"]
+        H1[Mcal Pi4 1515]
+        H2[Ethernet POSIX/Winsock 600]
+    end
+
+    APP --> SVC --> ECUA --> CRYPTO
+    ECUA --> HAL
+    SVC --> OS
+    OS --> HAL
+
+    style CRYPTO fill:#a5d6a7,color:#000
+    style EA4 fill:#a5d6a7,color:#000
+```
+
+### 9.1 Per-module evidence
+
+| Layer | Module | LOC | Public APIs | Test file | Tests pass |
+|-------|--------|----:|-----------:|-----------|:----------:|
+| App | Com | 1237 | 12 | `ComTests.cpp` (20) | ✅ |
+| App | ApBridge | 245 | 6 | `ApBridgeTests.cpp` | ✅ |
+| App | GUIInterface | 434 | 8 | manual + Python GUI | ✅ |
+| Svc | SecOC + FVM | 1958 | 14 | `SecOC*Tests.cpp` (39) | ✅ |
+| Svc | Csm | 1237 | 13 | `CsmTests.cpp` (18) | ✅ |
+| Svc | EcuM | 1118 | 36 | `EcuMTests.cpp` | ✅ |
+| Svc | NvM | 1126 | 13 | `NvMTests.cpp` | ✅ |
+| Svc | BswM | 997 | 8 | `BswMTests.cpp` | ✅ |
+| Svc | UdpNm | 699 | 16 | `UdpNmTests.cpp` | ✅ |
+| Svc | Dem | 438 | 13 | `DemTests.cpp` | ✅ |
+| Svc | EthSM | 423 | 8 | `EthSMTests.cpp` | ✅ |
+| Svc | CanNm | 350 | 8 | `CanNmTests.cpp` | ✅ |
+| Svc | Dcm | 340 | 8 | `DcmTests.cpp` | ✅ |
+| Svc | ComM | 253 | 7 | `ComMTests.cpp` | ✅ |
+| Svc | CanSM | 240 | 7 | `CanSMTests.cpp` | ✅ |
+| Svc | Det | 159 | 8 | `DetTests.cpp` | ✅ |
+| ECU-A | SoAd | 1534 | 10 | `SoAdTests.cpp` (20) | ✅ |
+| ECU-A | TcpIp | 1104 | 9 | `TcpIpTests.cpp` | ✅ |
+| ECU-A | EthIf | 486 | 5 | `EthIfTests.cpp` | ✅ |
+| ECU-A | SoAd_PQC | 415 | 5 | `SoAdPqcTests.cpp` (18) | ✅ |
+| ECU-A | Ea | 373 | 6 | `EaTests.cpp` | ✅ |
+| ECU-A | CryIf | 261 | 9 | `CryIfTests.cpp` (10) | ✅ |
+| ECU-A | Fee | 217 | 5 | `FeeTests.cpp` | ✅ |
+| ECU-A | MemIf | 182 | 4 | `MemIfTests.cpp` | ✅ |
+| ECU-A | PduR | (6 sub-files) | many | `PduRTests.cpp` (20) | ✅ |
+| ECU-A | CanIf / CanTp | (multi-file) | many | `CanIfTests.cpp`, `CanTpTests.cpp` | ✅ |
+| Crypto | PQC core | 509 | 10 | `PQC_ComparisonTests.cpp` | ✅ |
+| Crypto | PQC_KeyExchange | 305 | 6 | `KeyExchangeTests.cpp` (16) | ✅ |
+| Crypto | PQC_KeyDerivation | 320 | 4 | `KeyDerivationTests.cpp` (15) | ✅ |
+| Crypto | Encrypt (AES) | 341 | 9 | `EncryptTests.cpp` | ✅ |
+| OS | Os | 2135 | 50 | `OsTests.cpp` | ✅ |
+| OS | Scheduler | 147 | 3 | (covered indirectly) | ✅ |
+| HAL | Mcal (Pi 4) | 1515 | 24 | `McalTests.cpp` | ✅ |
+
+**Totals: 33 modules, ≈ 30 000 LOC, 31 dedicated test files, 669+ test cases,
+100 % pass rate.**
+
+This is the headline number for the verification chapter of the thesis: the
+project is *not* a PQC patch on a stub stack — it is a complete AUTOSAR BSW
+implementation with quantum-resistant cryptography integrated at the SecOC,
+Csm, CryIf and SoAd layers.
+
+---
+
+## 10. Pointers Into the Codebase
 
 | Topic | File | Lines (approx.) |
 |-------|------|----------------:|
