@@ -63,6 +63,10 @@ set(ISE_SCENARIOS
     scenarios/sc_multi_ecu.c
     scenarios/sc_keymismatch.c
     scenarios/sc_rollover.c
+    scenarios/sc_freshness_overflow.c
+    scenarios/sc_replay_boundary.c
+    scenarios/sc_verify_disabled.c
+    scenarios/sc_flexray_baseline.c
 )
 
 add_executable(ise_runner
@@ -138,6 +142,21 @@ add_test(NAME ise_rollover
          COMMAND ise_runner --scenario rollover --iterations 20
                             --protection pqc
                             --out "${CMAKE_BINARY_DIR}/ctest_out/rollover")
+add_test(NAME ise_freshness_overflow
+         COMMAND ise_runner --scenario freshness_overflow --iterations 20
+                            --protection pqc
+                            --out "${CMAKE_BINARY_DIR}/ctest_out/freshness_overflow")
+add_test(NAME ise_replay_boundary
+         COMMAND ise_runner --scenario replay_boundary --iterations 20
+                            --protection pqc
+                            --out "${CMAKE_BINARY_DIR}/ctest_out/replay_boundary")
+add_test(NAME ise_verify_disabled
+         COMMAND ise_runner --scenario verify_disabled --iterations 50
+                            --out "${CMAKE_BINARY_DIR}/ctest_out/verify_disabled")
+add_test(NAME ise_flexray_baseline
+         COMMAND ise_runner --scenario flexray_baseline --iterations 30
+                            --protection pqc
+                            --out "${CMAKE_BINARY_DIR}/ctest_out/flexray_baseline")
 
 message(STATUS "ISE: ise_runner target configured")
 message(STATUS "ISE: AUTOSAR_ROOT = ${AUTOSAR_ROOT}")

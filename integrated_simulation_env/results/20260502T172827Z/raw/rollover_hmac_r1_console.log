@@ -1,0 +1,13 @@
+[       568 us][INFO ] logger initialised: scenario=rollover seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260502T172827Z/raw git=ise
+[       594 us][INFO ] running scenario 'rollover' (Freshness counter wrap-around recovery)
+[      1105 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      1115 us][INFO ] ecu[tx-roll] stack initialised (protection=1)
+[      1116 us][INFO ] ecu[rx-roll] stack initialised (protection=1)
+[      8463 us][INFO ] rollover: phase1 approach approach_ok=8/8 (freshness_tx=18446744073709551615 freshness_rx=18446744073709551615)
+[     14363 us][WARN ] rollover: phase2 wrap attempts=8 rejected=8 delivered=0 (delivered MUST be 0)
+[     26254 us][INFO ] rollover: phase3 recovery recover_ok=16/16 (rekey epoch restored)
+[     26351 us][INFO ] =========== rollover summary ===========
+[     26354 us][INFO ] messages   success=24  verify_fail=8  drop=0
+[     26356 us][INFO ] SecOC auth   mean=39.9 us  verify mean=5.5 us
+[     26358 us][INFO ] attacks injected=8 detected=8 delivered=0
+[     26359 us][INFO ] rollover summary: approach=8/8 wrap_rejected=8/8 recover=16/16  (SWS_SecOC_00033 compliant)

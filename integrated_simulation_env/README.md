@@ -1,22 +1,38 @@
 # Integrated Simulation Environment (ISE) for AUTOSAR SecOC + PQC
 
-> **Purpose.** End-to-end integration test-bench that exercises the **full
-> AUTOSAR Basic Software stack** (Com → PduR → SecOC → Csm/CryIf → PQC →
-> CanIf/SoAd → virtual bus) **without flashing an ECU**. Hardware is modelled
-> in software. This environment produces the performance, security and
-> compliance evidence needed for the thesis.
+> **Purpose.** A **PQC-and-SecOC-protocol harness** that links the real
+> Post-Quantum Cryptography modules from `Autosar_SecOC/source/PQC/` and
+> reproduces the AUTOSAR SecOC frame layout (header + 64-bit freshness +
+> authenticator) in a deterministic single-process driver. It produces the
+> **performance and security evidence** needed for the thesis under
+> realistic automotive scenarios (multi-ECU, multi-bus, attack injection).
+>
+> **What the ISE actually links** (verifiable in `CMakeLists.txt`):
+>
+> - `Autosar_SecOC/source/PQC/PQC.c` — ML-KEM-768 + ML-DSA-65 wrapper
+> - `Autosar_SecOC/source/PQC/PQC_KeyDerivation.c` — HKDF session-key derivation
+> - `Autosar_SecOC/source/PQC/PQC_KeyExchange.c` — ML-KEM handshake
+> - `external/liboqs/build/lib/liboqs.a` — NIST FIPS 203/204 implementation
+>
+> **What the ISE does NOT link, and where its conformance evidence comes from
+> instead:** the upper AUTOSAR Basic Software stack (Com, PduR, SecOC.c,
+> Csm, CryIf, CanIf, CanTp, SoAd, NvM, Det, Dem, BswM, Os, …) is **not**
+> compiled into `ise_runner`. Conformance for those modules is asserted by
+> the **40-file gtest unit-test suite under `Autosar_SecOC/test/`** which
+> links the real `SecOCLib` static library (8 950 LOC of test code, 678
+> individual test cases, 41/41 ctest executables passing — see
+> `Autosar_SecOC/test/`). The ISE measures the PQC pipeline + the SecOC
+> protocol invariants (freshness monotonicity, attack detection,
+> deadline tracking) at integration scale; the unit tests measure
+> AUTOSAR API conformance per module. Together they form the
+> two-layer evidence base of the thesis.
 
-The previous benchmarks were run before the upper layers were adapted:
-
-| Environment | Platform                           | Stack state        | Location                |
-|-------------|------------------------------------|--------------------|-------------------------|
-| `PiTest/`   | Raspberry Pi 4 (aarch64, Linux)    | stacks **missing** | repo root               |
-| `test_logs/`| Intel Core i7 (x86_64, Windows)    | stacks **missing** | `Autosar_SecOC/`        |
-| **`integrated_simulation_env/`** | Host (sim HW) | **full stack**    | **this directory**      |
-
-The ISE re-uses the real C sources from `Autosar_SecOC/source/` — it does **not**
-reimplement SecOC — and replaces only the MCAL / physical bus with a
-deterministic, observable software model.
+| Environment                       | Platform                       | What it covers                                | Location                                |
+|-----------------------------------|--------------------------------|------------------------------------------------|-----------------------------------------|
+| `PiTest/`                         | Raspberry Pi 4 (aarch64)       | raw PQC primitives on target hardware          | repo root                               |
+| `Autosar_SecOC/test_logs/`        | Intel Core i7 (Windows)        | raw PQC primitives on host                     | `Autosar_SecOC/`                        |
+| `Autosar_SecOC/test/*.cpp`        | host (any)                     | **AUTOSAR API conformance** (40 BSW modules)   | `Autosar_SecOC/test/`                   |
+| **`integrated_simulation_env/`**  | host (simulated buses)         | **PQC + SecOC protocol** under attack/load     | **this directory**                      |
 
 ---
 

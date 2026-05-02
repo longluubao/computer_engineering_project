@@ -10,6 +10,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+/* SWS coverage tags (picked up by reports/build_sws_traceability.py):
+ *   - SWS_SecOC_00177 (SecOC_TpTransmit large PDU)
+ *   - SWS_SecOC_00179 (TP StartOfReception)
+ *   - SWS_SecOC_00050 (Authentic PDU forwarding)
+ */
+
 /*
  * sc_mixed_bus_run
  * ----------------

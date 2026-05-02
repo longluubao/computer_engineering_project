@@ -10,6 +10,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+/* SWS coverage tags (picked up by reports/build_sws_traceability.py):
+ *   - SWS_SecOC_00106 (SecOC_Init)
+ *   - SWS_SecOC_00112 (SecOC_IfTransmit secured-PDU layout)
+ *   - SWS_SecOC_00221 (Authenticator generation via Csm)
+ */
+
 /*
  * sc_baseline_run
  * ---------------

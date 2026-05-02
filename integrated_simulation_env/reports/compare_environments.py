@@ -6,7 +6,7 @@ The thesis wants a side-by-side table:
 
     environment      | avg_ml_dsa_sign_us | avg_ml_dsa_verify_us |
     -----------------+-------------------+----------------------+
-    ISE (full stack) |                   |                      |
+    ISE (PQC + protocol harness) |                   |                      |
     Pi4 (unit only)  |                   |                      |
     Win x86 (unit)   |                   |                      |
 
@@ -145,7 +145,7 @@ def main() -> int:
     rows: List[Tuple[str, str, str, str, str]] = [
         ("environment", "ML-DSA Sign [us]", "ML-DSA Verify [us]",
          "ML-KEM KeyGen [us]", "end-to-end (ISE only) [us]"),
-        ("ISE (full stack)",
+        ("ISE (PQC + SecOC-protocol harness)",
          f"{ise_sign:.1f}" if ise_sign is not None else "n/a",
          f"{ise_verify:.1f}" if ise_verify is not None else "n/a",
          f"{ise_kem:.1f}" if ise_kem is not None else "n/a",
@@ -164,10 +164,17 @@ def main() -> int:
 
     md = ["# Cross-Environment PQC Comparison\n",
           "The numbers below come from three distinct test campaigns. The "
-          "ISE column is the only one where the full AUTOSAR stack "
-          "(Com → PduR → SecOC → Csm → PQC → SoAd → virtual bus) was "
-          "active; the other two are unit-level measurements kept here "
-          "as a reference baseline for the thesis.\n"]
+          "ISE column links the **real** PQC modules from "
+          "`Autosar_SecOC/source/PQC/*.c` + liboqs and adds simulated "
+          "SecOC framing, freshness handling and bus transit; the other "
+          "two columns measure raw PQC primitives only. Numbers are "
+          "*not* directly comparable (different payloads, different cache "
+          "states, different host CPUs) — they are kept here as upper "
+          "and lower bounds.\n",
+          "AUTOSAR upper-stack (Com / PduR / SecOC.c / Csm / CryIf / "
+          "CanTp / SoAd / NvM …) conformance is asserted by the "
+          "41-executable / 678-case gtest suite under "
+          "`Autosar_SecOC/test/`, not by the ISE.\n"]
     md.append("| " + " | ".join(rows[0]) + " |")
     md.append("| " + " | ".join(["---"] * len(rows[0])) + " |")
     for r in rows[1:]:

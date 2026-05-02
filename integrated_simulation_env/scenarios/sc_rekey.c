@@ -12,6 +12,11 @@
 
 #include "PQC.h"
 
+/* SWS coverage tags (picked up by reports/build_sws_traceability.py):
+ *   - SWS_SecOC_00161 (DeInit + reinit on rekey)
+ *   - SWS_SecOC_00203 (Crypto operation queueing under load)
+ */
+
 /*
  * sc_rekey_run
  * ------------
