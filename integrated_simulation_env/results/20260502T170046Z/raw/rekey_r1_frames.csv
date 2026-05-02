@@ -1,0 +1,1 @@
+seq,tx_ns,rx_ns,e2e_ns,secoc_auth_ns,secoc_verify_ns,cantp_ns,bus_ns,pdu_bytes,auth_bytes,fragments,signal_id,bus_id,asil,deadline_class,outcome,attack_kind,protected_mode

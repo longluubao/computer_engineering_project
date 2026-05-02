@@ -1,0 +1,58 @@
+{
+  "scenario": "attacks_dos_flood_pqc",
+  "seed": 12648430,
+  "duration_ns": 203065464,
+  "success_count": 200,
+  "drop_count": 0,
+  "verify_fail_count": 0,
+  "attacks_injected": 10400,
+  "attacks_detected": 0,
+  "attacks_delivered": 200,
+  "tx_bytes_total": 665400,
+  "rx_bytes_total": 665400,
+  "deadline_miss": {
+    "D1": {"miss": 0, "total": 0},
+    "D2": {"miss": 0, "total": 0},
+    "D3": {"miss": 0, "total": 0},
+    "D4": {"miss": 0, "total": 0},
+    "D5": {"miss": 0, "total": 0},
+    "D6": {"miss": 0, "total": 0}
+  },
+  "histograms": {
+    "e2e_latency": {
+      "count": 200, "min_ns": 843882, "max_ns": 2106637,
+      "mean_ns": 1003343.67, "stddev_ns": 205242.69,
+      "p50_ns": 954056, "p95_ns": 1184171, "p99_ns": 2018200, "p999_ns": 2044917
+    },
+    "secoc_auth": {
+      "count": 200, "min_ns": 42440, "max_ns": 395799,
+      "mean_ns": 109872.52, "stddev_ns": 65684.72,
+      "p50_ns": 84610, "p95_ns": 246133, "p99_ns": 310027, "p999_ns": 318635
+    },
+    "secoc_verify": {
+      "count": 200, "min_ns": 30554, "max_ns": 63354,
+      "mean_ns": 33461.09, "stddev_ns": 5150.34,
+      "p50_ns": 31448, "p95_ns": 44485, "p99_ns": 51014, "p999_ns": 62890
+    },
+    "cantp": {
+      "count": 200, "min_ns": 1972, "max_ns": 18101,
+      "mean_ns": 2201.48, "stddev_ns": 1398.37,
+      "p50_ns": 2036, "p95_ns": 2093, "p99_ns": 8961, "p999_ns": 11432
+    },
+    "bus_transit": {
+      "count": 200, "min_ns": 26028, "max_ns": 352148,
+      "mean_ns": 63781.48, "stddev_ns": 37849.99,
+      "p50_ns": 47178, "p95_ns": 111110, "p99_ns": 158706, "p999_ns": 219452
+    },
+    "pdu_bytes": {
+      "count": 200, "min_ns": 3327, "max_ns": 3327,
+      "mean_ns": 3327.00, "stddev_ns": 0.00,
+      "p50_ns": 3327, "p95_ns": 3327, "p99_ns": 3327, "p999_ns": 3327
+    },
+    "fragments": {
+      "count": 200, "min_ns": 52, "max_ns": 52,
+      "mean_ns": 52.00, "stddev_ns": 0.00,
+      "p50_ns": 52, "p95_ns": 52, "p99_ns": 52, "p999_ns": 52
+    }
+  }
+}
