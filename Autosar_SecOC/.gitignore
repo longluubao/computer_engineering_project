@@ -58,3 +58,4 @@ cppcheck_includes.txt
 
 # Compliance report outputs (generated, not source)
 compliance_reports/
+__pycache__/

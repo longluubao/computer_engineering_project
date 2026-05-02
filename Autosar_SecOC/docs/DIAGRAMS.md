@@ -214,8 +214,7 @@ flowchart TD
     EXTRACT --> INC_FV[Increment Freshness Counter]
     INC_FV --> BUILD_DTA[Build Data-to-Authenticator<br/>MessageID + Data + Freshness]
 
-    BUILD_DTA --> PQC_SIGN[PQC Signature Generation<br/>ML-DSA-65 Sign]
-    Note right of PQC_SIGN: Time: ~8.1ms<br/>Signature: 3,309 bytes
+    BUILD_DTA --> PQC_SIGN[PQC Signature Generation<br/>ML-DSA-65 Sign<br/>~8.1 ms / 3309 B]
 
     PQC_SIGN --> BUILD_PDU[Build Secured PDU<br/>Data + Freshness + Signature]
     BUILD_PDU --> ROUTE[Route to Ethernet via PduR]
@@ -246,8 +245,7 @@ flowchart TD
 
     CHECK_FV -->|YES| REBUILD[Rebuild Data-to-Authenticator<br/>MessageID + Data + Freshness]
 
-    REBUILD --> PQC_VERIFY[PQC Signature Verification<br/>ML-DSA-65 Verify]
-    Note right of PQC_VERIFY: Time: ~4.9ms
+    REBUILD --> PQC_VERIFY[PQC Signature Verification<br/>ML-DSA-65 Verify<br/>~4.9 ms]
 
     PQC_VERIFY --> CHECK_SIG{Signature<br/>Valid?}
 
@@ -685,8 +683,6 @@ sequenceDiagram
     Note over RX: NO - REJECT!
     RX->>RX: Drop PDU
     Note over RX: Replay Attack Detected!
-
-    style RX fill:#f44336,color:#fff
 ```
 
 ---
@@ -777,18 +773,50 @@ Simply view the markdown file - Mermaid renders automatically.
 ### In VS Code
 Install extension: "Markdown Preview Mermaid Support"
 
-### Export to Images
-Use Mermaid CLI:
+### Export to Images (recommended)
+
+A ready-to-use script extracts every Mermaid block into a named PNG + SVG
+file under `docs/images/`:
+
 ```bash
-npm install -g @mermaid-js/mermaid-cli
-mmdc -i DIAGRAMS.md -o diagrams.pdf
+cd Autosar_SecOC
+python3 export_diagrams.py                  # PNG + SVG (default)
+python3 export_diagrams.py --format png     # PNG only
+python3 export_diagrams.py --format svg     # SVG only - vector, best for LaTeX
+python3 export_diagrams.py --format pdf     # one PDF per diagram
+python3 export_diagrams.py --clean          # wipe docs/images/ first
 ```
 
-### In LaTeX Reports
-Convert to SVG/PNG:
-```bash
-mmdc -i DIAGRAMS.md -o diagram.png
+Output filenames are slug-ified from each section heading, e.g.:
+
 ```
+docs/images/22-22-complete-module-inventory-current-codebase.png
+docs/images/29-29-end-to-end-hardware-run-on-raspberry-pi-4-latest.svg
+```
+
+The script uses Mermaid CLI via `npx --yes -p @mermaid-js/mermaid-cli mmdc`,
+so no global install is needed (Node.js >= 16 required).
+
+### In LaTeX Reports
+
+Use the SVG files directly with the `svg` package, or convert to PDF for
+maximum portability:
+
+```latex
+\usepackage{svg}
+\includesvg[width=\textwidth]{docs/images/22-22-complete-module-inventory-current-codebase.svg}
+```
+
+Or with `graphicx` and the PNG:
+
+```latex
+\includegraphics[width=\textwidth]{docs/images/29-29-end-to-end-hardware-run-on-raspberry-pi-4-latest.png}
+```
+
+### In Microsoft Word / Google Docs
+
+Insert the PNG files directly. The 2x scale used by the export script
+(`--scale 2`) keeps text sharp at typical thesis print resolution (300 DPI).
 
 ---
 
@@ -932,10 +960,6 @@ sequenceDiagram
     deactivate SoAd
 
     Note over Gateway,Backend: SESSION READY - Both peers have identical session keys<br/>Total Handshake Time: ~10.16ms (one-time cost)
-
-    style SoAd fill:#ff9800,color:#fff
-    style PQC_KE fill:#f57c00,color:#fff
-    style PQC_KD fill:#f57c00,color:#fff
 ```
 
 ---
@@ -952,7 +976,7 @@ graph TB
     end
 
     subgraph "HKDF-Extract Phase"
-        CONCAT1[Concatenate: Salt || SharedSecret]
+        CONCAT1["Concatenate: Salt + SharedSecret"]
         SHA256_1[SHA-256 Hash]
         PRK[Pseudorandom Key PRK<br/>32 bytes]
 
@@ -963,7 +987,7 @@ graph TB
     end
 
     subgraph "HKDF-Expand Phase Encryption Key"
-        CONCAT2[Concatenate: PRK || Info_Enc || 0x01]
+        CONCAT2["Concatenate: PRK + Info_Enc + 0x01"]
         SHA256_2[SHA-256 Hash]
         ENC_KEY[Encryption Key<br/>32 bytes<br/>For AES-256-GCM]
 
@@ -974,7 +998,7 @@ graph TB
     end
 
     subgraph "HKDF-Expand Phase Authentication Key"
-        CONCAT3[Concatenate: PRK || Info_Auth || 0x01]
+        CONCAT3["Concatenate: PRK + Info_Auth + 0x01"]
         SHA256_3[SHA-256 Hash]
         AUTH_KEY[Authentication Key<br/>32 bytes<br/>For HMAC-SHA256]
 
