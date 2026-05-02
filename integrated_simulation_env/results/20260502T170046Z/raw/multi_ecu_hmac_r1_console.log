@@ -1,0 +1,24 @@
+[        95 us][INFO ] logger initialised: scenario=multi_ecu seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260502T170046Z/raw git=ise
+[       119 us][INFO ] running scenario 'multi_ecu' (1 TX : N RX broadcast verification)
+[      2383 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      2499 us][INFO ] bus[1] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      2614 us][INFO ] bus[2] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      2622 us][INFO ] ecu[tx-multi] stack initialised (protection=1)
+[      2626 us][INFO ] ecu[rx-multi-0] stack initialised (protection=1)
+[      2631 us][INFO ] ecu[rx-multi-1] stack initialised (protection=1)
+[      2639 us][INFO ] ecu[rx-multi-2] stack initialised (protection=1)
+[    460464 us][INFO ] =========== multi_ecu_rx0 summary ===========
+[    460473 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[    460500 us][INFO ] e2e latency p50/p95/p99 = 745.0 / 856.9 / 921.8 us
+[    460627 us][INFO ] =========== multi_ecu_rx1 summary ===========
+[    460634 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[    460665 us][INFO ] e2e latency p50/p95/p99 = 745.3 / 854.5 / 902.4 us
+[    460783 us][INFO ] =========== multi_ecu_rx2 summary ===========
+[    460786 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[    460815 us][INFO ] e2e latency p50/p95/p99 = 744.9 / 851.2 / 897.0 us
+[    461581 us][INFO ] =========== multi_ecu_tx summary ===========
+[    461584 us][INFO ] messages   success=0  verify_fail=0  drop=0
+[    461586 us][INFO ] SecOC auth   mean=4.2 us  verify mean=0.0 us
+[    461611 us][INFO ] =========== multi_ecu_aggregate summary ===========
+[    461613 us][INFO ] messages   success=600  verify_fail=0  drop=0
+[    461615 us][INFO ] multi_ecu: 200 iterations x 3 receivers = 600 expected verifies; aggregate success=600 verify_fail=0
