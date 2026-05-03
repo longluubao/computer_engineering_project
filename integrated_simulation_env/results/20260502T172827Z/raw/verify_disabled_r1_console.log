@@ -1,0 +1,12 @@
+[        77 us][INFO ] logger initialised: scenario=verify_disabled seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260502T172827Z/raw git=ise
+[       104 us][INFO ] running scenario 'verify_disabled' (SecOC verification disabled (SWS_SecOC_00265))
+[       598 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[       606 us][INFO ] ecu[tx-nover] stack initialised (protection=0)
+[       607 us][INFO ] ecu[rx-nover] stack initialised (protection=0)
+[    182118 us][INFO ] verify_disabled: clean_ok=200/200  tamper_delivered=50/50 (both expected to equal the upper bound)
+[    182541 us][INFO ] =========== verify_disabled summary ===========
+[    182545 us][INFO ] messages   success=250  verify_fail=0  drop=0
+[    182580 us][INFO ] e2e latency p50/p95/p99 = 714.4 / 811.5 / 866.4 us
+[    182582 us][INFO ] SecOC auth   mean=0.0 us  verify mean=0.1 us
+[    182584 us][INFO ] attacks injected=50 detected=0 delivered=50
+[    182589 us][INFO ] verify_disabled summary: SWS_SecOC_00265 compliant (passthrough mode delivers tampered frames as documented)

@@ -2,12 +2,21 @@
 
 ## 1. Goals
 
-1. Exercise the **full AUTOSAR BSW stack** end-to-end without flashing an
-   ECU.
-2. Replace only the MCAL / physical bus with a deterministic software
-   model.
+1. Link the **real PQC modules** (`Autosar_SecOC/source/PQC/*.c` →
+   liboqs) and exercise them end-to-end on simulated automotive buses
+   without flashing an ECU.
+2. Reproduce the **AUTOSAR SecOC protocol** (frame layout, freshness
+   monotonicity, authenticator placement) in a deterministic, single
+   process driver so attacks can be injected, replayed and measured.
 3. Provide **repeatable** (seeded) runs with **thesis-grade logs**.
 4. Allow arbitrary **attack injection** between Tx and Rx.
+
+> **Scope note (read this before §5).** The ISE is a *focused PQC +
+> SecOC-protocol harness*, not a full BSW integration test. Module-level
+> AUTOSAR conformance is asserted by the 40-file gtest suite under
+> `Autosar_SecOC/test/` which links the real `SecOCLib` static library.
+> See `Autosar_SecOC/test/SecOCIntegrationTests.cpp` and the
+> per-module `*Tests.cpp` files for that layer of the evidence.
 
 ## 2. Logical topology
 
@@ -77,25 +86,85 @@ typedef struct {
 Messages carry a `tx_ns` (enqueue), `rx_ns` (deliver), and optional
 `attack_tag` so the logger can correlate both sides.
 
-## 5. Stack binding
+## 5. Stack binding — what is actually compiled into `ise_runner`
 
-The ISE re-uses the **existing** C sources from `Autosar_SecOC/source/`:
+The honest, machine-checkable truth is in `CMakeLists.txt:35-39`:
 
-- `SecOC/SecOC.c`, `SecOC/FVM.c`
-- `Csm/Csm.c`, `CryIf/CryIf.c`, `Encrypt/*`
-- `PQC/PQC.c`, `PQC/PQC_KeyExchange.c`, `PQC/PQC_KeyDerivation.c`
-- `Com/*`, `PduR/*`, `Can/CanIF.c`, `Can/CanTP.c`, `SoAd/*`, `EthIf/*`
-- `Os/Os.c`, `BswM/*`, `EcuM/*`, `NvM/*`
+```cmake
+set(AUTOSAR_SOURCES
+    ${AUTOSAR_ROOT}/source/PQC/PQC.c
+    ${AUTOSAR_ROOT}/source/PQC/PQC_KeyDerivation.c
+    ${AUTOSAR_ROOT}/source/PQC/PQC_KeyExchange.c
+)
+```
 
-The **only** substitution is the leaf driver. Instead of calling into
-`Can_Pi4.c` or `ethernet.c`, the CanIf / EthIf layers are retargeted to
-`sim_bus`. This is achieved with a compile-time switch
-(`ISE_SIM_MCAL=ON`) which the `integrated_simulation_env` CMakeLists sets
-before including the SecOCLib object files.
+That is the entire AUTOSAR-source set linked into `ise_runner`. The
+PQC modules in turn pull in `liboqs.a` (NIST FIPS 203/204) and
+OpenSSL (HMAC-SHA-256 + AES). Everything else under
+`Autosar_SecOC/source/` (SecOC.c, PduR/*, Csm.c, CryIf.c, CanTp.c,
+SoAd/*, Com/*, NvM/*, …) is **not** compiled by this CMake project.
 
-If `SecOCLib` is already built, the ISE links the static archive. If not,
-CMake falls back to compiling the same source set with the sim-MCAL
-shim.
+### 5.1 What `sim_ecu.c` does instead
+
+`integrated_simulation_env/src/sim_ecu.c` provides a *deterministic
+re-implementation of the SecOC frame protocol* that calls the real
+PQC modules:
+
+```
+            ┌────────────────────────────────────────────┐
+            │ sim_ecu.c (this directory)                  │
+            │   build_secured_pdu()                        │
+            │     [hdr 2B | freshness 8B | payload | auth] │
+            │     auth ← PQC_MLDSA_Sign() (liboqs)         │
+            │           or HMAC-SHA-256 / 16 (OpenSSL)     │
+            │   verify_secured_pdu()                       │
+            │     freshness > last_rx ?                    │
+            │     auth ← PQC_MLDSA_Verify() (liboqs)       │
+            └────────────────────────────────────────────┘
+                              ▲
+                              │ exercised by 11 scenario drivers in
+                              │ scenarios/sc_*.c, attack injection
+                              │ via sim_attacker.c, deterministic
+                              │ buses via sim_bus.c
+```
+
+This means ISE latency numbers measure: PQC sign/verify (real) +
+freshness handling (re-implemented) + bus transit (modelled). They do
+**not** include real Com/PduR/SecOC.c/Csm/CryIf/CanTp/SoAd overhead.
+
+### 5.2 Where AUTOSAR module conformance is actually asserted
+
+The **40-file gtest suite** under `Autosar_SecOC/test/` links the
+real `SecOCLib` static library (which globs every `Autosar_SecOC/source/**/*.c`
+file) and asserts each module's AUTOSAR API contract:
+
+| Test executable                       | Module under test          |
+|---------------------------------------|----------------------------|
+| `SecOCTests`, `SecOCExtTests`         | `source/SecOC/SecOC.c`     |
+| `SecOCIntegrationTests`               | full Tx→Rx round-trip       |
+| `AuthenticationTests`                 | `Authenticate()`           |
+| `VerificationTests`                   | `verify()` / `verify_PQC()` |
+| `FreshnessTests` (495 LOC)            | FVM + counter math         |
+| `DirectTxTests`, `DirectRxTests`      | `IfTransmit` / `RxIndication` |
+| `startOfReceptionTests`               | TP `StartOfReception` API  |
+| `CsmTests`, `CryIfTests`, `EncryptTests` | crypto stack            |
+| `PduRTests`, `CanIfTests`, `CanTpTests`, `SoAdTests`, `SoAdPqcTests`, `EthIfTests`, `TcpIpTests` | PDU routing + TP |
+| `ComTests`, `EcuMTests`, `BswMTests`, `ComMTests`, `OsTests` | upper BSW |
+| `DemTests`, `DcmTests`, `DetTests`    | diagnostics                |
+| `NvMTests`, `MemIfTests`, `FeeTests`, `EaTests` | NV memory       |
+| `CanSMTests`, `EthSMTests`, `CanNmTests`, `UdpNmTests` | bus state |
+| `KeyDerivationTests`, `KeyExchangeTests`, `PQC_ComparisonTests` | PQC |
+| `McalTests`, `ApBridgeTests`          | leaf driver + bridge       |
+
+41 ctest executables, **678 individual test cases**, 100 % pass rate
+(see `THESIS_COVERAGE_AUDIT.md` for the latest run).
+
+The thesis evidence base is therefore *two-layered*:
+
+| Layer                    | Linker view                       | Asserted by              |
+|--------------------------|-----------------------------------|--------------------------|
+| AUTOSAR API conformance  | `SecOCLib` (real BSW C sources)  | `Autosar_SecOC/test/*`   |
+| PQC + protocol semantics | `PQC.c` + `liboqs.a` + sim_ecu.c | `integrated_simulation_env/scenarios/sc_*.c` |
 
 ## 6. Deterministic time & seeding
 

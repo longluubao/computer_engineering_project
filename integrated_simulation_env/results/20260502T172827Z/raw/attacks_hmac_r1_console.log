@@ -1,0 +1,77 @@
+[        71 us][INFO ] logger initialised: scenario=attacks seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260502T172827Z/raw git=ise
+[       145 us][INFO ] running scenario 'attacks' (All 10 attack scenarios, sequential)
+[      1067 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      1079 us][INFO ] attacker[replay] attached to bus
+[      1086 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[      1087 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[    153820 us][INFO ] attack[replay]  injected=197 detected=197 delivered=3  rate=100.00%
+[    154108 us][INFO ] =========== attacks_replay_hmac summary ===========
+[    154112 us][INFO ] messages   success=3  verify_fail=197  drop=0
+[    154140 us][INFO ] e2e latency p50/p95/p99 = 736.9 / 863.1 / 937.1 us
+[    154148 us][INFO ] SecOC auth   mean=11.9 us  verify mean=0.2 us
+[    154151 us][INFO ] attacks injected=197 detected=197 delivered=3
+[    154537 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    154588 us][INFO ] attacker[tamper_payload] attached to bus
+[    154593 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[    154594 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[    307899 us][INFO ] attack[tamper_payload]  injected=200 detected=200 delivered=0  rate=100.00%
+[    308308 us][INFO ] =========== attacks_tamper_payload_hmac summary ===========
+[    308313 us][INFO ] messages   success=0  verify_fail=200  drop=0
+[    308349 us][INFO ] e2e latency p50/p95/p99 = 751.8 / 848.1 / 903.4 us
+[    308352 us][INFO ] SecOC auth   mean=2.3 us  verify mean=5.5 us
+[    308354 us][INFO ] attacks injected=200 detected=200 delivered=0
+[    308777 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    308806 us][INFO ] attacker[tamper_auth] attached to bus
+[    308810 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[    308811 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[    460829 us][INFO ] attack[tamper_auth]  injected=200 detected=200 delivered=0  rate=100.00%
+[    461159 us][INFO ] =========== attacks_tamper_auth_hmac summary ===========
+[    461162 us][INFO ] messages   success=0  verify_fail=200  drop=0
+[    461194 us][INFO ] e2e latency p50/p95/p99 = 744.0 / 849.1 / 899.8 us
+[    461196 us][INFO ] SecOC auth   mean=2.2 us  verify mean=5.9 us
+[    461197 us][INFO ] attacks injected=200 detected=200 delivered=0
+[    461545 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    461567 us][INFO ] attacker[freshness_rollback] attached to bus
+[    461571 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[    461573 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[    618813 us][INFO ] attack[freshness_rollback]  injected=200 detected=200 delivered=0  rate=100.00%
+[    619156 us][INFO ] =========== attacks_freshness_rollback_hmac summary ===========
+[    619160 us][INFO ] messages   success=0  verify_fail=200  drop=0
+[    619189 us][INFO ] e2e latency p50/p95/p99 = 767.6 / 891.1 / 944.3 us
+[    619191 us][INFO ] SecOC auth   mean=8.4 us  verify mean=0.0 us
+[    619193 us][INFO ] attacks injected=200 detected=200 delivered=0
+[    619556 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    619573 us][INFO ] attacker[mitm_key_confuse] attached to bus
+[    619577 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[    619578 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[    771580 us][INFO ] attack[mitm_key_confuse]  injected=200 detected=200 delivered=0  rate=100.00%
+[    771968 us][INFO ] =========== attacks_mitm_key_confuse_hmac summary ===========
+[    771972 us][INFO ] messages   success=0  verify_fail=200  drop=0
+[    772007 us][INFO ] e2e latency p50/p95/p99 = 740.3 / 847.4 / 894.6 us
+[    772009 us][INFO ] SecOC auth   mean=2.2 us  verify mean=5.9 us
+[    772010 us][INFO ] attacks injected=200 detected=200 delivered=0
+[    772344 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    772364 us][INFO ] attacker[sig_fuzz] attached to bus
+[    772370 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[    772372 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[    926010 us][INFO ] attack[sig_fuzz]  injected=200 detected=200 delivered=0  rate=100.00%
+[    926319 us][INFO ] =========== attacks_sig_fuzz_hmac summary ===========
+[    926322 us][INFO ] messages   success=0  verify_fail=200  drop=0
+[    926353 us][INFO ] e2e latency p50/p95/p99 = 752.1 / 874.6 / 921.6 us
+[    926355 us][INFO ] SecOC auth   mean=2.3 us  verify mean=5.5 us
+[    926356 us][INFO ] attacks injected=200 detected=200 delivered=0
+[    926603 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    926619 us][INFO ] attacker[downgrade_hmac] attached to bus
+[    926623 us][INFO ] ecu[tx-atk] stack initialised (protection=1)
+[    926624 us][INFO ] ecu[rx-atk] stack initialised (protection=1)
+[   1080601 us][INFO ] attack[downgrade_hmac]  injected=200 detected=0 delivered=200  rate=0.00%
+[   1080928 us][INFO ] =========== attacks_downgrade_hmac_hmac summary ===========
+[   1080938 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[   1080969 us][INFO ] e2e latency p50/p95/p99 = 752.4 / 865.6 / 916.3 us
+[   1080971 us][INFO ] SecOC auth   mean=2.1 us  verify mean=5.3 us
+[   1080972 us][INFO ] attacks injected=200 detected=0 delivered=200
+[   1083271 us][INFO ] =========== attacks_aggregate_hmac summary ===========
+[   1083274 us][INFO ] messages   success=203  verify_fail=1197  drop=0
+[   1083639 us][INFO ] e2e latency p50/p95/p99 = 750.7 / 869.7 / 918.8 us
+[   1083641 us][INFO ] SecOC auth   mean=4.5 us  verify mean=4.0 us
+[   1083642 us][INFO ] attacks injected=1397 detected=1197 delivered=203

@@ -1,0 +1,12 @@
+[        74 us][INFO ] logger initialised: scenario=freshness_overflow seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260502T172827Z/raw git=ise
+[       105 us][INFO ] running scenario 'freshness_overflow' (Tx counter exhaustion (SWS_SecOC_00062))
+[       578 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      2201 us][INFO ] ecu[tx-overflow] stack initialised (protection=2)
+[      2238 us][INFO ] ecu[rx-overflow] stack initialised (protection=2)
+[      2442 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 199.9 us
+[     10424 us][INFO ] freshness_overflow: last_ok=1/1  exhausted_rejected=8/8  delivered=0 (MUST be 0)
+[     10508 us][INFO ] =========== freshness_overflow summary ===========
+[     10511 us][INFO ] messages   success=1  verify_fail=8  drop=0
+[     10513 us][INFO ] SecOC auth   mean=91.1 us  verify mean=3.8 us
+[     10515 us][INFO ] attacks injected=8 detected=8 delivered=0
+[     10516 us][INFO ] freshness_overflow summary: SWS_SecOC_00062 compliant (delivered=0)

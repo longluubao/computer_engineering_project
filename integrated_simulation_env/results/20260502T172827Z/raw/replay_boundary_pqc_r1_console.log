@@ -1,0 +1,12 @@
+[        71 us][INFO ] logger initialised: scenario=replay_boundary seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260502T172827Z/raw git=ise
+[        94 us][INFO ] running scenario 'replay_boundary' (Strict-monotonic boundary (SWS_SecOC_00202))
+[       511 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      2031 us][INFO ] ecu[tx-replay-bnd] stack initialised (protection=2)
+[      2068 us][INFO ] ecu[rx-replay-bnd] stack initialised (protection=2)
+[      2268 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 196.2 us
+[     60765 us][INFO ] replay_boundary: rounds=16 equality_rejected=16 older_rejected=15 advance_ok=16 replayed_advance_rejected=16
+[     60911 us][INFO ] =========== replay_boundary summary ===========
+[     60919 us][INFO ] messages   success=17  verify_fail=47  drop=0
+[     60922 us][INFO ] SecOC auth   mean=100.6 us  verify mean=9.1 us
+[     60923 us][INFO ] attacks injected=47 detected=47 delivered=0
+[     60925 us][INFO ] replay_boundary summary: SWS_SecOC_00202 compliant (boundary_attempts=47 total_rejected=47 delivered=0)
