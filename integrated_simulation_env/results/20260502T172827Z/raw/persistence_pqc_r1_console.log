@@ -1,0 +1,32 @@
+[        70 us][INFO ] logger initialised: scenario=persistence seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260502T172827Z/raw git=ise
+[        99 us][INFO ] running scenario 'persistence' (NvM freshness persistence across reboot)
+[       980 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      2560 us][INFO ] ecu[tx-persist] stack initialised (protection=2)
+[      2600 us][INFO ] ecu[rx-persist] stack initialised (protection=2)
+[      2799 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 195.4 us
+[    188761 us][INFO ] [no_nvm] phase1 done: freshness_tx=200 freshness_rx=200
+[    188826 us][INFO ] ecu[rx-persist] stack initialised (protection=2)
+[    188828 us][WARN ] [no_nvm] no NvM restore: freshness_rx resets to 0 (SWS_SecOC_00194 violation)
+[    282914 us][INFO ] [no_nvm] phase2 replays: injected=100 detected=0 delivered=100
+[    471387 us][INFO ] =========== persistence_no_nvm summary ===========
+[    471395 us][INFO ] messages   success=500  verify_fail=0  drop=0
+[    471443 us][INFO ] e2e latency p50/p95/p99 = 905.1 / 1069.0 / 1180.3 us
+[    471446 us][INFO ] SecOC auth   mean=98.0 us  verify mean=34.4 us
+[    471449 us][INFO ] attacks injected=100 detected=0 delivered=100
+[    475139 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    475198 us][INFO ] ecu[tx-persist] stack initialised (protection=2)
+[    475231 us][INFO ] ecu[rx-persist] stack initialised (protection=2)
+[    475309 us][INFO ] PQC handshake complete: keygen+encaps+decaps+HKDF = 74.7 us
+[    664037 us][INFO ] [with_nvm] phase1 done: freshness_tx=200 freshness_rx=200
+[    664080 us][INFO ] ecu[rx-persist] stack initialised (protection=2)
+[    664083 us][INFO ] [with_nvm] NvM restore applied: freshness_rx=200
+[    756615 us][INFO ] [with_nvm] phase2 replays: injected=100 detected=100 delivered=0
+[    948788 us][INFO ] =========== persistence_with_nvm summary ===========
+[    948796 us][INFO ] messages   success=400  verify_fail=100  drop=0
+[    948833 us][INFO ] e2e latency p50/p95/p99 = 917.5 / 1118.6 / 1215.3 us
+[    948835 us][INFO ] SecOC auth   mean=103.6 us  verify mean=27.2 us
+[    948837 us][INFO ] attacks injected=100 detected=100 delivered=0
+[    952154 us][INFO ] =========== persistence_aggregate summary ===========
+[    952161 us][INFO ] messages   success=900  verify_fail=100  drop=0
+[    952162 us][INFO ] attacks injected=200 detected=100 delivered=100
+[    952164 us][INFO ] persistence summary: replay_delivered_without_nvm_vs_with_nvm verifies SWS_SecOC_00194

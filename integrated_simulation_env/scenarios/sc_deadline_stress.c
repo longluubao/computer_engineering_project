@@ -10,6 +10,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+/* SWS coverage tags (picked up by reports/build_sws_traceability.py):
+ *   - SWS_SecOC_00250 (MainFunction scheduling under load)
+ */
+
 /*
  * sc_deadline_stress_run
  * ----------------------

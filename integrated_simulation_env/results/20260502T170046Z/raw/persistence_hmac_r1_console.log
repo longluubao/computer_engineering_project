@@ -1,0 +1,30 @@
+[        87 us][INFO ] logger initialised: scenario=persistence seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260502T170046Z/raw git=ise
+[       112 us][INFO ] running scenario 'persistence' (NvM freshness persistence across reboot)
+[      1055 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[      1067 us][INFO ] ecu[tx-persist] stack initialised (protection=1)
+[      1068 us][INFO ] ecu[rx-persist] stack initialised (protection=1)
+[    155902 us][INFO ] [no_nvm] phase1 done: freshness_tx=200 freshness_rx=200
+[    155917 us][INFO ] ecu[rx-persist] stack initialised (protection=1)
+[    155926 us][WARN ] [no_nvm] no NvM restore: freshness_rx resets to 0 (SWS_SecOC_00194 violation)
+[    232570 us][INFO ] [no_nvm] phase2 replays: injected=100 detected=0 delivered=100
+[    385182 us][INFO ] =========== persistence_no_nvm summary ===========
+[    385190 us][INFO ] messages   success=500  verify_fail=0  drop=0
+[    385225 us][INFO ] e2e latency p50/p95/p99 = 743.9 / 872.1 / 992.1 us
+[    385227 us][INFO ] SecOC auth   mean=4.3 us  verify mean=6.6 us
+[    385228 us][INFO ] attacks injected=100 detected=0 delivered=100
+[    385819 us][INFO ] bus[0] kind=1 bitrate=5000000 MTU=64 ber=0.00e+00 prop_ns=3000
+[    385827 us][INFO ] ecu[tx-persist] stack initialised (protection=1)
+[    385829 us][INFO ] ecu[rx-persist] stack initialised (protection=1)
+[    535493 us][INFO ] [with_nvm] phase1 done: freshness_tx=200 freshness_rx=200
+[    535506 us][INFO ] ecu[rx-persist] stack initialised (protection=1)
+[    535508 us][INFO ] [with_nvm] NvM restore applied: freshness_rx=200
+[    609434 us][INFO ] [with_nvm] phase2 replays: injected=100 detected=100 delivered=0
+[    763035 us][INFO ] =========== persistence_with_nvm summary ===========
+[    763042 us][INFO ] messages   success=400  verify_fail=100  drop=0
+[    763092 us][INFO ] e2e latency p50/p95/p99 = 747.3 / 778.1 / 860.9 us
+[    763095 us][INFO ] SecOC auth   mean=2.4 us  verify mean=4.0 us
+[    763097 us][INFO ] attacks injected=100 detected=100 delivered=0
+[    763604 us][INFO ] =========== persistence_aggregate summary ===========
+[    763609 us][INFO ] messages   success=900  verify_fail=100  drop=0
+[    763611 us][INFO ] attacks injected=200 detected=100 delivered=100
+[    763612 us][INFO ] persistence summary: replay_delivered_without_nvm_vs_with_nvm verifies SWS_SecOC_00194

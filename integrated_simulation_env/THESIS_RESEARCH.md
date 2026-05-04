@@ -106,6 +106,31 @@ Published 13 August 2024. The ISE uses **ML-DSA-65** (NIST Category 3).
 | SUF-CMA                             | malleability scenarios                             |
 | Deterministic / randomised sign     | scenario `sc_baseline` runs both modes             |
 
+### 2.4 Known-Answer-Test (KAT) compliance — ML-KEM-768 + ML-DSA-65
+
+NIST FIPS 203 §A and FIPS 204 §A publish authoritative Known-Answer
+Test vectors for every supported security level. The ISE does **not**
+re-run those vectors; it inherits KAT compliance from `liboqs`, which
+runs the full NIST KAT vector set during its own build pipeline:
+
+- `external/liboqs/CMakeLists.txt` enables `OQS_BUILD_ONLY_LIB=ON` and
+  `OQS_DIST_BUILD=ON`; the upstream Open Quantum Safe project ships
+  `tests/test_kem_mem.c` and `tests/test_sig_mem.c` which iterate over
+  the NIST KATs in `tests/PQCsignKAT_*.rsp` /
+  `tests/PQCkemKAT_*.rsp`.
+- The version of liboqs vendored under `Autosar_SecOC/external/liboqs`
+  (commit hash recorded in `external/liboqs/SECURITY.md`) is the
+  upstream release that has passed those KATs in CI on Linux (x86_64,
+  aarch64), Windows (MinGW), and macOS.
+- Algorithm identifiers used by the ISE — `OQS_KEM_alg_ml_kem_768` and
+  `OQS_SIG_alg_ml_dsa_65` — are the post-FIPS final names defined in
+  FIPS 203 / 204; older liboqs identifiers (`OQS_KEM_alg_kyber_768`,
+  `OQS_SIG_alg_dilithium_3`) are deliberately not used.
+
+Operational consequence for the thesis: **the cryptographic primitives
+themselves are KAT-validated upstream**; the ISE only validates how
+those primitives are *integrated* into the SecOC pipeline.
+
 ### 2.4 ISO/SAE 21434:2021 — Cybersecurity Engineering
 
 | Clause | Requirement                  | ISE contribution                             |
@@ -182,3 +207,60 @@ threats listed in Annex 5. The ISE addresses:
 11. Frontiers in Physics, *Design and implementation of an authenticated
     post-quantum session protocol using ML-KEM, ML-DSA and AES-256-GCM*,
     2025.
+
+---
+
+## 5. Scope and limitations of this evidence base
+
+For full disclosure to the thesis committee:
+
+### 5.1 Two-layer evidence
+
+The thesis numbers come from two complementary test layers, both run
+in CI for every commit:
+
+1. **Unit-level conformance** — 41 ctest executables / 678 individual
+   gtest cases under `Autosar_SecOC/test/` link the *real* `SecOCLib`
+   static library (every `.c` file under `Autosar_SecOC/source/`).
+   They assert each AUTOSAR module's API contract (parameter validation,
+   return codes, state machines).
+
+2. **Integration / performance under realistic scenarios** — 15 ISE
+   scenarios under `integrated_simulation_env/scenarios/sc_*.c` link
+   only the PQC modules + liboqs and exercise the SecOC frame protocol
+   and freshness state machine through `sim_ecu.c`. Numbers represent
+   the PQC pipeline + protocol invariants; they do not include the
+   real Com / PduR / SecOC.c / Csm / CryIf / CanTp / SoAd overhead.
+
+This split is intentional and is documented in
+`integrated_simulation_env/ARCHITECTURE.md` §5.
+
+### 5.2 What is explicitly out of scope
+
+- ISO/SAE 21434 §15 continuous cybersecurity activities
+  (post-production monitoring, vulnerability triage, incident
+  response) — these are organisational processes that cannot be
+  validated by code-level tests alone.
+- UN R155 §7.3.7 incident response — same reason.
+- Time-Sensitive Networking (TSN) on Ethernet — the ISE Ethernet model
+  is a naive bandwidth + propagation pipe; production deployments
+  would add 802.1Qbv credit-based shapers.
+- Network management (CanNm, UdpNm) — buses are always up for the
+  duration of an ISE scenario; the unit tests `CanNmTests` and
+  `UdpNmTests` validate the NM state machines in isolation.
+- Diagnostic over IP (DoIP) — out of scope; UDS through 0x27
+  SecurityAccess is unit-tested via `DcmTests` only.
+- Hardware-accelerated PQC (Cortex-A72 NEON, RISC-V vector,
+  dedicated coprocessors) — performance numbers are software-only.
+
+### 5.3 Honest finding to highlight in the defense
+
+The ISE `deadline_stress` scenario shows that **ASIL-D D1 (1 ms
+brake-by-wire) loops fail under PQC** on host-class hardware — every
+deadline is missed because ML-DSA-65 sign + verify alone consumes
+≈ 250 µs out of the 1 ms budget once realistic bus transit is added.
+
+This is not a bug. It is a thesis result that frames the
+recommendation: **classical MAC remains appropriate for hard
+sub-millisecond loops; PQC is appropriate for D2+ deadlines and for
+quantum-sensitive long-lifetime channels (V2X, OTA, key-management).**

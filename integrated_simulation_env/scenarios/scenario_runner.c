@@ -33,6 +33,10 @@ int sc_deadline_stress_run(const SimConfig *);
 int sc_multi_ecu_run      (const SimConfig *);
 int sc_keymismatch_run    (const SimConfig *);
 int sc_rollover_run       (const SimConfig *);
+int sc_freshness_overflow_run(const SimConfig *);
+int sc_replay_boundary_run   (const SimConfig *);
+int sc_verify_disabled_run   (const SimConfig *);
+int sc_flexray_baseline_run  (const SimConfig *);
 
 static struct {
     const char *name;
@@ -50,6 +54,10 @@ static struct {
     { "multi_ecu",       sc_multi_ecu_run,       "1 TX : N RX broadcast verification"     },
     { "keymismatch",     sc_keymismatch_run,     "Wrong-key rejection (SWS_SecOC_00046)"  },
     { "rollover",        sc_rollover_run,        "Freshness counter wrap-around recovery" },
+    { "freshness_overflow", sc_freshness_overflow_run, "Tx counter exhaustion (SWS_SecOC_00062)" },
+    { "replay_boundary", sc_replay_boundary_run, "Strict-monotonic boundary (SWS_SecOC_00202)" },
+    { "verify_disabled", sc_verify_disabled_run, "SecOC verification disabled (SWS_SecOC_00265)" },
+    { "flexray_baseline",sc_flexray_baseline_run,"FlexRay TDMA bus coverage" },
     { NULL, NULL, NULL }
 };
 

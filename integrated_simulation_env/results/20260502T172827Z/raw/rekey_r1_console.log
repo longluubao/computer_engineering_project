@@ -1,0 +1,14 @@
+[       135 us][INFO ] logger initialised: scenario=rekey seed=12648430 out=/home/user/computer_engineering_project/integrated_simulation_env/results/20260502T172827Z/raw git=ise
+[       162 us][INFO ] running scenario 'rekey' (Session rekey + key-exchange stress)
+[       843 us][INFO ] bus[0] kind=4 bitrate=1000000000 MTU=1500 ber=0.00e+00 prop_ns=500
+[      2491 us][INFO ] ecu[tx-rekey] stack initialised (protection=2)
+[      2527 us][INFO ] ecu[rx-rekey] stack initialised (protection=2)
+[      9561 us][INFO ] ML-KEM-768 rekey (200 iterations):
+  KeyGen     mean=10.3 us  p99=23.5 us
+  Encaps     mean=11.3 us  p99=29.2 us
+  Decaps     mean=12.5 us  p99=20.0 us
+  Full rekey mean=34.5 us  p99=76.6 us
+[      9856 us][INFO ] =========== rekey summary ===========
+[      9860 us][INFO ] messages   success=200  verify_fail=0  drop=0
+[      9887 us][INFO ] e2e latency p50/p95/p99 = 32.5 / 43.8 / 76.6 us
+[      9889 us][INFO ] SecOC auth   mean=10.3 us  verify mean=11.3 us

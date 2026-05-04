@@ -10,6 +10,11 @@
 #include <string.h>
 #include <stdlib.h>
 
+/* SWS coverage tags (picked up by reports/build_sws_traceability.py):
+ *   - SWS_SecOC_00050 (1:N authentic PDU forwarding)
+ *   - SWS_SecOC_00257 (Per-PDU auth counter)
+ */
+
 /*
  * sc_multi_ecu_run
  * ----------------

@@ -11,6 +11,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+/* SWS coverage tags (picked up by reports/build_sws_traceability.py):
+ *   - SWS_SecOC_00209 (Freshness verification)
+ *   - SWS_SecOC_00230 (Drop PDU on verify failure)
+ *   - SWS_SecOC_00241 (Verify failure result signal)
+ */
+
 /*
  * sc_attacks_run
  * --------------

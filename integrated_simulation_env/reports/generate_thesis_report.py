@@ -269,10 +269,16 @@ def write_flow_timeline_md(
     lines: List[str] = []
     lines.append("# AUTOSAR Signal Flow — Per-Layer Latency Timeline\n")
     lines.append(
-        "Traces one representative PDU through the full AUTOSAR BSW "
-        "call chain implemented under `Autosar_SecOC/source/`. Each box "
-        "is a real module in the repository; the API function shown is "
-        "the one actually invoked by the caller on the left.\n"
+        "Traces one representative PDU through the AUTOSAR BSW call "
+        "chain implemented under `Autosar_SecOC/source/`. Each box "
+        "names a real module in the repository; the API function shown "
+        "is the one a production AUTOSAR ECU would invoke. **Note**: "
+        "for the ISE harness only the PQC modules + liboqs are linked "
+        "into `ise_runner`; the upper-stack boxes (Com / PduR / SecOC / "
+        "Csm / CryIf / CanTp / SoAd) describe the production flow but "
+        "are validated separately by the gtest suite under "
+        "`Autosar_SecOC/test/`. ISE per-layer µs values therefore "
+        "include real PQC + simulated framing, not real BSW overhead.\n"
     )
     if representative is None:
         lines.append("_No representative frame available._\n")

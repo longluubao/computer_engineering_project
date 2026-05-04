@@ -10,6 +10,11 @@
 #include <string.h>
 #include <stdlib.h>
 
+/* SWS coverage tags (picked up by reports/build_sws_traceability.py):
+ *   - SWS_SecOC_00227 (Error propagation under bus errors)
+ *   - SWS_SecOC_00230 (Drop on verify fail or bus drop)
+ */
+
 /*
  * sc_bus_failure_run
  * ------------------
